@@ -8,7 +8,7 @@ prevalence with Wilson 95% CIs, plus unadjusted and adjusted odds ratios.
 ```r
 install.packages(c("readxl","janitor","lubridate","dplyr","tidyr","stringr",
                    "binom","broom","purrr","ggplot2","scales","forcats",
-                   "openxlsx","rlang","brglm2"))
+                   "openxlsx","rlang","brglm2","car"))
 ```
 
 Set `input_file` at the top of `stroke_prevalence.R`, then:
@@ -64,7 +64,50 @@ Chosen from observed missingness in this dataset, not from a wish list.
 |---|---|---|
 | `core` | age, BMI | BMI 9% missing |
 | **`clinical`** (primary) | age, BMI, HTN, DM, dyslipidaemia, CAD, AF, CHF, smoking, migraine, VTE, thrombophilia, antithrombotic, bleeding, hormonal Tx, surgical Tx, uterine dx group | all complete except BMI |
+| `clinical_no_treatment` | clinical minus hormonal Tx, surgical Tx, antithrombotic | temporality sensitivity |
 | `full_with_labs` | clinical + Hgb, MCV, platelets, LDL | exploratory |
+
+### Collinearity rule (do not relax this)
+
+`uterine_dx_group` is a deterministic recoding of `fibroids`, `adenomyosis` and
+`endometriosis` — knowing the three flags fixes the group exactly. Putting the
+group in the covariate set while one of the flags is the exposure enters the
+same information twice, inflating the variance without changing confounding
+control.
+
+`build_covs()` enforces the split, and the two branches are mutually exclusive:
+
+- exposure ∈ {`fibroids`, `adenomyosis`, `endometriosis`, `uterine_dx_group`,
+  `fibroid_count_cat`, `fibroid_max_cm`} → drop `uterine_dx_group` **and** all
+  three flags from the covariates;
+- any other exposure → keep `uterine_dx_group`, never add the flags.
+
+It `stop()`s if an exposure ever appears in its own covariate vector. Max VIF
+and the design condition number are written to `09_model_diagnostics` for every
+fitted model, and `15_before_after_collinearity_fix` refits the old
+specification next to the new one so the change is visible, not asserted.
+
+### Temporality
+
+44.9% of strokes (691/1,538) are timed *before* index_date, so `hormonal_tx`,
+`surgical_tx` and `antithrombotic` — all ascertained at or after index — are
+post-outcome for those patients. Two guards:
+
+- `clinical_no_treatment` drops all three covariates;
+- an incident-stroke population (`13_sensitivity_population`) removes the 691
+  patients whose stroke predates index, leaving 847 strokes in 39,116 patients.
+  Strokes with blank (189) or unknown (13) timing are **retained** — they are
+  not positively known to precede index.
+
+`TABLE_2_main_results` carries a `Sensitivity OR` column combining both guards.
+
+### Sparse levels
+
+Factor levels with fewer than 10 patients or fewer than 5 events are set to `NA`
+before fitting and logged to `14_dropped_sparse_levels`. `fibroid_count_cat`
+level "Unknown" (n = 3) previously produced OR 0.00 with an upper CI of 2.5e11 —
+complete separation, not a finding — and is now coded `NA`, since an explicitly
+unknown count carries no information about fibroid burden.
 
 Labs with heavy missingness are deliberately **not** in the primary model:
 ferritin 58%, HbA1c 57%, INR 69%, D-dimer 85%, fibroid_count 57%. Requiring them
@@ -90,6 +133,21 @@ Computed independently from the workbook — the R run should reproduce these:
 | Hypertension yes vs no | 5,942 / 33,865 | 10.05% vs 2.78% | 3.91 |
 | Diabetes yes vs no | 6,992 / 32,815 | 8.17% vs 2.95% | 2.93 |
 | Atrial fibrillation yes vs no | 511 / 39,296 | 26.03% vs 3.58% | 9.49 |
+
+## Two internal inconsistencies, resolved
+
+Both turned out to be reporting artefacts rather than data errors:
+
+- **`prev_age_group` showed a "60-69" band (n = 433).** Eligible ages run
+  exactly 18–60, and all 433 patients are aged exactly 60. The old bins
+  (`right = TRUE`, break at 59) put age 60 into a band labelled "60-69",
+  implying ineligible patients had leaked through the filter. They had not —
+  only the label was wrong. Bands now stop at the eligibility ceiling.
+- **`audit_out_of_range` said 360 ages set to NA, `12_missingness` said 0.**
+  Different denominators: the audit counted all 53,060 file rows, missingness
+  counted the 39,807 eligible. All 360 out-of-range ages (345 under 18, 15 over
+  100) belong to *ineligible* rows, so age is genuinely 0% missing in the
+  analysis population. The audit now reports both denominators.
 
 ## Interpretation caveats worth stating in the paper
 

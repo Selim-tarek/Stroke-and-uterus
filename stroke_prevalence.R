@@ -11,7 +11,7 @@
 #
 # install.packages(c("readxl","janitor","lubridate","dplyr","tidyr","stringr",
 #                    "binom","broom","purrr","ggplot2","scales","forcats",
-#                    "openxlsx","rlang","brglm2"))
+#                    "openxlsx","rlang","brglm2","car"))
 # =============================================================================
 
 library(readxl);   library(janitor); library(lubridate)
@@ -93,8 +93,13 @@ plausible <- list(
   trig = c(10, 2000), hba1c = c(3, 20), inr = c(0.5, 10), ddimer = c(10, 20000)
 )
 
-age_breaks <- c(-Inf, 39, 49, 59, 69, Inf)
-age_labels <- c("<40", "40-49", "50-59", "60-69", "70+")
+# Bug 4a: eligibility is age 18-60 at index, and the observed eligible range is
+# exactly 18-60. The old bands ran to 69, so the 433 patients aged exactly 60
+# were binned as "60-69" -- a label implying ineligible patients had leaked into
+# the cohort. They had not; only the bin definition was wrong. Bands now stop at
+# the eligibility ceiling.
+age_breaks <- c(-Inf, 29, 39, 49, 60)
+age_labels <- c("18-29", "30-39", "40-49", "50-60")
 
 # ---- Adjustment sets --------------------------------------------------------
 # Chosen from the observed missingness in THIS dataset. The clinical set uses
@@ -110,6 +115,15 @@ adj_sets <- list(
                "antithrombotic", "uterine_bleeding", "hormonal_tx",
                "surgical_tx", "uterine_dx_group"),
 
+  # Bug 3: hormonal_tx, surgical_tx and antithrombotic are ascertained at or
+  # after index_date, but 44.9% of strokes occurred BEFORE index_date. For those
+  # patients these are post-outcome variables, and conditioning on them can
+  # induce bias rather than remove it. This variant drops all three.
+  clinical_no_treatment = c("age_index", "bmi", "htn", "dm", "dyslipidemia",
+                            "cad", "afib", "chf", "smoking", "migraine",
+                            "vte_history", "thrombophilia", "uterine_bleeding",
+                            "uterine_dx_group"),
+
   full_with_labs = c("age_index", "bmi", "htn", "dm", "dyslipidemia", "cad",
                      "afib", "chf", "smoking", "migraine", "vte_history",
                      "thrombophilia", "antithrombotic", "uterine_bleeding",
@@ -118,6 +132,45 @@ adj_sets <- list(
 )
 
 primary_adjustment <- "clinical"
+
+# ---- Collinear exposure family (Bug 1) --------------------------------------
+# uterine_dx_group is a deterministic recoding of the three binary pathology
+# flags: knowing fibroids/adenomyosis/endometriosis fixes the group exactly.
+# Including the group as a covariate while one of the flags is the exposure puts
+# the same information in the model twice. The symptom is a CI that widens while
+# the point estimate barely moves -- variance inflation, not confounding
+# control. These variables must never share a model.
+uterine_flags  <- c("fibroids", "adenomyosis", "endometriosis")
+uterine_family <- c(uterine_flags, "uterine_dx_group", "fibroid_count_cat",
+                    "fibroid_max_cm")
+
+# Builds the covariate vector for one exposure. The two branches are mutually
+# exclusive by construction, and the result never contains the exposure itself.
+build_covs <- function(exposure, set_name) {
+  covs <- setdiff(adj_sets[[set_name]], adj_exclude)
+
+  if (exposure %in% uterine_family) {
+    # Exposure is part of the uterine family -> remove the whole family.
+    covs <- setdiff(covs, c("uterine_dx_group", uterine_flags))
+  } else {
+    # Otherwise keep the group as the single summary of uterine pathology,
+    # and never add the individual flags alongside it.
+    covs <- setdiff(covs, uterine_flags)
+  }
+
+  covs <- setdiff(covs, exposure)
+
+  # Fails loudly rather than silently fitting a model containing its own
+  # exposure as a covariate.
+  if (exposure %in% covs)
+    stop("Exposure '", exposure, "' appears in its own covariate set for '",
+         set_name, "'.")
+  if (exposure %in% uterine_family &&
+      any(c("uterine_dx_group", uterine_flags) %in% covs))
+    stop("Collinear uterine terms retained for exposure '", exposure, "'.")
+
+  intersect(covs, names(model_df))
+}
 
 # race and malignancy_active never enter an adjusted model:
 # race is free-text with dozens of unstandardised levels, and active malignancy
@@ -250,6 +303,68 @@ tidy_safe <- function(fit) {
          conf.low = est - 1.96 * se, conf.high = est + 1.96 * se)
 }
 
+# ---- Bug 2: sparse factor levels -------------------------------------------
+# A level carrying almost no patients or almost no events causes complete or
+# quasi-complete separation: the coefficient runs off to +/-Inf and the Wald CI
+# explodes (the observed case was OR 0.00 with an upper bound of 2.5e11). Such
+# levels are set to NA before fitting so the affected rows drop out, and every
+# drop is logged.
+min_level_n      <- 10
+min_level_events <- 5
+rare_level_log <- list()
+
+drop_rare_levels <- function(d, vars, context) {
+  for (v in intersect(vars, names(d))) {
+    if (!is.factor(d[[v]])) next
+    tb <- d %>% filter(!is.na(.data[[v]])) %>%
+      group_by(.lvl = droplevels(.data[[v]])) %>%
+      summarise(n = n(), events = sum(stroke_flag == 1, na.rm = TRUE),
+                .groups = "drop")
+    bad <- tb %>% filter(n < min_level_n | events < min_level_events)
+    if (!nrow(bad)) next
+
+    rare_level_log[[length(rare_level_log) + 1]] <<- bad %>%
+      transmute(context = context, variable = v, level = as.character(.lvl),
+                n, events,
+                reason = ifelse(n < min_level_n,
+                                paste0("n < ", min_level_n),
+                                paste0("events < ", min_level_events)))
+
+    d[[v]][as.character(d[[v]]) %in% as.character(bad$.lvl)] <- NA
+    d[[v]] <- droplevels(d[[v]])
+  }
+  d
+}
+
+# ---- Bug 1: collinearity diagnostics ---------------------------------------
+# Reported for every fitted model so a repeat of the uterine_dx_group problem
+# shows up as a number rather than as a quietly inflated confidence interval.
+# GVIF^(1/(2*df)) is the scale-invariant form for multi-level factors; squaring
+# it puts it back on the usual "VIF > 5 is suspicious" scale. The condition
+# number is a whole-design backstop that needs no extra package.
+model_collinearity <- function(fit) {
+  out <- list(max_vif = NA_real_, max_vif_term = NA_character_,
+              condition_number = NA_real_)
+  cn <- try({
+    mm <- model.matrix(fit)
+    keep <- apply(mm, 2, function(z) sd(z) > 0)
+    kappa(scale(mm[, keep, drop = FALSE]), exact = FALSE)
+  }, silent = TRUE)
+  if (!inherits(cn, "try-error")) out$condition_number <- round(as.numeric(cn), 1)
+
+  if (requireNamespace("car", quietly = TRUE)) {
+    v <- try(car::vif(fit), silent = TRUE)
+    if (!inherits(v, "try-error") && length(v)) {
+      vals <- if (is.matrix(v)) v[, ncol(v)]^2 else v   # GVIF^(1/(2df)) -> VIF scale
+      if (length(vals)) {
+        out$max_vif <- round(max(vals, na.rm = TRUE), 2)
+        out$max_vif_term <- names(vals)[which.max(vals)]
+      }
+    }
+  }
+  out
+}
+
 # Drop covariates that are constant in a given complete-case subset.
 usable_covs <- function(data, covs) {
   covs[map_lgl(covs, function(cv) {
@@ -332,14 +447,18 @@ if ("fibroid_count" %in% names(df)) {
   df$fibroid_count_cat <- factor(
     case_when(
       is.na(fc_raw)                              ~ NA_character_,
-      fc_raw == "9"                              ~ "Unknown",
+      fc_raw == "9"                              ~ NA_character_,   # coded Unknown
       !is.na(fc_num) & fc_num == 0               ~ "None",
       !is.na(fc_num) & fc_num == 1               ~ "Single",
       !is.na(fc_num) & fc_num >= 2 & fc_num <= 4 ~ "2-4",
       !is.na(fc_num) & fc_num >= 5               ~ ">=5",
       str_detect(str_to_lower(fc_raw), "multiple|\\+|many") ~ "Multiple (unspecified)",
-      TRUE                                       ~ "Unknown"),
-    levels = c("None", "Single", "2-4", ">=5", "Multiple (unspecified)", "Unknown"))
+      TRUE                                       ~ NA_character_),
+    # Bug 2: "Unknown" held 3 patients and produced OR 0.00 with an upper CI of
+    # ~2.5e11 -- complete separation, not a finding. An explicitly unknown count
+    # carries no information about fibroid burden, so it is missing data rather
+    # than a category, and is coded NA.
+    levels = c("None", "Single", "2-4", ">=5", "Multiple (unspecified)"))
 
   save_result(
     tibble(raw_value = fc_raw) %>% count(raw_value, name = "n") %>% arrange(desc(n)),
@@ -373,12 +492,21 @@ if ("age_index" %in% names(df))
   df$age_group <- cut(df$age_index, breaks = age_breaks, labels = age_labels, right = TRUE)
 
 # ---- implausible continuous values -> NA, with an audit trail ---------------
+# Bug 4b: this audit counts every row in the file, but 12_missingness counts only
+# the analysis population. Both numbers were right and they disagreed because the
+# denominators differ -- e.g. all 360 out-of-range ages (345 under 18, 15 over
+# 100) belong to INELIGIBLE rows, so age_index is genuinely 0% missing among the
+# eligible. Both denominators are now reported side by side.
+is_elig <- !is.na(df$eligible) & df$eligible == 1 &
+  (is.na(df$malignancy_active) | df$malignancy_active == 0)
+
 range_audit <- map_dfr(intersect(names(plausible), names(df)), function(v) {
   rg <- plausible[[v]]
   bad <- !is.na(df[[v]]) & (df[[v]] < rg[1] | df[[v]] > rg[2])
   df[[v]][bad] <<- NA_real_
   tibble(variable = v, allowed_min = rg[1], allowed_max = rg[2],
-         n_set_to_na = sum(bad))
+         n_set_to_na_all_rows = sum(bad),
+         n_set_to_na_in_analysis_population = sum(bad & is_elig))
 })
 save_result(range_audit, "audit_out_of_range")
 
@@ -631,8 +759,9 @@ extract_terms <- function(td, exposure, sd_val = NA_real_) {
 
 # ---- unadjusted -------------------------------------------------------------
 unadj <- map_dfr(exposures, function(ex) {
-  d <- model_df %>% select(stroke_flag, all_of(ex)) %>% drop_na() %>%
-    mutate(across(where(is.factor), droplevels))
+  d <- model_df %>% select(stroke_flag, all_of(ex)) %>%
+    drop_rare_levels(ex, context = paste0("unadjusted: ", ex)) %>%
+    drop_na() %>% mutate(across(where(is.factor), droplevels))
   if (!nrow(d)) return(NULL)
   if (is.factor(d[[ex]]) && nlevels(d[[ex]]) < 2) return(NULL)
   ev <- sum(d$stroke_flag == 1)
@@ -649,11 +778,15 @@ if (nrow(unadj))
               "07_unadjusted_OR")
 
 # ---- adjusted, one exposure at a time, per adjustment set -------------------
-fit_adjusted <- function(exposure, set_name) {
-  covs <- setdiff(adj_sets[[set_name]], c(exposure, adj_exclude))
-  covs <- intersect(covs, names(model_df))
-  d <- model_df %>%
-    select(all_of(intersect(c("stroke_flag", exposure, covs), names(model_df)))) %>%
+# `population` selects the analysis sample: "all" (primary) or "incident"
+# (Bug 3 sensitivity -- strokes recorded before index_date removed).
+fit_adjusted <- function(exposure, set_name, data = model_df, population = "all") {
+  covs <- build_covs(exposure, set_name)      # Bug 1: mutually exclusive by construction
+
+  d <- data %>%
+    select(all_of(intersect(c("stroke_flag", exposure, covs), names(data)))) %>%
+    drop_rare_levels(c(exposure, covs),
+                     context = paste(population, set_name, exposure, sep = " / ")) %>%
     drop_na() %>%
     mutate(across(where(is.factor), droplevels))
 
@@ -664,11 +797,14 @@ fit_adjusted <- function(exposure, set_name) {
   npar <- length(keep) + 1
   epv  <- if (npar) ev / npar else NA_real_
 
-  meta <- tibble(exposure = exposure, adjustment = set_name, n_complete = n_cc,
-                 events = ev, n_covariates = length(keep),
+  meta <- tibble(exposure = exposure, adjustment = set_name, population = population,
+                 n_complete = n_cc, events = ev, n_covariates = length(keep),
+                 covariates = paste(keep, collapse = ", "),
                  events_per_variable = round(epv, 1),
                  stable = !is.na(epv) & epv >= min_epv,
-                 status = "ok", method = NA_character_)
+                 status = "ok", method = NA_character_,
+                 max_vif = NA_real_, max_vif_term = NA_character_,
+                 condition_number = NA_real_)
 
   if (!ok_exp) { meta$status <- "exposure constant after complete-case"; return(list(meta = meta)) }
   if (ev < 5)  { meta$status <- "fewer than 5 events"; return(list(meta = meta)) }
@@ -678,9 +814,17 @@ fit_adjusted <- function(exposure, set_name) {
   if (is.null(r)) { meta$status <- "did not converge"; return(list(meta = meta)) }
   meta$method <- r$method
 
+  cd <- model_collinearity(r$fit)
+  meta$max_vif <- cd$max_vif
+  meta$max_vif_term <- cd$max_vif_term
+  meta$condition_number <- cd$condition_number
+  if (!is.na(cd$max_vif) && cd$max_vif > 5)
+    meta$status <- paste0("ok (VIF ", cd$max_vif, " on ", cd$max_vif_term, ")")
+
   or <- extract_terms(tidy_safe(r$fit), exposure)
   if (!is.null(or))
-    or <- or %>% mutate(adjustment = set_name, n_complete = n_cc, events = ev,
+    or <- or %>% mutate(adjustment = set_name, population = population,
+                        n_complete = n_cc, events = ev,
                         method = r$method, stable = meta$stable)
 
   # Continuous exposures also get a per-SD estimate.
@@ -693,35 +837,68 @@ fit_adjusted <- function(exposure, set_name) {
       if (!is.null(r2)) {
         o2 <- extract_terms(tidy_safe(r2$fit), exposure, sd_val = s)
         if (!is.null(o2))
-          or <- bind_rows(or, o2 %>% mutate(adjustment = set_name, n_complete = n_cc,
-                                            events = ev, method = r2$method,
-                                            stable = meta$stable))
+          or <- bind_rows(or, o2 %>% mutate(adjustment = set_name, population = population,
+                                            n_complete = n_cc, events = ev,
+                                            method = r2$method, stable = meta$stable))
       }
     }
   }
   list(meta = meta, or = or)
 }
 
-meta_list <- list(); adj_list <- list()
-n_fits <- length(exposures) * length(adj_sets); i_fit <- 0
-message("\nFitting ", n_fits, " adjusted models (this is the slow part) ...")
+# ---- Bug 3: incident-stroke sensitivity population --------------------------
+# 44.9% of strokes (691/1538) are recorded as occurring BEFORE index_date, so
+# treatment variables measured at/after index cannot have preceded them.
+# Patients whose stroke predates index are removed; everyone without a stroke
+# stays in the denominator. Events with blank or unknown timing (189 + 13) are
+# retained -- they are not positively known to precede index -- and that choice
+# is recorded in the flow sheet.
+incident_df <- model_df %>%
+  filter(is.na(stroke_flag) | stroke_flag == 0 |
+           is.na(stroke_timing) | as.character(stroke_timing) != "Before index")
 
-for (ex in exposures) for (sn in names(adj_sets)) {
-  i_fit <- i_fit + 1
-  message(sprintf("  [%2d/%d] %-22s %s", i_fit, n_fits, ex, sn))
-  o <- fit_adjusted(ex, sn)
-  meta_list[[paste(ex, sn)]] <- o$meta
-  if (!is.null(o$or)) adj_list[[paste(ex, sn)]] <- o$or
+save_result(
+  tibble(population = c("primary (all eligible)", "incident-stroke sensitivity"),
+         n = c(nrow(model_df), nrow(incident_df)),
+         strokes = c(sum(model_df$stroke_flag == 1, na.rm = TRUE),
+                     sum(incident_df$stroke_flag == 1, na.rm = TRUE)),
+         note = c("", "strokes timed 'Before index' removed; unknown/blank timing retained")),
+  "13_sensitivity_population")
+
+# ---- run the grid -----------------------------------------------------------
+# Primary population gets every adjustment set; the sensitivity population is
+# run on the two clinical sets only, which is where the temporality issue bites.
+grid <- bind_rows(
+  expand_grid(exposure = exposures, set = names(adj_sets), population = "all"),
+  expand_grid(exposure = exposures,
+              set = c("clinical", "clinical_no_treatment"), population = "incident")
+)
+
+meta_list <- list(); adj_list <- list()
+message("\nFitting ", nrow(grid), " adjusted models (this is the slow part) ...")
+
+for (i in seq_len(nrow(grid))) {
+  ex <- grid$exposure[i]; sn <- grid$set[i]; pp <- grid$population[i]
+  message(sprintf("  [%3d/%d] %-22s %-22s %s", i, nrow(grid), ex, sn, pp))
+  o <- fit_adjusted(ex, sn, data = if (pp == "incident") incident_df else model_df,
+                    population = pp)
+  key <- paste(ex, sn, pp)
+  meta_list[[key]] <- o$meta
+  if (!is.null(o$or)) adj_list[[key]] <- o$or
 }
 
 save_result(bind_rows(meta_list), "09_model_diagnostics")
+if (length(rare_level_log))
+  save_result(bind_rows(rare_level_log) %>% distinct(), "14_dropped_sparse_levels")
 
 if (length(adj_list)) {
   adj <- bind_rows(adj_list) %>%
     mutate(reported = sprintf("%.2f (%.2f-%.2f)", OR, OR_low, OR_high))
   save_result(adj, "08_adjusted_OR_all_sets")
   for (sn in names(adj_sets))
-    save_result(filter(adj, adjustment == sn), paste0("08_adjOR_", sn))
+    save_result(filter(adj, adjustment == sn, population == "all"),
+                paste0("08_adjOR_", sn))
+  save_result(filter(adj, population == "incident"), "08_adjOR_incident_sens")
 
   # ---------------------------------------------------------------------------
   # TABLE 2 -- the single publication table.
@@ -763,9 +940,14 @@ if (length(adj_list)) {
       left_join(unadj %>% select(exposure, level, uOR = OR, uL = OR_low,
                                  uH = OR_high, up = p.value),
                 by = c("exposure", "level")) %>%
-      left_join(adj %>% filter(adjustment == primary_adjustment) %>%
+      left_join(adj %>% filter(adjustment == primary_adjustment,
+                               population == "all") %>%
                   select(exposure, level, aOR = OR, aL = OR_low, aH = OR_high,
                          ap = p.value, n_model = n_complete, stable),
+                by = c("exposure", "level")) %>%
+      left_join(adj %>% filter(adjustment == "clinical_no_treatment",
+                               population == "incident") %>%
+                  select(exposure, level, sOR = OR, sL = OR_low, sH = OR_high),
                 by = c("exposure", "level")) %>%
       transmute(
         Variable = exposure,
@@ -777,6 +959,8 @@ if (length(adj_list)) {
         `P (unadjusted)` = ifelse(is_ref, "", fmt_p(up)),
         `Adjusted OR (95% CI)` = ifelse(is_ref, "1.00 (reference)", fmt_or(aOR, aL, aH)),
         `P (adjusted)` = ifelse(is_ref, "", fmt_p(ap)),
+        # Bug 3 sensitivity: incident strokes only, treatment covariates removed.
+        `Sensitivity OR (95% CI)` = ifelse(is_ref, "1.00 (reference)", fmt_or(sOR, sL, sH)),
         `N in adjusted model` = n_model,
         Note = case_when(is_ref ~ "",
                          is.na(stable) ~ "not estimated",
@@ -787,7 +971,7 @@ if (length(adj_list)) {
     message("\nTable 2 written: ", nrow(table2), " rows.")
   }
 
-  fp <- adj %>% filter(adjustment == primary_adjustment, stable,
+  fp <- adj %>% filter(adjustment == primary_adjustment, population == "all", stable,
                        is.finite(OR), is.finite(OR_low), is.finite(OR_high),
                        OR_high < 50, OR_low > 0.01)
   if (nrow(fp))
@@ -820,13 +1004,72 @@ for (sn in names(adj_sets)) {
   if (!length(keep) || ev < 5) next
   r <- safe_glm_fit(as.formula(paste("stroke_flag ~", paste(keep, collapse = " + "))), d)
   if (is.null(r)) next
+  cdm <- model_collinearity(r$fit)
   save_result(tidy_safe(r$fit) %>% filter(term != "(Intercept)") %>%
                 transmute(term, OR = exp(estimate), OR_low = exp(conf.low),
                           OR_high = exp(conf.high), p.value,
                           reported = sprintf("%.2f (%.2f-%.2f)",
                                              exp(estimate), exp(conf.low), exp(conf.high)),
-                          n_complete = nrow(d), events = ev, method = r$method),
+                          n_complete = nrow(d), events = ev, method = r$method,
+                          max_vif = cdm$max_vif, condition_number = cdm$condition_number),
               paste0("11_multivariable_", sn))
+}
+
+# =============================================================================
+# BEFORE / AFTER -- effect of the Bug 1 fix on the three pathology exposures
+# Refits the OLD specification (uterine_dx_group retained as a covariate while
+# a pathology flag is the exposure) next to the corrected one, so the variance
+# inflation is visible rather than asserted.
+# =============================================================================
+message("\nBefore/after comparison for the pathology exposures ...")
+
+fit_spec <- function(exposure, set_name, covs) {
+  covs <- setdiff(intersect(covs, names(model_df)), exposure)
+  d <- model_df %>%
+    select(all_of(c("stroke_flag", exposure, covs))) %>%
+    drop_na() %>% mutate(across(where(is.factor), droplevels))
+  if (!nrow(d)) return(NULL)
+  keep <- usable_covs(d, covs)
+  r <- safe_glm_fit(as.formula(paste("stroke_flag ~",
+                                     paste(c(exposure, keep), collapse = " + "))), d)
+  if (is.null(r)) return(NULL)
+  o <- extract_terms(tidy_safe(r$fit), exposure)
+  if (is.null(o) || !nrow(o)) return(NULL)
+  cd <- model_collinearity(r$fit)
+  o %>% slice(n()) %>%
+    transmute(exposure, level, OR, OR_low, OR_high,
+              ci_width = OR_high - OR_low,
+              n = nrow(d), events = sum(d$stroke_flag == 1),
+              max_vif = cd$max_vif, condition_number = cd$condition_number)
+}
+
+before_after <- map_dfr(uterine_flags, function(ex) {
+  map_dfr(names(adj_sets), function(sn) {
+    old_covs <- setdiff(adj_sets[[sn]], adj_exclude)          # uterine_dx_group kept
+    new_covs <- build_covs(ex, sn)                            # collinear family removed
+    b <- fit_spec(ex, sn, old_covs); a <- fit_spec(ex, sn, new_covs)
+    if (is.null(b) && is.null(a)) return(NULL)
+    tibble(
+      exposure = ex, adjustment = sn,
+      n = if (!is.null(a)) a$n else NA_integer_,
+      events = if (!is.null(a)) a$events else NA_integer_,
+      before_OR = if (!is.null(b)) sprintf("%.2f (%.2f-%.2f)", b$OR, b$OR_low, b$OR_high) else "",
+      after_OR  = if (!is.null(a)) sprintf("%.2f (%.2f-%.2f)", a$OR, a$OR_low, a$OR_high) else "",
+      before_ci_width = if (!is.null(b)) round(b$ci_width, 3) else NA_real_,
+      after_ci_width  = if (!is.null(a)) round(a$ci_width, 3) else NA_real_,
+      ci_narrowed_by_pct = if (!is.null(a) && !is.null(b) && b$ci_width > 0)
+        round(100 * (b$ci_width - a$ci_width) / b$ci_width, 1) else NA_real_,
+      before_max_vif = if (!is.null(b)) b$max_vif else NA_real_,
+      after_max_vif  = if (!is.null(a)) a$max_vif else NA_real_)
+  })
+})
+
+if (nrow(before_after)) {
+  save_result(before_after, "15_before_after_collinearity_fix")
+  message("\n--- Bug 1 before/after (uterine_dx_group removed from covariates) ---")
+  print(as.data.frame(before_after %>%
+    select(exposure, adjustment, n, events, before_OR, after_OR, ci_narrowed_by_pct)),
+    row.names = FALSE)
 }
 
 # =============================================================================

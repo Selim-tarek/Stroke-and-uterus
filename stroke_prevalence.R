@@ -263,18 +263,43 @@ usable_covs <- function(data, covs) {
 # READ
 # =============================================================================
 message("Reading ", input_file, " [", sheet_name, "] ...")
-raw <- read_excel(input_file, sheet = sheet_name, col_names = FALSE,
-                  col_types = "text", .name_repair = "minimal")
 
-hdr_row <- which(apply(raw, 1, function(r)
-  any(grepl("study_id|eligible|stroke_any", tolower(as.character(r)), fixed = FALSE))))[1]
-if (is.na(hdr_row)) stop("Could not locate the header row on sheet '", sheet_name, "'.")
+# The sheet's declared dimensions are ~803,000 x 61 because Excel counts
+# formatted-but-empty trailing rows, while only ~53,000 rows hold patients.
+# Reading the full declared range means ~49 million cells, and scanning every
+# row to find the header is slower still -- so the header is located from a
+# small probe and the data is then read in a bounded window that grows only if
+# it actually fills up.
+probe <- read_excel(input_file, sheet = sheet_name, col_names = FALSE,
+                    col_types = "text", n_max = 30, .name_repair = "minimal")
 
-names(raw) <- make_clean_names(as.character(unlist(raw[hdr_row, ])))
-raw <- raw %>% slice((hdr_row + 1):n())
+hdr_row <- which(apply(probe, 1, function(r)
+  any(grepl("study_id|eligible|stroke_any", tolower(as.character(r))))))[1]
+if (is.na(hdr_row))
+  stop("Could not locate the header row in the first 30 rows of sheet '",
+       sheet_name, "'.")
 
-# The sheet carries ~750,000 formatted-but-empty trailing rows; drop them.
-raw <- raw %>% filter(!is.na(study_id), str_squish(study_id) != "")
+hdr_names <- make_clean_names(as.character(unlist(probe[hdr_row, ])))
+message("Header found on row ", hdr_row, " (", length(hdr_names), " columns).")
+
+read_window <- function(n) {
+  suppressWarnings(
+    read_excel(input_file, sheet = sheet_name, skip = hdr_row, col_names = FALSE,
+               col_types = "text", n_max = n, .name_repair = "minimal")
+  )
+}
+
+n_try <- 100000
+repeat {
+  raw <- read_window(n_try)
+  names(raw) <- hdr_names[seq_len(ncol(raw))]
+  raw <- raw %>% filter(!is.na(study_id), str_squish(study_id) != "")
+  # If the window came back short of its limit, every patient row was inside it.
+  if (nrow(raw) < n_try) break
+  n_try <- n_try * 2
+  message("Window filled; re-reading with n_max = ", n_try, " ...")
+}
+
 message("Patient rows: ", nrow(raw))
 
 # =============================================================================
@@ -434,7 +459,9 @@ label_level <- function(v, x) {
 }
 
 subgroups <- list()
+message("\nSubgroup prevalence over ", length(subgroup_vars), " variables ...")
 for (v in subgroup_vars) {
+  message("  ", v)
   tb <- df_elig %>%
     mutate(.l = label_level(v, .data[[v]])) %>%
     group_by(.l) %>%
@@ -453,7 +480,7 @@ for (v in subgroup_vars) {
     if (all(dim(tab) >= 2))
       p_un <- tryCatch({
         ex <- suppressWarnings(chisq.test(tab)$expected)
-        if (any(ex < 5)) fisher.test(tab, simulate.p.value = TRUE, B = 1e4)$p.value
+        if (any(ex < 5)) fisher.test(tab, simulate.p.value = TRUE, B = 2000)$p.value
         else chisq.test(tab)$p.value
       }, error = function(e) NA_real_)
   }
@@ -606,7 +633,12 @@ fit_adjusted <- function(exposure, set_name) {
 }
 
 meta_list <- list(); adj_list <- list()
+n_fits <- length(exposures) * length(adj_sets); i_fit <- 0
+message("\nFitting ", n_fits, " adjusted models (this is the slow part) ...")
+
 for (ex in exposures) for (sn in names(adj_sets)) {
+  i_fit <- i_fit + 1
+  message(sprintf("  [%2d/%d] %-22s %s", i_fit, n_fits, ex, sn))
   o <- fit_adjusted(ex, sn)
   meta_list[[paste(ex, sn)]] <- o$meta
   if (!is.null(o$or)) adj_list[[paste(ex, sn)]] <- o$or

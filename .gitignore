@@ -1,0 +1,9 @@
+# Never commit patient data or generated results
+*.xlsx
+*.xls
+*.csv
+data/
+nomice/
+.Rhistory
+.RData
+.Rproj.user/

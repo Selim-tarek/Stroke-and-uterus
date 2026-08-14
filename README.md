@@ -1,72 +1,97 @@
-# Stroke prevalence in non-cancerous uterine disease
+# Stroke prevalence in non-cancerous uterine pathology
 
-R pipeline that reads the abstraction workbook, restricts to eligible patients,
-estimates stroke prevalence, and runs subgroup / adjusted analyses.
+Cross-sectional analysis of the `Data Entry` sheet: overall and subgroup stroke
+prevalence with Wilson 95% CIs, plus unadjusted and adjusted odds ratios.
 
 ## Run
 
-1. Install packages (first run only):
-
 ```r
 install.packages(c("readxl","janitor","lubridate","dplyr","tidyr","stringr",
-                   "binom","broom","purrr","sandwich","lmtest","ggplot2",
-                   "scales","forcats","openxlsx","readr","brglm2"))
+                   "binom","broom","purrr","ggplot2","scales","forcats",
+                   "openxlsx","rlang","brglm2"))
 ```
 
-2. Set `input_file` and `sheet_name` at the top of
-   `stroke_prev_pipeline_no_mice.R`.
-3. `Rscript stroke_prev_pipeline_no_mice.R`
+Set `input_file` at the top of `stroke_prevalence.R`, then:
 
-Everything lands in `nomice/` — one Excel workbook with a sheet per result,
-plus PNG forest/bar plots in `nomice/plots/`.
+```
+Rscript stroke_prevalence.R
+```
+
+Output: `results/stroke_prevalence_results.xlsx` (one sheet per table) and
+`results/plots/`. Start with sheet **`10_MAIN_unadj_vs_adj`**.
 
 ## Analysis population
 
-`eligible == 1` **and** not active malignancy (`malignancy_active == 0` or
-missing). Because active malignancy is an exclusion, `race` and
-`malignancy_active` are dropped from every adjusted model (`adj_exclude`).
+`eligible == 1` and no active malignancy — **39,807 patients**. Active
+malignancy is an exclusion criterion (`exclusion_reason = 1`), not a covariate,
+so it never enters a model.
 
-## Outcomes
+## Headline result
 
-- Primary: `stroke_any`
-- Sensitivity: `stroke_any_incl_imaging` (counts imaging-only infarcts)
+Stroke prevalence (`stroke_any`): **1,538 / 39,807 = 3.86% (95% CI 3.68–4.06)**.
+Including imaging-only infarcts: 1,543 / 39,807 = 3.88% (3.69–4.07).
 
-Overall prevalence is reported three ways so the missing-outcome assumption is
-explicit: complete-case, including imaging, and treating missing outcome as
-no stroke.
+## How the data departs from the Codebook
 
-## What is produced
+Three fields do not match their codebook definition. Each is handled explicitly
+and the raw values are dumped to an audit sheet so you can check the decision.
 
-| Sheet | Contents |
-|---|---|
-| `flow_overview` | rows eligible, rows with observed outcome, events |
-| `overall_prevalence_*` | Wilson 95% CI under each missingness assumption |
-| `prevalence_by_<var>` | subgroup prevalence + Wilson CI for each risk factor |
-| `summary_<var>`, `continuous_summary_all` | median / mean / SD / missingness |
-| `adjusted_ORs_continuous_per_unit`, `..._per_SD` | one model per continuous exposure |
-| `adjusted_ORs_categorical_models` | one model per categorical exposure |
-| `adjusted_ORs_logistic_fullmodel_*` | all covariates at once |
-| `adjusted_ORs_logistic_reduced_coremodel_*` | age, BMI, HTN, DM only |
-| `model_complete_case_counts` | n and events actually used by each model |
-| `audit_nonmissing_counts` | missingness audit per variable |
-| `analysis_dataset_deidentified` | analysis frame with MRN and DOB dropped |
+| Field | Codebook says | Data actually contains | Handling |
+|---|---|---|---|
+| `fibroid_count` | coded 0=None, 1=Single, 2=2–4, 3=≥5, 9=Unknown | raw counts 0–8 mixed with `"2+"` and `"Multiple"` | rebuilt as ordinal None / Single / 2-4 / ≥5 / Multiple (unspecified); see `audit_fibroid_count_raw` |
+| `race` | coded 1–9 | free text, ~20 levels (`White`, `African American`, `Asian Indian`, `Choose Not to Disclose`, …) | collapsed to standard groups for reporting; see `audit_race_raw`. Not used in any model |
+| `migraine`, `surgical_tx`, `antithrombotic`, `hormonal_type` | — | multi-level, **not** binary | kept as labelled factors, not forced to 0/1 |
 
-## Read `model_complete_case_counts` before trusting any adjusted OR
+`9` means "unknown" for coded fields only. It is **never** treated as missing on
+continuous labs, where 99 is an ordinary HDL, LDL, platelet or triglyceride
+value.
 
-The per-exposure and full models adjust for ~35 covariates and use
-`drop_na()`, so a patient missing a single lab (ferritin, D-dimer, HbA1c…) is
-dropped from that model entirely. With labs typically missing in a large share
-of a chart-abstracted cohort, the complete-case n can fall to a small fraction
-of the eligible cohort, and stroke is a rare outcome — the full model can
-easily end up with too few events per variable to be interpretable.
+## Adjustment sets
 
-`model_complete_case_counts` and `full_model_complete_case_summary` exist to
-make that visible. If the n or event count there is small relative to the
-cohort, prefer the reduced core model (age, BMI, HTN, DM — few missing values)
-and treat the full model as exploratory. The unadjusted prevalence tables are
-unaffected by this, since they only require the outcome.
+Chosen from observed missingness in this dataset, not from a wish list.
+
+| Set | Covariates | Cost |
+|---|---|---|
+| `core` | age, BMI | BMI 9% missing |
+| **`clinical`** (primary) | age, BMI, HTN, DM, dyslipidaemia, CAD, AF, CHF, smoking, migraine, VTE, thrombophilia, antithrombotic, bleeding, hormonal Tx, surgical Tx, uterine dx group | all complete except BMI |
+| `full_with_labs` | clinical + Hgb, MCV, platelets, LDL | exploratory |
+
+Labs with heavy missingness are deliberately **not** in the primary model:
+ferritin 58%, HbA1c 57%, INR 69%, D-dimer 85%, fibroid_count 57%. Requiring them
+simultaneously would leave a small, selected subsample. They are still analysed
+as exposures under `core` adjustment.
+
+Smoking is 73% "Unknown" — that is retained as an explicit factor level rather
+than converted to `NA`, which would otherwise drop three quarters of the cohort
+from every adjusted model.
+
+`09_model_diagnostics` reports n, events and events-per-variable for every model;
+the `stable` column flags anything below 10 events per variable.
+
+## Sanity checks
+
+Computed independently from the workbook — the R run should reproduce these:
+
+| Subgroup | n | Prevalence | Crude OR |
+|---|---|---|---|
+| Fibroids yes vs no | 24,201 / 15,606 | 4.39% vs 3.05% | 1.46 |
+| Adenomyosis yes vs no | 9,815 / 29,992 | 4.30% vs 3.72% | 1.16 |
+| Endometriosis yes vs no | 21,090 / 18,717 | 3.32% vs 4.47% | 0.73 |
+| Hypertension yes vs no | 5,942 / 33,865 | 10.05% vs 2.78% | 3.91 |
+| Diabetes yes vs no | 6,992 / 32,815 | 8.17% vs 2.95% | 2.93 |
+| Atrial fibrillation yes vs no | 511 / 39,296 | 26.03% vs 3.58% | 9.49 |
+
+## Interpretation caveats worth stating in the paper
+
+- `stroke_timing` includes events **before** index. Prevalence is directionless,
+  but the timing breakdown is in `04_strokes_by_stroke_timing` — reviewers will
+  ask, and the "before index" share bears on any causal reading.
+- The codebook flags `antithrombotic` as containing no antiplatelet agents
+  (categories 1 and 3 are empty), `hormonal_type` as undercapturing combined OC,
+  and `stroke_etiology` as imaging-derived rather than a true TOAST assignment.
+- `stroke_date` is the earliest coded diagnosis date, not a chart-verified
+  event date.
 
 ## No data in this repo
 
-`.gitignore` blocks `*.xlsx`, `*.csv`, and `data/`. Keep PHI on the network
-share; only code is versioned here.
+`.gitignore` blocks `*.xlsx`/`*.csv`. Keep the workbook outside version control.

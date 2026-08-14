@@ -547,6 +547,76 @@ for (v in intersect(binary_vars, names(model_df)))
   model_df[[v]] <- factor(unname(labs_yesno[as.character(model_df[[v]])]),
                           levels = c("No", "Yes"))
 
+# ---------------------------------------------------------------------------
+# TABLE 1 -- cohort characteristics, overall and by stroke status.
+# Continuous variables as median (IQR) with a Wilcoxon test; categorical as
+# n (%) within each column, with a chi-square / Fisher test on the first row.
+# ---------------------------------------------------------------------------
+t1_vars <- intersect(
+  c("age_index", "age_group", "bmi", "race_group", "uterine_dx_group",
+    "fibroids", "adenomyosis", "endometriosis", "fibroid_count_cat",
+    "uterine_bleeding", "hormonal_tx", "hormonal_type", "surgical_tx",
+    "htn", "dm", "dyslipidemia", "cad", "afib", "chf", "smoking", "migraine",
+    "vte_history", "thrombophilia", "antithrombotic", "malignancy_ever",
+    "hgb", "mcv", "ferritin", "platelets", "ldl", "hdl", "trig", "hba1c",
+    "inr", "ddimer_elevated"),
+  names(model_df))
+
+t1_base <- model_df %>% filter(!is.na(stroke_flag))
+n_no <- sum(t1_base$stroke_flag == 0); n_yes <- sum(t1_base$stroke_flag == 1)
+
+fmt_p1 <- function(p) ifelse(is.na(p), "", ifelse(p < 0.001, "<0.001", sprintf("%.3f", p)))
+
+table1 <- map_dfr(t1_vars, function(v) {
+  x <- t1_base[[v]]
+
+  if (is.numeric(x) && !all(na.omit(x) %in% c(0, 1))) {
+    med <- function(z) {
+      z <- z[!is.na(z)]
+      if (!length(z)) return("")
+      q <- quantile(z, c(.25, .5, .75))
+      sprintf("%.1f (%.1f-%.1f)", q[2], q[1], q[3])
+    }
+    p <- tryCatch(wilcox.test(x ~ t1_base$stroke_flag)$p.value,
+                  error = function(e) NA_real_)
+    tibble(Variable = v, Level = "median (IQR)",
+           Overall = med(x),
+           `No stroke` = med(x[t1_base$stroke_flag == 0]),
+           Stroke = med(x[t1_base$stroke_flag == 1]),
+           `Missing (n)` = sum(is.na(x)),
+           P = fmt_p1(p))
+  } else {
+    f <- droplevels(factor(x))
+    p <- NA_real_
+    tb <- table(f, t1_base$stroke_flag)
+    if (all(dim(tb) >= 2))
+      p <- tryCatch({
+        ex <- suppressWarnings(chisq.test(tb)$expected)
+        if (any(ex < 5)) fisher.test(tb, simulate.p.value = TRUE, B = 2000)$p.value
+        else chisq.test(tb)$p.value
+      }, error = function(e) NA_real_)
+
+    pct <- function(k, d) if (d > 0) sprintf("%d (%.1f%%)", k, 100 * k / d) else ""
+    lv <- levels(f)
+    tibble(
+      Variable = v,
+      Level = lv,
+      Overall   = map_chr(lv, ~ pct(sum(f == .x, na.rm = TRUE), sum(!is.na(f)))),
+      `No stroke` = map_chr(lv, ~ pct(sum(f == .x & t1_base$stroke_flag == 0, na.rm = TRUE), n_no)),
+      Stroke    = map_chr(lv, ~ pct(sum(f == .x & t1_base$stroke_flag == 1, na.rm = TRUE), n_yes)),
+      `Missing (n)` = c(sum(is.na(f)), rep(NA_integer_, length(lv) - 1)),
+      P = c(fmt_p1(p), rep("", length(lv) - 1)))
+  }
+})
+
+save_result(
+  bind_rows(
+    tibble(Variable = "N", Level = "", Overall = as.character(nrow(t1_base)),
+           `No stroke` = as.character(n_no), Stroke = as.character(n_yes),
+           `Missing (n)` = NA_integer_, P = ""),
+    table1),
+  "TABLE_1_characteristics")
+
 extract_terms <- function(td, exposure, sd_val = NA_real_) {
   sel <- td %>% filter(term != "(Intercept)", startsWith(term, exposure))
   if (!nrow(sel)) return(NULL)
@@ -653,19 +723,68 @@ if (length(adj_list)) {
   for (sn in names(adj_sets))
     save_result(filter(adj, adjustment == sn), paste0("08_adjOR_", sn))
 
-  # Side-by-side unadjusted vs primary adjusted -- the main results table.
+  # ---------------------------------------------------------------------------
+  # TABLE 2 -- the single publication table.
+  # One row per exposure level: denominator, events, prevalence, unadjusted OR
+  # and adjusted OR side by side, with explicit reference rows. Reference levels
+  # have no coefficient in the model, so they are added here rather than being
+  # silently absent (which is what makes a raw coefficient dump hard to read).
+  # ---------------------------------------------------------------------------
   if (nrow(unadj)) {
-    main <- unadj %>%
-      transmute(exposure, level,
-                unadjusted_OR = sprintf("%.2f (%.2f-%.2f)", OR, OR_low, OR_high),
-                p_unadjusted = p.value) %>%
-      full_join(
-        adj %>% filter(adjustment == primary_adjustment) %>%
-          transmute(exposure, level,
-                    adjusted_OR = reported, p_adjusted = p.value,
-                    n_model = n_complete, events_model = events, stable),
-        by = c("exposure", "level"))
-    save_result(main, "10_MAIN_unadj_vs_adj")
+
+    descriptive <- map_dfr(exposures, function(ex) {
+      d <- model_df %>% filter(!is.na(.data[[ex]]), !is.na(stroke_flag))
+      if (!nrow(d)) return(NULL)
+
+      if (is.factor(d[[ex]])) {
+        d$.l <- droplevels(d[[ex]])
+        tb <- d %>% group_by(.l) %>%
+          summarise(n = n(), events = sum(stroke_flag == 1), .groups = "drop")
+        ci <- prev_wilson_vec(tb$events, tb$n)
+        tibble(exposure = ex, level = as.character(tb$.l),
+               n = tb$n, events = tb$events,
+               prevalence = sprintf("%.2f%% (%.2f-%.2f)",
+                                    100 * ci$prev, 100 * ci$lower, 100 * ci$upper),
+               is_ref = as.character(tb$.l) == levels(d$.l)[1])
+      } else {
+        q <- quantile(d[[ex]], c(.25, .5, .75), na.rm = TRUE)
+        tibble(exposure = ex, level = "per 1 unit",
+               n = nrow(d), events = sum(d$stroke_flag == 1),
+               prevalence = sprintf("median %.1f (IQR %.1f-%.1f)", q[2], q[1], q[3]),
+               is_ref = FALSE)
+      }
+    })
+
+    fmt_or <- function(e, l, u) ifelse(is.na(e), "", sprintf("%.2f (%.2f-%.2f)", e, l, u))
+    fmt_p  <- function(p) ifelse(is.na(p), "",
+                                 ifelse(p < 0.001, "<0.001", sprintf("%.3f", p)))
+
+    table2 <- descriptive %>%
+      left_join(unadj %>% select(exposure, level, uOR = OR, uL = OR_low,
+                                 uH = OR_high, up = p.value),
+                by = c("exposure", "level")) %>%
+      left_join(adj %>% filter(adjustment == primary_adjustment) %>%
+                  select(exposure, level, aOR = OR, aL = OR_low, aH = OR_high,
+                         ap = p.value, n_model = n_complete, stable),
+                by = c("exposure", "level")) %>%
+      transmute(
+        Variable = exposure,
+        Level = level,
+        N = n,
+        Strokes = events,
+        `Prevalence (95% CI)` = prevalence,
+        `Unadjusted OR (95% CI)` = ifelse(is_ref, "1.00 (reference)", fmt_or(uOR, uL, uH)),
+        `P (unadjusted)` = ifelse(is_ref, "", fmt_p(up)),
+        `Adjusted OR (95% CI)` = ifelse(is_ref, "1.00 (reference)", fmt_or(aOR, aL, aH)),
+        `P (adjusted)` = ifelse(is_ref, "", fmt_p(ap)),
+        `N in adjusted model` = n_model,
+        Note = case_when(is_ref ~ "",
+                         is.na(stable) ~ "not estimated",
+                         !stable ~ paste0("unstable (<", min_epv, " events/variable)"),
+                         TRUE ~ ""))
+
+    save_result(table2, "TABLE_2_main_results")
+    message("\nTable 2 written: ", nrow(table2), " rows.")
   }
 
   fp <- adj %>% filter(adjustment == primary_adjustment, stable,

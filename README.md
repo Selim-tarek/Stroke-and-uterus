@@ -18,7 +18,17 @@ Rscript stroke_prevalence.R
 ```
 
 Output: `results/stroke_prevalence_results.xlsx` (one sheet per table) and
-`results/plots/`. Start with sheet **`10_MAIN_unadj_vs_adj`**.
+`results/plots/`.
+
+Two sheets are the write-up-ready tables; everything else is supporting detail:
+
+- **`TABLE_1_characteristics`** — cohort characteristics overall and by stroke
+  status. Continuous as median (IQR) with Wilcoxon p; categorical as n (%) with
+  chi-square / Fisher p.
+- **`TABLE_2_main_results`** — one row per exposure level: N, strokes,
+  prevalence (95% CI), unadjusted OR, adjusted OR, both p-values, and the model
+  denominator. Reference levels are printed as `1.00 (reference)`, and a `Note`
+  column flags any estimate resting on fewer than 10 events per variable.
 
 ## Analysis population
 

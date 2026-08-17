@@ -27,7 +27,7 @@ Output: `results/stroke_prevalence_results.xlsx` (one sheet per table) and
 `results/prepared_data.rds`; `STROKE_PREP_ONLY=1` stops the run after that step,
 which is useful when only the modelling code changed.
 
-Three sheets are the write-up-ready tables; everything else is supporting detail:
+Four sheets are the write-up-ready tables; everything else is supporting detail:
 
 - **`TABLE_1_characteristics`** — cohort characteristics overall and by stroke
   status. Continuous as median (IQR) with Wilcoxon p; categorical as n (%) with
@@ -39,6 +39,8 @@ Three sheets are the write-up-ready tables; everything else is supporting detail
 - **`TABLE_3_ischemic_multivariable`** — the dedicated ischaemic-stroke model
   (below): every covariate in one model, unadjusted and adjusted OR side by
   side.
+- **`TABLE_3B_ischemic_with_hgb`** — the same model with haemoglobin added, on
+  the patients who have one.
 
 ## Dedicated ischaemic-stroke model
 
@@ -57,14 +59,42 @@ women aged 18–60 with non-cancerous uterine pathology.
   explicitly, so the model matches its stated definition regardless of the
   `eligible` flag.
 - **Covariates**: age, BMI, the three uterine pathology flags, uterine bleeding,
-  HTN, DM, dyslipidaemia, CAD, AF, CHF, smoking, migraine, VTE, thrombophilia,
-  antithrombotic, hormonal Tx, surgical Tx. `uterine_dx_group` is excluded —
-  it is a deterministic recoding of the three flags, and the collinearity rule
-  below applies here too.
-- **Sensitivity models** (`16_ischemic_all_models`): treatment covariates
-  dropped; other stroke types kept as non-cases; incident strokes only.
+  HTN, DM, dyslipidaemia, CAD, AF, CHF, smoking (Never/Ever/Unknown), migraine,
+  VTE, thrombophilia, antithrombotic, hormonal Tx, surgical Tx.
+  `uterine_dx_group` is excluded — it is a deterministic recoding of the three
+  flags, and the collinearity rule below applies here too.
+- **Sensitivity models** (`16_ischemic_all_models`): four-level smoking; Hgb
+  added; the Hgb-complete population without Hgb; treatment covariates dropped;
+  other stroke types kept as non-cases; incident strokes only.
 - `16_ischemic_diagnostics` carries n, events, events-per-variable, C-statistic,
-  AIC, max VIF and the design condition number for each of the four models.
+  AIC, max VIF and the design condition number for all seven models.
+
+### Smoking collapsed to Never / Ever
+
+`smoking_ever` merges Current and Former; the four-level variable is unchanged
+everywhere else in the pipeline. Worth knowing before the collapsed estimate is
+quoted: in the four-level fit the two merged levels point in **opposite**
+directions — Current 0.84 (0.59–1.18), Former 1.39 (1.15–1.68), both vs Never —
+so Ever 1.29 (1.07–1.55) averages a null and a raised estimate rather than
+sharpening either. Discrimination is unchanged (C 0.799 → 0.798). "Unknown"
+stays its own level, as it does throughout: it is 71% of the cohort.
+
+### Haemoglobin
+
+Hgb is **not** in the primary model, for a population reason rather than a
+modelling one. It is 7.1% missing overall but only 0.6% missing among strokes:
+requiring it drops ~1,660 stroke-free patients and 7 cases, so controls without
+a recorded Hgb are largely those who never had bloods drawn. Adding it to the
+primary model would change the control group and the covariate list at the same
+time, leaving any shift uninterpretable.
+
+`TABLE_3B_ischemic_with_hgb` therefore reports the Hgb model separately
+(n = 34,214, 1,172 events, C = 0.795), and `16_ischemic_all_models` carries a
+third fit — the same covariates on the same Hgb-complete patients but with Hgb
+left out — so the effect of the variable can be separated from the effect of the
+restriction. **Hgb: adjusted OR 0.94 per 1 g/dL (0.91–0.97), p < 0.001.** Every
+other estimate is stable across the pair (fibroids 1.22 → 1.20; the population
+restriction, not Hgb, accounts for most of that).
 
 ## Analysis population
 
@@ -80,14 +110,14 @@ Including imaging-only infarcts: 1,543 / 39,807 = 3.88% (3.69–4.07).
 Ischaemic strokes: **1,189 of the 1,538 events**; 349 were another stroke type
 and none had a missing type. The dedicated multivariable model runs on 35,878
 patients with 1,179 ischaemic strokes (3.29%) after complete-case restriction
-(BMI is the binding covariate), C-statistic 0.799, 43.7 events per variable, max
+(BMI is the binding covariate), C-statistic 0.798, 45.3 events per variable, max
 VIF 1.60.
 
 Adjusted ORs from that model, largest first: CHF 2.26 (1.68–3.03), AF 2.23
 (1.68–2.93), CAD 2.19 (1.68–2.84), thrombophilia 2.85 (2.20–3.65), migraine with
 aura 3.17 (2.63–3.81), anticoagulant use 2.66 (2.28–3.09), VTE 2.07 (1.72–2.49),
 hypertension 2.05 (1.78–2.36), dyslipidaemia 1.42 (1.24–1.64), **fibroids 1.22
-(1.03–1.45, p = 0.021)**. Adenomyosis (0.97) and endometriosis (0.88) are null
+(1.03–1.45, p = 0.020)**. Adenomyosis (0.97) and endometriosis (0.88) are null
 after adjustment, and diabetes attenuates from a crude 3.02 to 1.13 (p = 0.107).
 
 ## How the data departs from the Codebook

@@ -1116,12 +1116,34 @@ message("\nFitting dedicated ischaemic-stroke multivariable model ...")
 
 isch_type_label <- "Ischaemic stroke"
 
+# Smoking collapsed to Never / Ever / Unknown for this model. Note that the two
+# levels being merged point in opposite directions in the four-level fit
+# (Current 0.84, Former 1.39, both vs Never), so "Ever" is an average of a null
+# and a raised estimate rather than a cleaner version of either. The four-level
+# variable is kept everywhere else in the pipeline, and the four-level fit is
+# repeated here as a sensitivity model so both are on the record.
+model_df$smoking_ever <- factor(
+  dplyr::case_when(
+    is.na(model_df$smoking)                          ~ NA_character_,
+    as.character(model_df$smoking) == "Never"        ~ "Never",
+    as.character(model_df$smoking) %in% c("Current", "Former") ~ "Ever",
+    TRUE                                             ~ "Unknown"),
+  levels = c("Never", "Ever", "Unknown"))
+
 isch_covs_full <- intersect(
   c("age_index", "bmi", "fibroids", "adenomyosis", "endometriosis",
     "uterine_bleeding", "htn", "dm", "dyslipidemia", "cad", "afib", "chf",
-    "smoking", "migraine", "vte_history", "thrombophilia", "antithrombotic",
+    "smoking_ever", "migraine", "vte_history", "thrombophilia", "antithrombotic",
     "hormonal_tx", "surgical_tx"),
   names(model_df))
+
+# Haemoglobin is 7.1% missing overall but only 0.6% missing among strokes, so
+# requiring it drops ~2,800 stroke-free patients and almost no cases. That is
+# differential, not random: controls without a recorded Hgb are largely those who
+# never had bloods drawn. Adding it to the primary model would therefore change
+# the control group as well as the covariate list, so it is fitted as a separate
+# model and the two are reported side by side.
+isch_covs_hgb <- c(isch_covs_full, intersect("hgb", names(model_df)))
 
 # Temporality-safe variant: drops the three variables ascertained at or after
 # index_date (same rationale as clinical_no_treatment above).
@@ -1297,6 +1319,18 @@ isch_incident <- mk_isch(
 m_inc <- fit_isch(isch_incident, isch_covs_notx,
                   "Sensitivity: incident strokes only, no treatment covariates")
 
+# Haemoglobin added, and the same model refitted on exactly the patients who
+# have a haemoglobin but with Hgb left out -- otherwise a shift between this
+# model and the primary could not be told apart from the change of population.
+m_hgb <- fit_isch(isch_primary_df, isch_covs_hgb, "With haemoglobin")
+m_hgb_pop <- fit_isch(isch_primary_df %>% filter(!is.na(hgb)), isch_covs_full,
+                      "Hgb-complete population, Hgb excluded")
+
+# Four-level smoking, for comparison with the collapsed Never/Ever version.
+m_smk4 <- fit_isch(isch_primary_df,
+                   c(setdiff(isch_covs_full, "smoking_ever"), "smoking"),
+                   "Sensitivity: four-level smoking")
+
 if (!is.null(m_main)) {
   ua <- isch_unadj(isch_primary_df, m_main$keep, "primary")
   tab3 <- m_main$table %>%
@@ -1327,7 +1361,37 @@ if (!is.null(m_main)) {
         row.names = FALSE)
 }
 
-isch_all <- compact(list(m_main, m_notx, m_ctrl, m_inc))
+if (!is.null(m_hgb)) {
+  ua_h <- isch_unadj(isch_primary_df %>% filter(!is.na(hgb)), m_hgb$keep, "hgb")
+  tab3b <- m_hgb$table %>%
+    left_join(ua_h, by = c("Variable", "Level")) %>%
+    mutate(`Unadjusted OR (95% CI)` = ifelse(`Adjusted OR (95% CI)` == "1.00 (reference)",
+                                             "1.00 (reference)",
+                                             coalesce(`Unadjusted OR (95% CI)`, "")),
+           `P (unadjusted)` = coalesce(`P (unadjusted)`, "")) %>%
+    select(Variable, Level, n, events,
+           `Unadjusted OR (95% CI)`, `P (unadjusted)`,
+           `Adjusted OR (95% CI)`, `P (adjusted)` = P)
+
+  save_result(
+    bind_rows(
+      tibble(Variable = "MODEL", Level = m_hgb$meta$Model,
+             n = m_hgb$meta$n, events = m_hgb$meta$events,
+             `Unadjusted OR (95% CI)` = "", `P (unadjusted)` = "",
+             `Adjusted OR (95% CI)` = sprintf("C-statistic %.3f; EPV %.1f",
+                                              m_hgb$meta$c_statistic,
+                                              m_hgb$meta$events_per_variable),
+             `P (adjusted)` = ""),
+      tab3b),
+    "TABLE_3B_ischemic_with_hgb")
+
+  message("\n--- Ischaemic stroke, model including haemoglobin ---")
+  print(as.data.frame(tab3b %>% select(Variable, Level, n, events,
+                                       `Adjusted OR (95% CI)`, `P (adjusted)`)),
+        row.names = FALSE)
+}
+
+isch_all <- compact(list(m_main, m_hgb, m_hgb_pop, m_smk4, m_notx, m_ctrl, m_inc))
 if (length(isch_all)) {
   save_result(map_dfr(isch_all, ~ .x$table), "16_ischemic_all_models")
   save_result(map_dfr(isch_all, ~ .x$meta),  "16_ischemic_diagnostics")

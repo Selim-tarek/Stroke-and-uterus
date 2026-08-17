@@ -12,3 +12,6 @@ nomice/
 results/
 results_run.log
 *.rds
+node_modules/
+package-lock.json
+package.json

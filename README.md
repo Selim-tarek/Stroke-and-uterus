@@ -77,6 +77,19 @@ so it never enters a model.
 Stroke prevalence (`stroke_any`): **1,538 / 39,807 = 3.86% (95% CI 3.68–4.06)**.
 Including imaging-only infarcts: 1,543 / 39,807 = 3.88% (3.69–4.07).
 
+Ischaemic strokes: **1,189 of the 1,538 events**; 349 were another stroke type
+and none had a missing type. The dedicated multivariable model runs on 35,878
+patients with 1,179 ischaemic strokes (3.29%) after complete-case restriction
+(BMI is the binding covariate), C-statistic 0.799, 43.7 events per variable, max
+VIF 1.60.
+
+Adjusted ORs from that model, largest first: CHF 2.26 (1.68–3.03), AF 2.23
+(1.68–2.93), CAD 2.19 (1.68–2.84), thrombophilia 2.85 (2.20–3.65), migraine with
+aura 3.17 (2.63–3.81), anticoagulant use 2.66 (2.28–3.09), VTE 2.07 (1.72–2.49),
+hypertension 2.05 (1.78–2.36), dyslipidaemia 1.42 (1.24–1.64), **fibroids 1.22
+(1.03–1.45, p = 0.021)**. Adenomyosis (0.97) and endometriosis (0.88) are null
+after adjustment, and diabetes attenuates from a crude 3.02 to 1.13 (p = 0.107).
+
 ## How the data departs from the Codebook
 
 Three fields do not match their codebook definition. Each is handled explicitly
@@ -180,7 +193,7 @@ Both turned out to be reporting artefacts rather than data errors:
   implying ineligible patients had leaked through the filter. They had not —
   only the label was wrong. Bands now stop at the eligibility ceiling.
 - **`audit_out_of_range` said 360 ages set to NA, `12_missingness` said 0.**
-  Different denominators: the audit counted all 53,060 file rows, missingness
+  Different denominators: the audit counted all 52,827 file rows, missingness
   counted the 39,807 eligible. All 360 out-of-range ages (345 under 18, 15 over
   100) belong to *ineligible* rows, so age is genuinely 0% missing in the
   analysis population. The audit now reports both denominators.

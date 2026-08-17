@@ -1043,8 +1043,13 @@ fit_spec <- function(exposure, set_name, covs) {
               max_vif = cd$max_vif, condition_number = cd$condition_number)
 }
 
+ba_total <- length(uterine_flags) * length(adj_sets); ba_i <- 0
+message("  (", ba_total, " paired refits, two models each)")
+
 before_after <- map_dfr(uterine_flags, function(ex) {
   map_dfr(names(adj_sets), function(sn) {
+    ba_i <<- ba_i + 1
+    message(sprintf("  [%2d/%d] %-16s %s", ba_i, ba_total, ex, sn))
     old_covs <- setdiff(adj_sets[[sn]], adj_exclude)          # uterine_dx_group kept
     new_covs <- build_covs(ex, sn)                            # collinear family removed
     b <- fit_spec(ex, sn, old_covs); a <- fit_spec(ex, sn, new_covs)

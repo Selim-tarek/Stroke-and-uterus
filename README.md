@@ -11,16 +11,23 @@ install.packages(c("readxl","janitor","lubridate","dplyr","tidyr","stringr",
                    "openxlsx","rlang","brglm2","car"))
 ```
 
-Set `input_file` at the top of `stroke_prevalence.R`, then:
+`janitor` and `binom` are optional — `compat_shims.R` supplies the two functions
+used from them (`make_clean_names()`, Wilson `binom.confint()`) when either
+package is unavailable.
+
+Set `input_file` at the top of `stroke_prevalence.R`, or pass the path through
+the environment, then:
 
 ```
-Rscript stroke_prevalence.R
+STROKE_XLSX=/path/to/stroke.xlsx Rscript stroke_prevalence.R
 ```
 
 Output: `results/stroke_prevalence_results.xlsx` (one sheet per table) and
-`results/plots/`.
+`results/plots/`. The cleaned analysis frame is cached to
+`results/prepared_data.rds`; `STROKE_PREP_ONLY=1` stops the run after that step,
+which is useful when only the modelling code changed.
 
-Two sheets are the write-up-ready tables; everything else is supporting detail:
+Three sheets are the write-up-ready tables; everything else is supporting detail:
 
 - **`TABLE_1_characteristics`** — cohort characteristics overall and by stroke
   status. Continuous as median (IQR) with Wilcoxon p; categorical as n (%) with
@@ -29,6 +36,35 @@ Two sheets are the write-up-ready tables; everything else is supporting detail:
   prevalence (95% CI), unadjusted OR, adjusted OR, both p-values, and the model
   denominator. Reference levels are printed as `1.00 (reference)`, and a `Note`
   column flags any estimate resting on fewer than 10 events per variable.
+- **`TABLE_3_ischemic_multivariable`** — the dedicated ischaemic-stroke model
+  (below): every covariate in one model, unadjusted and adjusted OR side by
+  side.
+
+## Dedicated ischaemic-stroke model
+
+`TABLE_2_main_results` fits one exposure at a time against `stroke_any`.
+`TABLE_3_ischemic_multivariable` is a different object: a **single multivariable
+logistic regression** in which every covariate is entered simultaneously and an
+adjusted OR is reported for each, with **ischaemic stroke** as the outcome, in
+women aged 18–60 with non-cancerous uterine pathology.
+
+- **Outcome**: `stroke_any = 1` **and** `stroke_type = "Ischaemic stroke"`.
+- **Competing outcomes**: patients whose only stroke was haemorrhagic, SAH, TIA
+  or CVT are *not* controls — they are removed from the primary model. Strokes
+  with unknown or blank type are removed for the same reason (they cannot be
+  classified). Both counts are in `16_ischemic_flow`.
+- **Population**: the analysis population with the 18–60 age band re-applied
+  explicitly, so the model matches its stated definition regardless of the
+  `eligible` flag.
+- **Covariates**: age, BMI, the three uterine pathology flags, uterine bleeding,
+  HTN, DM, dyslipidaemia, CAD, AF, CHF, smoking, migraine, VTE, thrombophilia,
+  antithrombotic, hormonal Tx, surgical Tx. `uterine_dx_group` is excluded —
+  it is a deterministic recoding of the three flags, and the collinearity rule
+  below applies here too.
+- **Sensitivity models** (`16_ischemic_all_models`): treatment covariates
+  dropped; other stroke types kept as non-cases; incident strokes only.
+- `16_ischemic_diagnostics` carries n, events, events-per-variable, C-statistic,
+  AIC, max VIF and the design condition number for each of the four models.
 
 ## Analysis population
 

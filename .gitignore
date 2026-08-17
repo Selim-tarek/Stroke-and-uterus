@@ -7,3 +7,8 @@ nomice/
 .Rhistory
 .RData
 .Rproj.user/
+
+# Generated analysis outputs
+results/
+results_run.log
+*.rds

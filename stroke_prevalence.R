@@ -14,14 +14,19 @@
 #                    "openxlsx","rlang","brglm2","car"))
 # =============================================================================
 
-library(readxl);   library(janitor); library(lubridate)
+library(readxl);   library(lubridate)
+suppressWarnings(suppressMessages({
+  if (requireNamespace("janitor", quietly = TRUE)) library(janitor)
+  if (requireNamespace("binom",  quietly = TRUE)) library(binom)
+}))
+source("compat_shims.R")
 library(dplyr);    library(tidyr);   library(stringr)
-library(binom);    library(broom);   library(purrr)
+library(broom);    library(purrr)
 library(ggplot2);  library(scales);  library(forcats)
 library(openxlsx); library(rlang)
 
 # ------------------------- USER SETTINGS -------------------------------------
-input_file <- "stroke.xlsx"     # <<-- path to your workbook
+input_file <- Sys.getenv("STROKE_XLSX", "stroke.xlsx")   # <<-- path to your workbook
 sheet_name <- "Data Entry"
 
 outdir <- "results"
@@ -675,6 +680,17 @@ for (v in intersect(binary_vars, names(model_df)))
   model_df[[v]] <- factor(unname(labs_yesno[as.character(model_df[[v]])]),
                           levels = c("No", "Yes"))
 
+# Cached analysis frame, so a re-run that only touches the modelling code does
+# not have to re-read and re-clean the workbook. Set STROKE_PREP_ONLY=1 to stop
+# here after writing it.
+saveRDS(list(model_df = model_df, df_elig = df_elig, df = df,
+             exposures = exposures),
+        file.path(outdir, "prepared_data.rds"))
+if (nzchar(Sys.getenv("STROKE_PREP_ONLY"))) {
+  message("STROKE_PREP_ONLY set - stopping after data preparation.")
+  quit(save = "no")
+}
+
 # ---------------------------------------------------------------------------
 # TABLE 1 -- cohort characteristics, overall and by stroke status.
 # Continuous variables as median (IQR) with a Wilcoxon test; categorical as
@@ -1075,6 +1091,246 @@ if (nrow(before_after)) {
   print(as.data.frame(before_after %>%
     select(exposure, adjustment, n, events, before_OR, after_OR, ci_narrowed_by_pct)),
     row.names = FALSE)
+}
+
+# =============================================================================
+# DEDICATED MODEL -- multivariable logistic regression for ISCHAEMIC stroke
+# among women aged 18-60 with non-cancerous uterine pathology.
+#
+# Separate from the exposure-at-a-time grid above: this is a single model in
+# which every covariate is entered simultaneously, and an OR is reported for
+# each of them rather than for one exposure of interest.
+#
+# Outcome definition (primary): stroke_any = 1 AND stroke_type = "Ischaemic
+# stroke". Patients whose only stroke was haemorrhagic, SAH, TIA or CVT are
+# a competing outcome, not controls, so they are REMOVED from the primary
+# analysis; a sensitivity model keeps them as non-cases. Strokes with an
+# unknown/blank type are also removed from the primary model (they cannot be
+# classified) and counted in the flow table.
+#
+# Uterine pathology enters as the three binary flags. uterine_dx_group is a
+# deterministic recoding of those flags, so it is excluded here for the same
+# collinearity reason enforced by build_covs().
+# =============================================================================
+message("\nFitting dedicated ischaemic-stroke multivariable model ...")
+
+isch_type_label <- "Ischaemic stroke"
+
+isch_covs_full <- intersect(
+  c("age_index", "bmi", "fibroids", "adenomyosis", "endometriosis",
+    "uterine_bleeding", "htn", "dm", "dyslipidemia", "cad", "afib", "chf",
+    "smoking", "migraine", "vte_history", "thrombophilia", "antithrombotic",
+    "hormonal_tx", "surgical_tx"),
+  names(model_df))
+
+# Temporality-safe variant: drops the three variables ascertained at or after
+# index_date (same rationale as clinical_no_treatment above).
+isch_covs_notx <- setdiff(isch_covs_full,
+                          c("antithrombotic", "hormonal_tx", "surgical_tx"))
+
+# ---- build the outcome ------------------------------------------------------
+mk_isch <- function(d, competing = c("exclude", "control")) {
+  competing <- match.arg(competing)
+  stype <- if ("stroke_type" %in% names(d)) as.character(d$stroke_type) else NA_character_
+  is_case  <- !is.na(d$stroke_flag) & d$stroke_flag == 1 &
+    !is.na(stype) & stype == isch_type_label
+  is_other <- !is.na(d$stroke_flag) & d$stroke_flag == 1 & !is_case
+  d$stroke_flag <- ifelse(is_case, 1L,
+                          ifelse(is_other,
+                                 if (competing == "exclude") NA_integer_ else 0L,
+                                 ifelse(!is.na(d$stroke_flag) & d$stroke_flag == 0,
+                                        0L, NA_integer_)))
+  d[!is.na(d$stroke_flag), , drop = FALSE]
+}
+
+# Age band is an eligibility criterion, but it is re-applied explicitly so the
+# model population matches the stated 18-60 definition even if a stray row slips
+# past the eligible flag.
+age_ok <- !is.na(model_df$age_index) & model_df$age_index >= 18 &
+  model_df$age_index <= 60
+isch_base <- model_df[age_ok, , drop = FALSE]
+
+# Concordance (C-statistic / AUC) from the rank of fitted probabilities. Ties
+# contribute a half, which is the Mann-Whitney definition.
+c_stat <- function(y, p) {
+  y <- as.integer(y); ok <- !is.na(y) & !is.na(p); y <- y[ok]; p <- p[ok]
+  n1 <- sum(y == 1); n0 <- sum(y == 0)
+  if (!n1 || !n0) return(NA_real_)
+  r <- rank(p)
+  round((sum(r[y == 1]) - n1 * (n1 + 1) / 2) / (n1 * n0), 3)
+}
+
+isch_flow <- tibble(
+  step = c("Eligible, no active malignancy",
+           "Aged 18-60 at index",
+           "Any stroke",
+           "  ischaemic (cases)",
+           "  other stroke type (competing, removed from primary)",
+           "  unknown/blank stroke type (removed from primary)",
+           "Primary model population (cases + stroke-free controls)"),
+  n = c(
+    nrow(model_df),
+    nrow(isch_base),
+    sum(isch_base$stroke_flag == 1, na.rm = TRUE),
+    sum(isch_base$stroke_flag == 1 &
+          !is.na(isch_base$stroke_type) &
+          as.character(isch_base$stroke_type) == isch_type_label, na.rm = TRUE),
+    sum(isch_base$stroke_flag == 1 &
+          !is.na(isch_base$stroke_type) &
+          as.character(isch_base$stroke_type) != isch_type_label, na.rm = TRUE),
+    sum(isch_base$stroke_flag == 1 & is.na(isch_base$stroke_type), na.rm = TRUE),
+    nrow(mk_isch(isch_base, "exclude"))))
+save_result(isch_flow, "16_ischemic_flow")
+
+# ---- fit one specification --------------------------------------------------
+fit_isch <- function(data, covs, label) {
+  d <- data %>%
+    select(all_of(intersect(c("stroke_flag", covs), names(data)))) %>%
+    drop_rare_levels(covs, context = paste0("ischaemic model: ", label)) %>%
+    drop_na() %>%
+    mutate(across(where(is.factor), droplevels))
+
+  keep <- usable_covs(d, intersect(covs, names(d)))
+  if (!length(keep) || !nrow(d)) return(NULL)
+
+  ev <- sum(d$stroke_flag == 1)
+  npar <- sum(map_int(keep, function(v)
+    if (is.factor(d[[v]])) nlevels(d[[v]]) - 1L else 1L))
+
+  r <- safe_glm_fit(as.formula(paste("stroke_flag ~",
+                                     paste(keep, collapse = " + "))), d)
+  if (is.null(r)) return(NULL)
+
+  td <- tidy_safe(r$fit) %>% filter(term != "(Intercept)")
+  cd <- model_collinearity(r$fit)
+
+  # Map each coefficient back to its variable and level.
+  var_of <- function(tm) {
+    hit <- keep[map_lgl(keep, ~ startsWith(tm, .x))]
+    if (!length(hit)) return(NA_character_)
+    hit[which.max(nchar(hit))]
+  }
+  td$Variable <- map_chr(td$term, var_of)
+  td$Level <- map2_chr(td$term, td$Variable, function(tm, v) {
+    if (is.na(v)) return(tm)
+    if (identical(tm, v)) "per 1 unit" else substring(tm, nchar(v) + 1)
+  })
+
+  # Reference level for each factor, so the table reads like a paper table.
+  refs <- map_dfr(keep, function(v) {
+    if (!is.factor(d[[v]])) return(NULL)
+    tibble(Variable = v, Level = levels(d[[v]])[1], is_ref = TRUE)
+  })
+
+  res <- td %>%
+    transmute(Variable, Level,
+              OR = exp(estimate), OR_low = exp(conf.low), OR_high = exp(conf.high),
+              p.value, is_ref = FALSE) %>%
+    bind_rows(refs %>% mutate(OR = 1, OR_low = NA_real_, OR_high = NA_real_,
+                              p.value = NA_real_)) %>%
+    arrange(match(Variable, keep), desc(is_ref))
+
+  # n and events behind each level, for the reader who wants the denominator.
+  lvl_n <- function(v, l) {
+    if (!is.factor(d[[v]])) return(c(nrow(d), sum(d$stroke_flag == 1)))
+    idx <- as.character(d[[v]]) == l
+    c(sum(idx), sum(idx & d$stroke_flag == 1))
+  }
+  cnt <- map2(res$Variable, res$Level, lvl_n)
+  res$n <- map_int(cnt, ~ as.integer(.x[1]))
+  res$events <- map_int(cnt, ~ as.integer(.x[2]))
+
+  list(
+    table = res %>% transmute(
+      Model = label, Variable, Level, n, events,
+      `Adjusted OR (95% CI)` = ifelse(is_ref, "1.00 (reference)",
+                                      sprintf("%.2f (%.2f-%.2f)", OR, OR_low, OR_high)),
+      OR, OR_low, OR_high,
+      P = fmt_p1(p.value)),
+    meta = tibble(
+      Model = label, n = nrow(d), events = ev,
+      prevalence = sprintf("%.2f%%", 100 * ev / nrow(d)),
+      n_covariates = length(keep), n_parameters = npar,
+      events_per_variable = round(ev / npar, 1),
+      stable = ev / npar >= min_epv,
+      method = r$method,
+      c_statistic = c_stat(d$stroke_flag, fitted(r$fit)),
+      AIC = round(AIC(r$fit), 1),
+      max_vif = cd$max_vif, max_vif_term = cd$max_vif_term,
+      condition_number = cd$condition_number,
+      covariates = paste(keep, collapse = ", ")),
+    fit = r$fit, data = d, keep = keep)
+}
+
+# ---- unadjusted counterparts, same population -------------------------------
+isch_unadj <- function(data, covs, label) {
+  map_dfr(covs, function(v) {
+    d <- data %>% select(all_of(c("stroke_flag", v))) %>%
+      drop_rare_levels(v, context = paste0("ischaemic unadjusted: ", v)) %>%
+      drop_na() %>% mutate(across(where(is.factor), droplevels))
+    if (!nrow(d) || !length(usable_covs(d, v))) return(NULL)
+    if (sum(d$stroke_flag == 1) < 5) return(NULL)
+    r <- safe_glm_fit(as.formula(paste("stroke_flag ~", v)), d)
+    if (is.null(r)) return(NULL)
+    tidy_safe(r$fit) %>% filter(term != "(Intercept)") %>%
+      transmute(Variable = v,
+                Level = ifelse(term == v, "per 1 unit", substring(term, nchar(v) + 1)),
+                `Unadjusted OR (95% CI)` = sprintf("%.2f (%.2f-%.2f)",
+                                                   exp(estimate), exp(conf.low), exp(conf.high)),
+                `P (unadjusted)` = fmt_p1(p.value))
+  })
+}
+
+isch_primary_df <- mk_isch(isch_base, "exclude")
+
+m_main <- fit_isch(isch_primary_df, isch_covs_full, "Primary (all covariates)")
+m_notx <- fit_isch(isch_primary_df, isch_covs_notx,
+                   "Sensitivity: treatment covariates dropped")
+m_ctrl <- fit_isch(mk_isch(isch_base, "control"), isch_covs_full,
+                   "Sensitivity: other stroke types as non-cases")
+
+isch_incident <- mk_isch(
+  isch_base %>% filter(is.na(stroke_flag) | stroke_flag == 0 |
+                         is.na(stroke_timing) |
+                         as.character(stroke_timing) != "Before index"),
+  "exclude")
+m_inc <- fit_isch(isch_incident, isch_covs_notx,
+                  "Sensitivity: incident strokes only, no treatment covariates")
+
+if (!is.null(m_main)) {
+  ua <- isch_unadj(isch_primary_df, m_main$keep, "primary")
+  tab3 <- m_main$table %>%
+    left_join(ua, by = c("Variable", "Level")) %>%
+    mutate(`Unadjusted OR (95% CI)` = ifelse(`Adjusted OR (95% CI)` == "1.00 (reference)",
+                                             "1.00 (reference)",
+                                             coalesce(`Unadjusted OR (95% CI)`, "")),
+           `P (unadjusted)` = coalesce(`P (unadjusted)`, "")) %>%
+    select(Variable, Level, n, events,
+           `Unadjusted OR (95% CI)`, `P (unadjusted)`,
+           `Adjusted OR (95% CI)`, `P (adjusted)` = P)
+
+  hdr <- tibble(Variable = "MODEL", Level = m_main$meta$Model,
+                n = m_main$meta$n, events = m_main$meta$events,
+                `Unadjusted OR (95% CI)` = "", `P (unadjusted)` = "",
+                `Adjusted OR (95% CI)` = sprintf("C-statistic %.3f; EPV %.1f",
+                                                 m_main$meta$c_statistic,
+                                                 m_main$meta$events_per_variable),
+                `P (adjusted)` = "")
+
+  save_result(bind_rows(hdr, tab3), "TABLE_3_ischemic_multivariable")
+
+  message("\n--- Ischaemic stroke, multivariable model (women 18-60) ---")
+  message("n = ", m_main$meta$n, ", ischaemic strokes = ", m_main$meta$events,
+          " (", m_main$meta$prevalence, "), C = ", m_main$meta$c_statistic)
+  print(as.data.frame(tab3 %>% select(Variable, Level, n, events,
+                                      `Adjusted OR (95% CI)`, `P (adjusted)`)),
+        row.names = FALSE)
+}
+
+isch_all <- compact(list(m_main, m_notx, m_ctrl, m_inc))
+if (length(isch_all)) {
+  save_result(map_dfr(isch_all, ~ .x$table), "16_ischemic_all_models")
+  save_result(map_dfr(isch_all, ~ .x$meta),  "16_ischemic_diagnostics")
 }
 
 # =============================================================================

@@ -580,6 +580,52 @@ def run(elig):
                                         "without stroke end follow-up (competing risk).")
     RESULTS["p2x_abs"] = ab
 
+    # 10b. Hb curves (RCS, same knots as the primary spline), adjusted for covariates + pre-Hb conditions (2a):
+    # cross-sectional OR and rate ratio after the Hb measurement, both vs Hb 13 g/dL
+    from .utils import rcs_basis
+    kn = RESULTS["p2_spline_knots"]
+    ref13 = rcs_basis(np.array([13.0]), kn)
+    curves, cpts, cinfo = [], [], {}
+    for design_, data_ in [("Cross-sectional (odds ratio)", d), ("After the Hb measurement (rate ratio)", t)]:
+        oc = "stroke_any" if design_.startswith("Cross") else "ev_any"
+        cv = cov_for(data_, oc, ["hgb"], f"curve{oc}")
+        terms = [Term("hgb", "rcs", knots=kn)] + cv + ext_a3
+        if design_.startswith("Cross"):
+            f = register_fit(fit_logit(d, oc, terms, name="Hb curve 2a"), "P2X", "Hb spline, adjustment 2a")
+            cols = [f"hgb__rcs{i}" for i in range(len(kn) - 1)]
+            beta, V, n_, e_ = f.params[cols].values, f.cov.loc[cols, cols].values, f.n, f.events
+        else:
+            r_, n_, e_, _ = pois(t, oc, terms)
+            cols = [f"hgb__rcs{i}" for i in range(len(kn) - 1)]
+            beta, V = r_.params[cols].values, r_.cov_params().loc[cols, cols].values
+        wov = float(beta @ np.linalg.solve(V, beta))
+        bn, Vn = beta[1:], V[1:, 1:]
+        wnl = float(bn @ np.linalg.solve(Vn, bn))
+        p_ov, p_nl = _st2.chi2.sf(wov, len(beta)), _st2.chi2.sf(wnl, len(bn))
+        src = d if design_.startswith("Cross") else t
+        lo_, hi_ = np.nanpercentile(src.hgb, [1, 99])
+        grid = np.linspace(lo_, hi_, 200)
+        B = rcs_basis(grid, kn) - ref13
+        lp = B @ beta
+        se = np.sqrt(np.einsum("ij,jk,ik->i", B, V, B))
+        curves.append(pd.DataFrame({"Design": design_, "Hb (g/dL)": grid, "Est": np.exp(lp),
+                                    "lo": np.exp(lp - 1.96 * se), "hi": np.exp(lp + 1.96 * se)}))
+        cinfo[design_] = dict(n=n_, events=e_, p_overall=p_ov, p_nonlin=p_nl)
+        for h in [7, 8, 9, 10, 11, 12, 14, 15, 16]:
+            b = (rcs_basis(np.array([float(h)]), kn) - ref13)[0]
+            l, s_ = float(b @ beta), float(np.sqrt(b @ V @ b))
+            cpts.append({"Design": design_, "Hb (g/dL)": h,
+                         "Estimate vs 13 g/dL (95% CI)": fmt_or(np.exp(l), np.exp(l - 1.96 * s_), np.exp(l + 1.96 * s_)),
+                         "Est": np.exp(l), "lo": np.exp(l - 1.96 * s_), "hi": np.exp(l + 1.96 * s_),
+                         "N": n_, "Events": e_, "p overall": fmt_p(p_ov), "p non-linearity": fmt_p(p_nl)})
+    cpts = pd.DataFrame(cpts)
+    add_table("P2X_Hb_curves", cpts, "Any stroke by Hb (restricted cubic spline, knots "
+              + ", ".join(f"{k:.1f}" for k in kn) + "), vs 13 g/dL, adjusted for Paper 2 covariates and pre-Hb "
+              "conditions (2a). Cross-sectional: logistic OR; after the Hb measurement: Poisson rate ratio.")
+    RESULTS["p2x_curves"] = pd.concat(curves, ignore_index=True)
+    RESULTS["p2x_curve_pts"] = cpts
+    RESULTS["p2x_curve_info"] = cinfo
+
     # 7. E-values
     tab = pd.DataFrame(rows)
     evr = []

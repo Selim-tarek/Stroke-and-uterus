@@ -422,6 +422,35 @@ def fig_p2_per_hb():
     return save(fig, "fig13_p2_per_hb")
 
 
+def fig_p2_hb_curves():
+    """Stroke by Hb: cross-sectional OR (A) and rate ratio after the Hb measurement (B), both adjusted (2a)."""
+    c, info = RESULTS["p2x_curves"], RESULTS["p2x_curve_info"]
+    fig, axes = plt.subplots(1, 2, figsize=(7.6, 3.5), sharey=True)
+    panels = [("Cross-sectional (odds ratio)", "A  Odds of stroke", "Adjusted odds ratio"),
+              ("After the Hb measurement (rate ratio)", "B  Stroke rate after the Hb measurement", "Adjusted rate ratio")]
+    for ax, (des, title, yl), col in zip(axes, panels, SERIES[:2]):
+        cc = c[c.Design == des]
+        ax.fill_between(cc["Hb (g/dL)"], cc["lo"], cc["hi"], color=col, alpha=0.18, lw=0)
+        ax.plot(cc["Hb (g/dL)"], cc["Est"], color=col, lw=2)
+        ax.axhline(1, color=MUTED, lw=0.8, ls="--")
+        ax.axvline(13, color=GRID, lw=0.8)
+        ax.set_yscale("log")
+        ax.set_ylim(0.4, 4.5)
+        ax.set_yticks([0.5, 0.75, 1, 1.5, 2, 3, 4])
+        ax.get_yaxis().set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
+        ax.get_yaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.grid(axis="y", color=GRID, lw=0.5)
+        ax.set_xlabel("Haemoglobin (g/dL)")
+        ax.set_title(title, fontsize=9, loc="left", color=INK)
+        i = info[des]
+        ax.text(0.98, 0.97, f"n = {i['n']:,}; strokes = {i['events']:,}\nnon-linearity P = "
+                + (f"{i['p_nonlin']:.3f}" if i["p_nonlin"] >= 0.001 else "<0.001"),
+                transform=ax.transAxes, ha="right", va="top", fontsize=7, color=MUTED)
+        if ax is axes[0]:
+            ax.set_ylabel("Adjusted ratio vs Hb 13 g/dL (log scale)")
+    return save(fig, "fig14_p2_hb_curves")
+
+
 def fig_p2_flow():
     """Participant flow for the anaemia manuscript."""
     f = RESULTS["flow"]
@@ -466,5 +495,6 @@ def run():
     out["p2x"] = fig_p2x()
     out["p2_flow"] = fig_p2_flow()
     out["p2_per_hb"] = fig_p2_per_hb()
+    out["p2_hb_curves"] = fig_p2_hb_curves()
     RESULTS["figures"] = out
     return out

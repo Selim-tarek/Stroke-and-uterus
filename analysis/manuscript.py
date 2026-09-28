@@ -144,8 +144,8 @@ def build():
     P("Running title: Anaemia and stroke in benign uterine disease")
     P("Authors: [Author names, degrees, affiliations]")
     P("Corresponding author: [name, address, email]")
-    P("Word count (main text): [to be completed]; Tables: 3; Figures: 5; Supplementary material: eTables 1–10, "
-      "eFigures 1–2")
+    P("Word count (main text): [to be completed]; Tables: 3; Figures: 5; Supplementary material: eTables 1–11, "
+      "eFigures 1–3")
     P("Keywords: anaemia; haemoglobin; ischaemic stroke; uterine fibroids; endometriosis; adenomyosis; women")
     B.append({"t": "note", "text": "DRAFT generated from the analysis pipeline (python -m analysis.run_all). All numbers "
                                    "are produced by code in the same run. [ref] marks statements that need a citation; "
@@ -284,7 +284,7 @@ def build():
       f"{_or(fi, 'anemia_cat=Severe (<8)')}. The spline showed a steady rise in risk as Hb fell below about 12–13 g/dL "
       f"(non-linearity {_p(R['p2_spline_p_nonlin'])}). Compared with 13 g/dL, the OR was "
       f"{pts.loc[10, 'OR vs 13 g/dL (95% CI)']} at 10 g/dL and {pts.loc[8, 'OR vs 13 g/dL (95% CI)']} at 8 g/dL "
-      f"(Figure 3).")
+      f"(eFigure 3).")
     H2("Temporality")
     P(f"Hb was measured at least 30 days before the stroke in {ht.get('Hb >=30 d before stroke', 0)} strokes, within "
       f"30 days of it in {ht.get('Hb within 30 d of stroke', 0)}, and at least 30 days after it in "
@@ -321,7 +321,29 @@ def build():
       f"anaemia, {_mi['Rate (95% CI)']} with mild, {_mo['Rate (95% CI)']} with moderate and {_se['Rate (95% CI)']} with "
       f"severe anaemia ({int(_se['Events'])} events). Assuming a constant rate, these correspond to unadjusted 5-year "
       f"risks of {_n['Crude 5-y risk (95% CI)']}, {_mi['Crude 5-y risk (95% CI)']}, {_mo['Crude 5-y risk (95% CI)']} "
-      f"and {_se['Crude 5-y risk (95% CI)']} (Figure 5).")
+      f"and {_se['Crude 5-y risk (95% CI)']} (Figure 5). Deaths without stroke, which end follow-up, were more "
+      f"frequent with worse anaemia: {_n['Death rate /1,000 PY']:.2f}, {_mi['Death rate /1,000 PY']:.2f}, "
+      f"{_mo['Death rate /1,000 PY']:.2f} and {_se['Death rate /1,000 PY']:.2f} per 1,000 person-years "
+      f"({int(_se['Deaths without stroke'])} deaths vs {int(_se['Events'])} strokes with severe anaemia).")
+    _cp = R["p2x_curve_pts"]
+    _ci = R["p2x_curve_info"]
+
+    def cpt(des, h):
+        return _cp[(_cp.Design.str.startswith(des)) & (_cp["Hb (g/dL)"] == h)].iloc[0]
+    _cx, _ct = _ci["Cross-sectional (odds ratio)"], _ci["After the Hb measurement (rate ratio)"]
+    P(f"Figure 3 shows stroke risk across the Hb range, adjusted for covariates and pre-Hb conditions (2a). Compared "
+      f"with 13 g/dL, the OR was {cpt('Cross', 11)['Estimate vs 13 g/dL (95% CI)']} at 11 g/dL, "
+      f"{cpt('Cross', 9)['Estimate vs 13 g/dL (95% CI)']} at 9 g/dL and {cpt('Cross', 8)['Estimate vs 13 g/dL (95% CI)']} "
+      f"at 8 g/dL (non-linearity {_p(fmt_p(_cx['p_nonlin']))}). For stroke after the Hb measurement, the rate ratio was "
+      f"{cpt('After', 11)['Estimate vs 13 g/dL (95% CI)']} at 11 g/dL, {cpt('After', 9)['Estimate vs 13 g/dL (95% CI)']} "
+      f"at 9 g/dL and {cpt('After', 8)['Estimate vs 13 g/dL (95% CI)']} at 8 g/dL (overall {_p(fmt_p(_ct['p_overall']))}, "
+      f"non-linearity {_p(fmt_p(_ct['p_nonlin']))}; {_ct['events']} strokes). Above 13 g/dL neither curve departed "
+      f"from 1 (eTable 11).")
+    checks.append(("Curves: OR at 9 g/dL and RR at 9 g/dL exclude 1; values above 13 include 1",
+                   cpt("Cross", 9)["lo"] > 1 and cpt("After", 9)["lo"] > 1 and
+                   all(cpt(dd, h)["lo"] < 1 < cpt(dd, h)["hi"] for dd in ["Cross", "After"] for h in [14, 15, 16])))
+    checks.append(("Deaths without stroke rise with anaemia grade", _n["Death rate /1,000 PY"] < _mi["Death rate /1,000 PY"]
+                   < _mo["Death rate /1,000 PY"] < _se["Death rate /1,000 PY"]))
     checks.append(("Per-g/dL: below-13 OR/RR any & ischaemic exclude 1",
                    all(r["lo"] > 1 for r in [_pc, _pr, _pci, _pri])))
     H2("Confounding by anaemia-causing conditions")
@@ -397,6 +419,20 @@ def build():
       f"persisted after adjustment for, or exclusion of, haemoglobinopathies and other anaemia-causing conditions. It "
       f"was carried mainly by normocytic and macrocytic anaemia rather than by the microcytic, iron-deficiency pattern "
       f"expected from menstrual blood loss. It was also weaker in women with heavy uterine bleeding.")
+    _hs = xr('Hb ≥30 d before stroke: Any stroke', 'Severe')
+    _ab = pvx.loc["Coded acute blood-loss anaemia (±1 y of Hb)"]
+    _ns, _ms, _ss = (abr("Any stroke", g) for g in ["None", "Moderate", "Severe"])
+    P(f"The crude stroke rate after the Hb measurement was lower with severe than with moderate anaemia "
+      f"({_ss['Rate /1,000 PY']:.2f} vs {_ms['Rate /1,000 PY']:.2f} per 1,000 person-years). We do not interpret this "
+      f"as lower risk. First, it rests on {int(_ss['Events'])} strokes and the confidence intervals overlap widely. "
+      f"Second, women with severe anaemia died without stroke at {_ss['Death rate /1,000 PY'] / _ns['Death rate /1,000 PY']:.1f} "
+      f"times the rate of women without anaemia, so death competes with and removes women from being at risk of stroke. "
+      f"Third, severe anaemia was more often coded as acute blood-loss anaemia ({_ab['Severe anaemia %']}% vs "
+      f"{_ab['Moderate anaemia %']}% with moderate anaemia), which is often short-lived once bleeding is treated, so a "
+      f"single Hb value may overstate how long these women were anaemic. The high cross-sectional OR for severe "
+      f"anaemia fell to {_hs} when Hb had to precede the stroke by at least 30 days, suggesting that some very low "
+      f"values were measured during the stroke admission. The continuous analyses, which do not depend on the small "
+      f"severe group, showed risk rising steadily as Hb fell below 13 g/dL (Figure 3).")
     P("These findings extend reports linking anaemia and iron deficiency with stroke in general populations [ref] to a "
       "group of young and middle-aged women with a very high prevalence of anaemia. The morphology pattern and the "
       "bleeding interaction suggest two interpretations. Anaemia that is not explained by menstrual iron loss may "
@@ -524,10 +560,10 @@ def build():
     FIG("figures/fig7_p2_anaemia_gradient.png",
         "Figure 2. Adjusted odds ratios for stroke by anaemia grade, for any stroke, ischaemic stroke and strokes "
         "after diagnosis. Reference Hb ≥12 g/dL; bars are 95% CIs.")
-    FIG("figures/fig2_hb_spline.png",
-        f"Figure 3. Adjusted odds ratio for any stroke by haemoglobin (restricted cubic spline, 4 knots; reference "
-        f"13 g/dL). Shaded band: 95% CI. Knots marked on the x-axis (n = {R['p2_spline_n']:,}; "
-        f"{R['p2_spline_events']:,} strokes).", 5.4)
+    FIG("figures/fig14_p2_hb_curves.png",
+        "Figure 3. Stroke risk by haemoglobin (restricted cubic spline, 4 knots; reference 13 g/dL), adjusted for "
+        "covariates and pre-Hb conditions. (A) Odds ratio for any stroke (cross-sectional). (B) Rate ratio for any "
+        "stroke after the Hb measurement. Shaded bands: 95% CI.")
     FIG("figures/fig11_p2_extended.png",
         "Figure 4. Moderate anaemia and per-grade estimates across temporality, confounding and restriction analyses. "
         "The final row shows rate ratios from the time-to-event analysis; other rows show odds ratios.")
@@ -568,11 +604,17 @@ def build():
          .rename(columns={"p (text)": "P"}),
          "Piecewise-linear models: separate slopes below and above 13 g/dL. Crude rates are in the workbook sheet "
          "P2X_absolute_rates."),
+        ("eTable 11. Stroke risk at selected Hb values vs 13 g/dL (spline, adjusted for covariates and pre-Hb conditions)",
+         R["p2x_curve_pts"][["Design", "Hb (g/dL)", "Estimate vs 13 g/dL (95% CI)", "N", "Events", "p overall",
+                             "p non-linearity"]], ""),
     ]
     for title, df, note in sup:
         TABLE(title, df.fillna(""), note if isinstance(note, str) else "", font=7)
     FIG("figures/fig8_p2_robustness.png", "eFigure 1. Moderate and severe anaemia across sensitivity analyses.")
     FIG("figures/fig4_forest_paper2.png", "eFigure 2. Haematological indices (anaemia, MCV, platelets) and stroke.")
+    FIG("figures/fig2_hb_spline.png",
+        f"eFigure 3. Adjusted odds ratio for any stroke by haemoglobin, Paper 2 covariates only (restricted cubic "
+        f"spline, 4 knots; reference 13 g/dL; n = {R['p2_spline_n']:,}; {R['p2_spline_events']:,} strokes).", 5.4)
 
     # ------------------------------------------------------------------ checks
     RESULTS["manuscript_checks"] = checks
@@ -607,6 +649,36 @@ def to_markdown(B):
     return "\n".join(out)
 
 
+FOCUS_FIGS = ["fig7_p2_anaemia_gradient.png", "fig14_p2_hb_curves.png", "fig13_p2_per_hb.png",
+              "fig11_p2_extended.png"]
+
+
+def short_version(B):
+    """Title + abstract + Tables 1-3 + four key figures (no flow diagram), figures renumbered 1-4."""
+    import re
+    out = [b for b in B if b["t"] == "title"]
+    i = next(k for k, b in enumerate(B) if b["t"] == "h1" and b["text"] == "Abstract")
+    out.append(B[i])
+    for b in B[i + 1:]:
+        if b["t"] in ("h1", "pagebreak"):
+            break
+        out.append(b)
+    out.append({"t": "pagebreak"})
+    out.append({"t": "h1", "text": "Tables"})
+    tabs = [b for b in B if b["t"] == "table" and re.match(r"Table [123]\.", b["title"])]
+    assert len(tabs) == 3
+    for tb in tabs:
+        out += [tb]
+    out.append({"t": "pagebreak"})
+    out.append({"t": "h1", "text": "Figures"})
+    figs = {b["path"].split("/")[-1]: b for b in B if b["t"] == "figure"}
+    for n, f in enumerate(FOCUS_FIGS, 1):
+        b = dict(figs[f])
+        b["caption"] = re.sub(r"^Figure \d+\.", f"Figure {n}.", b["caption"])
+        out.append(b)
+    return out
+
+
 def run():
     B = build()
     (OUT_DIR / "anaemia_manuscript.json").write_text(json.dumps(B, ensure_ascii=False), encoding="utf-8")
@@ -616,3 +688,9 @@ def run():
     log("Manuscript", f"docx build: {'ok' if r.returncode == 0 else r.stderr[-500:]}")
     if r.returncode != 0:
         print(r.stderr)
+    S = short_version(B)
+    (OUT_DIR / "anaemia_abstract_tables_figures.json").write_text(json.dumps(S, ensure_ascii=False), encoding="utf-8")
+    (OUT_DIR / "anaemia_abstract_tables_figures.md").write_text(to_markdown(S), encoding="utf-8")
+    r = subprocess.run(["node", "analysis/build_docx.js", str(OUT_DIR / "anaemia_abstract_tables_figures.json"),
+                        str(OUT_DIR / "anaemia_abstract_tables_figures.docx")], capture_output=True, text=True)
+    log("Manuscript", f"short docx build: {'ok' if r.returncode == 0 else r.stderr[-500:]}")

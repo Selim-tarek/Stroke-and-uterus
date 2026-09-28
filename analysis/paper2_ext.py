@@ -392,6 +392,7 @@ def run(elig):
     t["ev_isch"] = ((t.stroke_any == 1) & (t.stroke_type == 1)).astype(int)
     t["end"] = np.where(t.ev_any == 1, sdt, cens)
     t["end"] = pd.to_datetime(t["end"])
+    t["died"] = ((t.ev_any == 0) & dth.notna() & (pd.to_datetime(dth) <= t["end"])).astype(int)
     t = t[t.end.notna() & (t.end > t.start)]
     t["py"] = (t.end - t.start).dt.days / 365.25
     RESULTS["p2x_tte_cohort"] = dict(n=len(t), py=float(t.py.sum()), ev=int(t.ev_any.sum()), ev_isch=int(t.ev_isch.sum()),
@@ -564,7 +565,10 @@ def run(elig):
             lo_ = _st2.chi2.ppf(0.025, 2 * k) / 2 / py if k > 0 else 0.0
             hi_ = _st2.chi2.ppf(0.975, 2 * k + 2) / 2 / py
             rt = k / py
+            dk = int(s_.died.sum())
             ab.append({"Outcome": lab, "Anaemia grade": lv, "Women": len(s_), "Events": k, "Person-years": round(py, 1),
+                       "Deaths without stroke": dk, "Death rate /1,000 PY": round(1000 * dk / py, 2),
+                       "Median follow-up (y)": round(float(s_.py.median()), 2),
                        "Rate /1,000 PY": 1000 * rt, "Rate low": 1000 * lo_, "Rate high": 1000 * hi_,
                        "Rate (95% CI)": f"{1000 * rt:.2f} ({1000 * lo_:.2f}–{1000 * hi_:.2f})",
                        "Crude 5-y risk %": 100 * (1 - np.exp(-5 * rt)),
@@ -572,7 +576,8 @@ def run(elig):
                                                   f"({100 * (1 - np.exp(-5 * lo_)):.1f}–{100 * (1 - np.exp(-5 * hi_)):.1f})"})
     ab = pd.DataFrame(ab)
     add_table("P2X_absolute_rates", ab, "Crude stroke rates after the Hb measurement by anaemia grade (exact Poisson "
-                                        "95% CI). 5-year risk = 1 − exp(−5 × rate), assuming a constant rate; unadjusted.")
+                                        "95% CI). 5-year risk = 1 − exp(−5 × rate), assuming a constant rate; unadjusted. Deaths "
+                                        "without stroke end follow-up (competing risk).")
     RESULTS["p2x_abs"] = ab
 
     # 7. E-values

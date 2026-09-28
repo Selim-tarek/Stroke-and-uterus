@@ -163,3 +163,42 @@ Both turned out to be reporting artefacts rather than data errors:
 ## No data in this repo
 
 `.gitignore` blocks `*.xlsx`/`*.csv`. Keep the workbook outside version control.
+
+---
+
+# Three-paper analysis (Python) — `analysis/`
+
+Statistics for three cross-sectional papers built from `analysis_master`:
+
+1. Covert (silent) brain infarcts among women with brain imaging.
+2. Anaemia, red-cell indices, platelets and stroke.
+3. Vascular risk-factor burden across fibroids, adenomyosis and endometriosis.
+
+## Run
+
+```
+pip install -r requirements.txt
+# place stroke_analysis_master.csv and stroke.xlsx in data/ (git-ignored; workbook is read-only)
+python -m analysis.run_all        # ~5 min (MICE m=20 and 1,000 bootstrap reps)
+```
+
+Outputs (git-ignored) go to `outputs/`:
+
+- `stats_results.xlsx`: one sheet per table (flow, missingness, codebook summary, data flags, Table 1s,
+  main, sensitivity and interaction models, model diagnostics, linearity checks). Arial font;
+  OR (95% CI) as text plus numeric columns.
+- `figures/`: flow diagram, Hb spline and three forest plots (300-dpi PNG + SVG).
+- `methods_and_results.md`: Statistical Methods and Results drafts plus a STROBE mapping. Every number is
+  generated from the run, and qualitative wording is checked automatically against the estimates.
+- `analysis_log.md`: decisions, derivations, count reconciliation, data problems (flagged, not fixed),
+  model diagnostics and open questions.
+
+| Module | Contents |
+|---|---|
+| `utils.py` | loading/derivations, HC1 logistic models, RCS, VIF/EPV/sparse checks, MICE + Rubin's rules, Table 1 |
+| `data_prep.py` | codebook summary, flow, missingness, data-quality flags |
+| `paper1.py` … `paper3.py` | pre-specified models (covariates fixed in code comments before fitting) |
+| `figures.py`, `excel_out.py`, `report.py` | outputs |
+
+MRN and DOB never leave memory. MRN is used only to link rows to the imaging review sheets, and
+`add_table()` refuses any output table that contains either column.

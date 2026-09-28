@@ -7,3 +7,5 @@ nomice/
 .Rhistory
 .RData
 .Rproj.user/
+outputs/
+__pycache__/

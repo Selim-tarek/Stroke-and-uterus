@@ -510,6 +510,71 @@ def run(elig):
                                              "Landmark at 90 d after follow-up start; strokes after the landmark. "
                                              "Poisson, HC1 SEs, Paper 2 covariates.")
 
+    # 10. Continuous Hb: risk per 1 g/dL lower Hb (whole range; piecewise below/above 13 g/dL)
+    from scipy import stats as _st2
+    for dd_ in (d, t):
+        dd_["hb_drop"] = -dd_["hgb"]
+        dd_["hb_below13"] = np.where(dd_.hgb.notna(), np.maximum(13 - dd_.hgb, 0), np.nan)
+        dd_["hb_above13"] = np.where(dd_.hgb.notna(), np.maximum(dd_.hgb - 13, 0), np.nan)
+    ext_a3 = [Term(v, "bin") for v in pre_vars]
+    per = []
+    for o, lab in [("stroke_any", "Any stroke"), ("y_isch", "Ischaemic stroke")]:
+        cv = cov_for(d, o, ["hgb"], "perhb")
+        for adj, extra in [("Paper 2 covariates", []), ("+ pre-Hb conditions (2a)", ext_a3)]:
+            f = register_fit(fit_logit(d, o, [Term("hb_drop")] + cv + extra, name=f"per g {o}"), "P2X",
+                             f"Per 1 g/dL lower Hb: {lab} ({adj})")
+            g = get_or(f, "hb_drop")
+            per.append({"Design": "Cross-sectional (odds ratio)", "Outcome": lab, "Hb range": "Whole range",
+                        "Adjustment": adj, "Estimate (95% CI)": g["txt"], "Est": g["OR"], "lo": g["lo"], "hi": g["hi"],
+                        "p": g["p"], "N": f.n, "Events": f.events})
+            f = register_fit(fit_logit(d, o, [Term("hb_below13"), Term("hb_above13")] + cv + extra, name="pw"), "P2X",
+                             f"Per 1 g/dL, piecewise: {lab} ({adj})")
+            for col, rng in [("hb_below13", "Below 13 g/dL (per 1 g/dL lower)"),
+                             ("hb_above13", "Above 13 g/dL (per 1 g/dL higher)")]:
+                g = get_or(f, col)
+                per.append({"Design": "Cross-sectional (odds ratio)", "Outcome": lab, "Hb range": rng,
+                            "Adjustment": adj, "Estimate (95% CI)": g["txt"], "Est": g["OR"], "lo": g["lo"],
+                            "hi": g["hi"], "p": g["p"], "N": f.n, "Events": f.events})
+    for oc, lab in [("ev_any", "Any stroke"), ("ev_isch", "Ischaemic stroke")]:
+        cv = cov_for(t, oc, ["hgb"], f"perhbtte{oc}")
+        for adj, extra in [("Paper 2 covariates", []), ("+ pre-Hb conditions (2a)", ext_a3)]:
+            r_, n_, e_, _ = pois(t, oc, [Term("hb_drop")] + cv + extra)
+            q = rr(r_, "hb_drop")
+            per.append({"Design": "After the Hb measurement (rate ratio)", "Outcome": lab, "Hb range": "Whole range",
+                        "Adjustment": adj, "Estimate (95% CI)": q["txt"], "Est": q["RR"], "lo": q["lo"],
+                        "hi": q["hi"], "p": q["p"], "N": n_, "Events": e_})
+            r_, n_, e_, _ = pois(t, oc, [Term("hb_below13"), Term("hb_above13")] + cv + extra)
+            for col, rng in [("hb_below13", "Below 13 g/dL (per 1 g/dL lower)"),
+                             ("hb_above13", "Above 13 g/dL (per 1 g/dL higher)")]:
+                q = rr(r_, col)
+                per.append({"Design": "After the Hb measurement (rate ratio)", "Outcome": lab, "Hb range": rng,
+                            "Adjustment": adj, "Estimate (95% CI)": q["txt"], "Est": q["RR"], "lo": q["lo"],
+                            "hi": q["hi"], "p": q["p"], "N": n_, "Events": e_})
+    per = pd.DataFrame(per)
+    per["p (text)"] = per["p"].map(fmt_p)
+    add_table("P2X_per_g_dL", per, "Stroke risk per 1 g/dL lower haemoglobin. Piecewise-linear models allow separate "
+                                   "slopes below and above 13 g/dL (the spline showed no association above 13 g/dL).")
+    RESULTS["p2x_per"] = per
+    # absolute rates by grade with exact Poisson CIs and crude 5-year risk (constant-rate approximation)
+    ab = []
+    for oc, lab in [("ev_any", "Any stroke"), ("ev_isch", "Ischaemic stroke")]:
+        for lv in ["None (Hb ≥12)"] + GRADES:
+            s_ = t[t.anemia_cat == lv]
+            k, py = int(s_[oc].sum()), float(s_.py.sum())
+            lo_ = _st2.chi2.ppf(0.025, 2 * k) / 2 / py if k > 0 else 0.0
+            hi_ = _st2.chi2.ppf(0.975, 2 * k + 2) / 2 / py
+            rt = k / py
+            ab.append({"Outcome": lab, "Anaemia grade": lv, "Women": len(s_), "Events": k, "Person-years": round(py, 1),
+                       "Rate /1,000 PY": 1000 * rt, "Rate low": 1000 * lo_, "Rate high": 1000 * hi_,
+                       "Rate (95% CI)": f"{1000 * rt:.2f} ({1000 * lo_:.2f}–{1000 * hi_:.2f})",
+                       "Crude 5-y risk %": 100 * (1 - np.exp(-5 * rt)),
+                       "Crude 5-y risk (95% CI)": f"{100 * (1 - np.exp(-5 * rt)):.1f}% "
+                                                  f"({100 * (1 - np.exp(-5 * lo_)):.1f}–{100 * (1 - np.exp(-5 * hi_)):.1f})"})
+    ab = pd.DataFrame(ab)
+    add_table("P2X_absolute_rates", ab, "Crude stroke rates after the Hb measurement by anaemia grade (exact Poisson "
+                                        "95% CI). 5-year risk = 1 − exp(−5 × rate), assuming a constant rate; unadjusted.")
+    RESULTS["p2x_abs"] = ab
+
     # 7. E-values
     tab = pd.DataFrame(rows)
     evr = []

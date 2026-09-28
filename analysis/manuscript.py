@@ -49,6 +49,19 @@ def build():
     X = R["p2x_tab"].set_index("Analysis")
     tt = R["p2x_tte"]
     tc = R["p2x_tte_cohort"]
+    per = R["p2x_per"]
+    ab = R["p2x_abs"]
+
+    def pg(design, outcome, rng, adj="+ pre-Hb conditions (2a)"):
+        m = per[(per.Design.str.startswith(design)) & (per.Outcome == outcome) & (per["Hb range"].str.startswith(rng))
+                & (per.Adjustment == adj)]
+        assert len(m) == 1, (design, outcome, rng, adj)
+        return m.iloc[0]
+
+    def abr(outcome, grade):
+        m = ab[(ab.Outcome == outcome) & (ab["Anaemia grade"].str.startswith(grade))]
+        assert len(m) == 1, (outcome, grade)
+        return m.iloc[0]
     mo = R["p2x_morph"]
     sub = R["p2x_sub"].set_index("Subtype")
     sg = R["p2x_sg"]
@@ -131,7 +144,7 @@ def build():
     P("Running title: Anaemia and stroke in benign uterine disease")
     P("Authors: [Author names, degrees, affiliations]")
     P("Corresponding author: [name, address, email]")
-    P("Word count (main text): [to be completed]; Tables: 3; Figures: 4; Supplementary material: eTables 1–9, "
+    P("Word count (main text): [to be completed]; Tables: 3; Figures: 5; Supplementary material: eTables 1–10, "
       "eFigures 1–2")
     P("Keywords: anaemia; haemoglobin; ischaemic stroke; uterine fibroids; endometriosis; adenomyosis; women")
     B.append({"t": "note", "text": "DRAFT generated from the analysis pipeline (python -m analysis.run_all). All numbers "
@@ -155,7 +168,9 @@ def build():
       f"P for trend {fmt_p(tr['stroke_any']['p'])}). The association was similar for ischaemic stroke "
       f"(per grade OR {tr['y_isch']['txt']}). In {tc['n']:,} women followed from the Hb measurement "
       f"({tc['py']:,.0f} person-years; {tc['ev']} strokes), moderate anaemia was associated with a higher stroke rate "
-      f"(adjusted rate ratio {tte_mod['Adjusted + pre-Hb conditions (2a) RR']}). The association persisted after "
+      f"(adjusted rate ratio {tte_mod['Adjusted + pre-Hb conditions (2a) RR']}). Below 13 g/dL, each 1 g/dL lower Hb "
+      f"was associated with an OR of {pg('Cross', 'Any stroke', 'Below')['Estimate (95% CI)']} and a rate ratio of "
+      f"{pg('After', 'Any stroke', 'Below')['Estimate (95% CI)']}. The association persisted after "
       f"excluding women with haemoglobinopathies or other anaemia-causing conditions. It was stronger for normocytic "
       f"(OR {normo['Adjusted OR (95% CI)']}) and macrocytic (OR {macro['Adjusted OR (95% CI)']}) than for microcytic "
       f"anaemia (OR {micro['Adjusted OR (95% CI)']}), and was not seen for TIA.")
@@ -165,6 +180,8 @@ def build():
       "for vascular risk assessment.")
     checks.append(("Abstract: moderate & severe ORs exclude 1", gmod["lo"] > 1 and gsev["lo"] > 1))
     checks.append(("Abstract: TTE moderate RR excludes 1", tte_mod["CI low"] > 1))
+    checks.append(("Abstract: per-g/dL OR and RR below 13 g/dL exclude 1",
+                   pg("Cross", "Any stroke", "Below")["lo"] > 1 and pg("After", "Any stroke", "Below")["lo"] > 1))
     checks.append(("Abstract: normo & macro > micro, micro CI includes 1",
                    normo["OR"] > micro["OR"] and macro["OR"] > micro["OR"] and micro["CI low"] < 1 < micro["CI high"]))
     checks.append(("Abstract: TIA not associated (CI includes 1)",
@@ -285,6 +302,28 @@ def build():
       f"{sev_tte['Adjusted + pre-Hb conditions (2a) RR']} for severe anaemia ({int(sev_tte['Events'])} events). The "
       f"per-grade RR was {tte_pg['Adjusted + pre-Hb conditions (2a) RR'].replace('; p=', ', P=')}. For ischaemic stroke the RR for moderate "
       f"anaemia was {tte('Ischaemic stroke', 'Moderate (8–9.9)')} (Table 2).")
+    H2("Stroke risk per 1 g/dL of haemoglobin")
+    _pc, _pr = pg("Cross", "Any stroke", "Below"), pg("After", "Any stroke", "Below")
+    _pci, _pri = pg("Cross", "Ischaemic stroke", "Below"), pg("After", "Ischaemic stroke", "Below")
+    _wc, _wr = pg("Cross", "Any stroke", "Whole"), pg("After", "Any stroke", "Whole")
+    _ac, _ar = pg("Cross", "Any stroke", "Above"), pg("After", "Any stroke", "Above")
+    _inc = lambda r: "the CI included 1" if r["lo"] < 1 < r["hi"] else "the CI excluded 1"  # noqa: E731
+    P(f"Because the spline showed no association above 13 g/dL, Hb was also modelled as two linear segments "
+      f"(below and above 13 g/dL), adjusted for covariates and pre-Hb conditions (2a). Below 13 g/dL, each 1 g/dL lower "
+      f"Hb was associated with an OR for any stroke of {_pc['Estimate (95% CI)']} and an OR for ischaemic stroke of "
+      f"{_pci['Estimate (95% CI)']}. In the time-to-event cohort, the corresponding rate ratios were "
+      f"{_pr['Estimate (95% CI)']} and {_pri['Estimate (95% CI)']}. Above 13 g/dL, the OR per 1 g/dL higher Hb was "
+      f"{_ac['Estimate (95% CI)']} ({_inc(_ac)}) and the rate ratio was {_ar['Estimate (95% CI)']} ({_inc(_ar)}). "
+      f"Treating Hb as linear over the whole range gave an OR of {_wc['Estimate (95% CI)']} and a rate ratio of "
+      f"{_wr['Estimate (95% CI)']} per 1 g/dL lower Hb (eTable 10).")
+    _n, _mi, _mo, _se = (abr("Any stroke", g) for g in ["None", "Mild", "Moderate", "Severe"])
+    P(f"Crude stroke rates after the Hb measurement were {_n['Rate (95% CI)']} per 1,000 person-years without "
+      f"anaemia, {_mi['Rate (95% CI)']} with mild, {_mo['Rate (95% CI)']} with moderate and {_se['Rate (95% CI)']} with "
+      f"severe anaemia ({int(_se['Events'])} events). Assuming a constant rate, these correspond to unadjusted 5-year "
+      f"risks of {_n['Crude 5-y risk (95% CI)']}, {_mi['Crude 5-y risk (95% CI)']}, {_mo['Crude 5-y risk (95% CI)']} "
+      f"and {_se['Crude 5-y risk (95% CI)']} (Figure 5).")
+    checks.append(("Per-g/dL: below-13 OR/RR any & ischaemic exclude 1",
+                   all(r["lo"] > 1 for r in [_pc, _pr, _pci, _pri])))
     H2("Confounding by anaemia-causing conditions")
     P(f"Anaemia-causing conditions were more common in women with stroke. For example, chronic kidney disease was "
       f"present in {pvx.loc['Chronic kidney disease (any)', 'Stroke %']}% vs "
@@ -492,6 +531,11 @@ def build():
     FIG("figures/fig11_p2_extended.png",
         "Figure 4. Moderate anaemia and per-grade estimates across temporality, confounding and restriction analyses. "
         "The final row shows rate ratios from the time-to-event analysis; other rows show odds ratios.")
+    FIG("figures/fig13_p2_per_hb.png",
+        "Figure 5. (A) Crude stroke rate per 1,000 person-years after the Hb measurement by anaemia grade (exact "
+        "Poisson 95% CI; strokes / women under each bar). (B) Odds ratios (cross-sectional) and rate ratios (after the Hb "
+        "measurement) per 1 g/dL lower Hb, below 13 g/dL and over the whole range, adjusted for covariates and "
+        "pre-Hb conditions.")
     BR()
 
     # ------------------------------------------------------------------ supplement
@@ -519,6 +563,11 @@ def build():
          R["p2_lab_timing"][["Outcome", "Level", "Hb within ±3 y (primary)", "Hb within ±1 y", "N ±1y", "Events ±1y"]], ""),
         ("eTable 9. Exploratory mediation of the fibroid–stroke association by anaemia",
          T["P2_mediation"].T.reset_index().rename(columns={"index": "Item", 0: "Value"}), ""),
+        ("eTable 10. Stroke risk per 1 g/dL of haemoglobin and crude rates by anaemia grade",
+         R["p2x_per"][["Design", "Outcome", "Hb range", "Adjustment", "Estimate (95% CI)", "p (text)", "N", "Events"]]
+         .rename(columns={"p (text)": "P"}),
+         "Piecewise-linear models: separate slopes below and above 13 g/dL. Crude rates are in the workbook sheet "
+         "P2X_absolute_rates."),
     ]
     for title, df, note in sup:
         TABLE(title, df.fillna(""), note if isinstance(note, str) else "", font=7)

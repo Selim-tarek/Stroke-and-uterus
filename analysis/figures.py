@@ -371,6 +371,57 @@ def fig_p2x():
                   "fig11_p2_extended", width=6.6)
 
 
+def fig_p2_per_hb():
+    """Absolute stroke rates by anaemia grade (A) and risk per 1 g/dL lower Hb (B)."""
+    ab = RESULTS["p2x_abs"]
+    ab = ab[ab.Outcome == "Any stroke"].reset_index(drop=True)
+    per = RESULTS["p2x_per"]
+    per = per[per.Adjustment == "+ pre-Hb conditions (2a)"]
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.6, 3.7), gridspec_kw={"width_ratios": [1, 1.25]})
+    ramp = ["#c9dcf4", "#8fb6ea", "#4f8fdd", "#1d5fb0"]  # single-hue sequential (blue), light -> dark
+    x = np.arange(len(ab))
+    y, lo, hi = ab["Rate /1,000 PY"].values, ab["Rate low"].values, ab["Rate high"].values
+    a1.bar(x, y, color=ramp, width=0.62, edgecolor="white", linewidth=2)
+    a1.errorbar(x, y, yerr=[y - lo, hi - y], fmt="none", ecolor=INK, capsize=3, lw=0.9)
+    a1.axhline(y[0], color=MUTED, lw=0.8, ls="--")
+    for i, r in ab.iterrows():
+        a1.text(i, hi[i] + 0.25, f"{y[i]:.1f}", ha="center", va="bottom", fontsize=8, color=INK)
+    a1.set_xticks(x)
+    a1.set_xticklabels([f"{g}\n{int(r['Events'])} / {int(r['Women']):,}" for g, (_, r) in
+                        zip(["None\n(≥12)", "Mild\n(10–11.9)", "Moderate\n(8–9.9)", "Severe\n(<8)"], ab.iterrows())],
+                       fontsize=7)
+    a1.set_xlabel("Anaemia grade (Hb, g/dL); strokes / women")
+    a1.set_ylabel("Strokes per 1,000 person-years (95% CI)")
+    a1.set_ylim(0, max(hi) * 1.12)
+    a1.grid(axis="y", color=GRID, lw=0.5)
+    a1.set_axisbelow(True)
+    a1.set_title("A  Stroke rate after the Hb measurement", fontsize=9, loc="left", color=INK)
+    rows = [("Cross-sectional (odds ratio)", "Any stroke", "Odds ratio\nany stroke"),
+            ("Cross-sectional (odds ratio)", "Ischaemic stroke", "Odds ratio\nischaemic stroke"),
+            ("After the Hb measurement (rate ratio)", "Any stroke", "Rate ratio after Hb\nany stroke"),
+            ("After the Hb measurement (rate ratio)", "Ischaemic stroke", "Rate ratio after Hb\nischaemic stroke")]
+    series = [("Below 13 g/dL (per 1 g/dL lower)", "Below 13 g/dL", SERIES[0], 0.14),
+              ("Whole range", "Whole Hb range", SERIES[1], -0.14)]
+    for j, (des, oc, lab) in enumerate(rows):
+        yy = len(rows) - j
+        for rng, slab, col, off in series:
+            r = per[(per.Design == des) & (per.Outcome == oc) & (per["Hb range"] == rng)].iloc[0]
+            a2.plot([r["lo"], r["hi"]], [yy + off] * 2, color=col, lw=1.8, solid_capstyle="round")
+            a2.plot([r["Est"]], [yy + off], "o", color=col, ms=5.5, mec="white", mew=0.8, label=slab if j == 0 else None)
+            a2.text(1.265, yy + off, f"{r['Est']:.2f} ({r['lo']:.2f}–{r['hi']:.2f})", va="center", fontsize=7,
+                    color=col)
+    a2.axvline(1, color=MUTED, lw=0.8, ls="--")
+    a2.set_xlim(0.96, 1.40)
+    a2.set_yticks([len(rows) - j for j in range(len(rows))])
+    a2.set_yticklabels([r[2] for r in rows], fontsize=8)
+    a2.set_xlabel("Per 1 g/dL lower Hb (95% CI)")
+    a2.grid(axis="x", color=GRID, lw=0.5)
+    a2.legend(frameon=False, fontsize=7.5, loc="lower left", bbox_to_anchor=(0.0, -0.36), ncol=2)
+    a2.set_title("B  Risk per 1 g/dL lower haemoglobin", fontsize=9, loc="left", color=INK)
+    fig.tight_layout()
+    return save(fig, "fig13_p2_per_hb")
+
+
 def fig_p2_flow():
     """Participant flow for the anaemia manuscript."""
     f = RESULTS["flow"]
@@ -414,5 +465,6 @@ def run():
     out["p3_age"] = fig_p3_migraine_age()
     out["p2x"] = fig_p2x()
     out["p2_flow"] = fig_p2_flow()
+    out["p2_per_hb"] = fig_p2_per_hb()
     RESULTS["figures"] = out
     return out

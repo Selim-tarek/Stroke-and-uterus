@@ -39,6 +39,19 @@ SUBCATS = [  # (name, covert?)
 ]
 
 
+# PI decision 2026-09-28: imaging-only cases that were revoked, excluded or left
+# undecided at adjudication are NOT revoked for Paper 1 when the imaging text
+# describes a brain lesion - they count as covert infarcts. The remaining
+# revoked/excluded/undecided patients (non-brain organ, truncated/negated
+# template, or organ not stated) count as imaged without infarct. All of them
+# had imaging reviewed, so all enter the Paper 1 denominator. stroke_any is
+# not changed (Papers 2-3 unaffected).
+RESTORED = "Covert: restored after revocation/exclusion (brain wording)"
+BRAIN_RE = (r"cerebr|brain|lacun|subcortical|cortical infarct|cerebell|white matter|encephalomalacia|temporal|"
+            r"frontal lobe|demyelinat")
+REVIEWED_NEG = ["revoked", "excluded", "undecided (stroke_any_incl_imaging only)"]
+
+
 def classify(df):
     d = df.copy()
     notes = d["notes"].fillna("")
@@ -62,14 +75,19 @@ def classify(df):
         [d.io_included == 1, d.tag_undecided == 1, d.tag_revoked == 1, d.tag_excluded == 1, d.io_any == 1],
         ["included in stroke_any", "undecided (stroke_any_incl_imaging only)", "revoked", "excluded",
          "flagged, other"], default="")
-    d["imaged"] = d["stroke_confirmed_imaging"].isin([0, 1]).astype(int)
+    ev = notes.str.extract(r"imaging: (.*?)(?: \| |$)")[0].fillna("").str.lower()
+    d["io_reviewed_neg"] = d["io_status"].isin(REVIEWED_NEG).astype(int)
+    d["io_restored"] = ((d["io_reviewed_neg"] == 1) & ev.str.contains(BRAIN_RE, regex=True)).astype(int)
+    d.loc[d.io_restored == 1, "io_subcat"] = RESTORED
+    d["covert"] = ((d["covert"] == 1) | (d["io_restored"] == 1)).astype(int)
+    d["imaged"] = (d["stroke_confirmed_imaging"].isin([0, 1]) | (d["io_reviewed_neg"] == 1)).astype(int)
     d["p1_group"] = np.select(
         [d.imaged == 0,
-         (d.stroke_any == 0),
          d.covert == 1,
+         (d.stroke_any == 0),
          (d.stroke_any == 1) & (d.io_included == 0),
          d.io_included == 1],
-        ["not imaged", "Imaged, no infarct", "Covert infarct", "Clinical stroke",
+        ["not imaged", "Covert infarct", "Imaged, no infarct", "Clinical stroke",
          "Imaging-only acute/symptomatic/haemorrhagic"], default="?")
     return d
 
@@ -224,13 +242,23 @@ def run(df_all, elig):
     ct3 = pd.crosstab(df_["scan_indication_class"], df_["io_subcat"].replace("", "(not included)")).reset_index()
     add_table("P1_recon_indication", ct3, "Scan indication class (deferred_for_review) by covert subcategory (eligible).")
 
-    # imaging-negative flags: excluded/revoked imaging-only have blank stroke_confirmed_imaging
-    n_rev_blank = int(((d.io_status.isin(["revoked", "excluded", "undecided (stroke_any_incl_imaging only)"]))
-                       & (d.imaged == 0)).sum())
+    # revoked/excluded/undecided imaging-only: blank stroke_confirmed_imaging although imaged
+    n_rev_blank = int(((d.io_reviewed_neg == 1) & d.stroke_confirmed_imaging.isna()).sum())
     RESULTS["p1_rev_excl_not_in_denominator"] = n_rev_blank
+    RESULTS["p1_n_reviewed_neg"] = int(d.io_reviewed_neg.sum())
+    RESULTS["p1_n_restored"] = int(d.io_restored.sum())
+    RESULTS["p1_restored_by_status"] = d.loc[d.io_restored == 1, "io_status"].value_counts().to_dict()
     log("Data problem", f"{n_rev_blank} eligible patients whose imaging-only infarct was revoked/excluded/undecided "
-                        f"have blank stroke_confirmed_imaging although their imaging was reviewed; per the brief's "
-                        f"definition (0/1 = imaged) they are outside the Paper 1 denominator. Not changed.")
+                        f"have blank stroke_confirmed_imaging although their imaging was reviewed.")
+    log("PI decision", f"All {RESULTS['p1_n_reviewed_neg']} revoked/excluded/undecided patients added to the Paper 1 "
+                       f"imaged denominator; {RESULTS['p1_n_restored']} whose imaging text describes a brain lesion "
+                       f"({RESULTS['p1_restored_by_status']}) counted as covert infarcts, the rest as imaged without "
+                       f"infarct. stroke_any unchanged.")
+    rv_ = d[d.io_reviewed_neg == 1]
+    rest_tab = pd.crosstab(rv_["io_status"], np.where(rv_["io_restored"] == 1, "counted as covert infarct (brain wording)",
+                                                      "counted as imaged, no infarct")).reset_index()
+    add_table("P1_restored_cases", rest_tab, "Revoked/excluded/undecided imaging-only patients (eligible): PI decision - "
+                                             "brain-lesion wording = covert infarct; all enter the imaged denominator.")
     n_desc_blank = int(((d.io_included == 1) & d.location.isna()).sum())
     RESULTS["p1_io_desc_blank"] = n_desc_blank
     RESULTS["p1_io_date_blank"] = int(((d.io_included == 1) & d.stroke_date.isna()).sum())

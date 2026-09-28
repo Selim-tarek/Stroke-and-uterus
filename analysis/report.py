@@ -62,7 +62,7 @@ def assoc(f, col):
         return "higher odds"
     if g["hi"] < 1:
         return "lower odds"
-    return "no clear difference in odds"
+    return "similar odds"
 
 
 def _interaction_text(ints):
@@ -178,13 +178,17 @@ def methods_results():
     L.append("### Statistical methods\n")
     L.append(
         f"The study population comprised eligible women whose brain CT or MRI reports had been reviewed "
-        f"(stroke_confirmed_imaging recorded as positive or negative). Imaging-positive patients without a qualifying "
+        f"(stroke_confirmed_imaging recorded as positive or negative, plus {R['p1_n_reviewed_neg']} women whose imaging-only "
+        f"finding had been revoked, excluded or left undecided at adjudication, whose scans had also been reviewed). "
+        f"Imaging-positive patients without a qualifying "
         f"cerebrovascular diagnosis code had been adjudicated from full-text reports; we identified them from the "
         f"abstractor notes and cross-checked the classification against the three review worksheets. A covert "
         f"infarct was defined as an imaging-only infarct that was chronic or incidental, with no documented acute "
         f"features and no documented stroke symptoms: incidental infarcts on scans ordered for another indication, "
-        f"multiple or territorial infarcts without documented symptoms, and chronic infarcts described with hedged "
-        f"wording. A stricter definition kept only the first of these. A clinical stroke was a coded stroke or TIA. "
+        f"multiple or territorial infarcts without documented symptoms, chronic infarcts described with hedged "
+        f"wording, and imaging-only findings that had been revoked, excluded or left undecided at adjudication but "
+        f"whose report text described a brain lesion (the remaining revoked/excluded findings, which described other "
+        f"organs, a truncated probably negated sentence or no organ, were classed as imaged without infarct). A stricter definition kept only the first of these. A clinical stroke was a coded stroke or TIA. "
         f"Imaging-only acute, symptomatic or haemorrhagic events met neither definition and were described separately. "
         f"Prevalence is reported with Wilson 95% CIs. Characteristics were compared across imaged-negative, covert-"
         f"infarct and clinical-stroke groups using Kruskal–Wallis and χ² tests. Factors associated with covert infarct "
@@ -216,8 +220,9 @@ def methods_results():
         f"{R['p1_prev_strict_txt']} under the strict definition. Among the {n_cov} covert cases, "
         f"{sub.get('Covert: incidental, scan for another indication', 0)} were incidental on scans for another "
         f"indication, {sub.get('Covert: multiple/territorial, no symptoms', 0)} were multiple or territorial without "
-        f"documented symptoms, and {sub.get('Covert: chronic infarct, hedged wording', 0)} were chronic infarcts "
-        f"with hedged wording. Imaging descriptors were available for {in_cand} of {n_cov} covert cases from the "
+        f"documented symptoms, {sub.get('Covert: chronic infarct, hedged wording', 0)} were chronic infarcts "
+        f"with hedged wording, and {R['p1_n_restored']} were brain-lesion findings restored after revocation, exclusion "
+        f"or an undecided adjudication. Imaging descriptors were available for {in_cand} of {n_cov} covert cases from the "
         f"imaging_only_candidates worksheet; the corresponding master-file fields were blank for most cases. Of all "
         f"{n_cov} covert cases, the anterior circulation was involved in {dsc('Vascular territory', 'Anterior')} and "
         f"the posterior circulation in {dsc('Vascular territory', 'Posterior')}. A single lesion was recorded in "
@@ -228,8 +233,8 @@ def methods_results():
         f"{dsc('Location', 'Cerebellum')}.\n")
     L.append(
         f"In the core model (n = {core.n:,}; {core.events} covert infarcts; EPV {core.epv:.1f}), covert infarct was "
-        f"associated with hypertension (OR {orp(core, 'htn')}). Dyslipidaemia was associated with "
-        f"{assoc(core, 'dyslipidemia')} (OR {orp(core, 'dyslipidemia')}). There was no association with diabetes "
+        f"associated with hypertension (OR {orp(core, 'htn')}). Women with dyslipidaemia had "
+        f"{assoc(core, 'dyslipidemia')} of covert infarct (OR {orp(core, 'dyslipidemia')}). There was no association with diabetes "
         f"(OR {orp(core, 'dm')}) or age (per year, OR {orp(core, 'age_index')}). Relative to imaged women without "
         f"migraine, imaged women with migraine had {assoc(core, 'migraine_any')} of covert infarct "
         f"(OR {orp(core, 'migraine_any')}). Added one at a time, atrial fibrillation was associated with covert infarct "
@@ -524,7 +529,9 @@ def analysis_log():
         "binary covariate in Papers 1–2 and a binary outcome in Paper 3. This supersedes the brief's 3-level "
         "migraine covariate and removes the 'migraine with aura' outcome from Paper 3.",
         "Other coded 9 values: hormonal_type 9 (1 patient) → missing. No other 9s in the analysis covariates.",
-        "Paper 1 denominator = `stroke_confirmed_imaging` in {0,1}. Imaging-only cases identified from the notes column "
+        "Paper 1 denominator = `stroke_confirmed_imaging` in {0,1} plus revoked/excluded/undecided imaging-only "
+        "patients (PI decision: they were imaged; those whose imaging text matches brain-lesion wording "
+        "[`paper1.BRAIN_RE`] are covert infarcts, the rest imaged without infarct). Imaging-only cases identified from the notes column "
         "(tags listed in `analysis/paper1.py::TAGS`). Classification of included imaging-only cases (hierarchical): "
         "ICH/SAH → acute/new (acute features, category D, or 'acute or new infarct documented') → symptomatic "
         "('with stroke symptoms documented') → covert: incidental on scan for another indication / multiple or "
@@ -584,8 +591,9 @@ def analysis_log():
     L.append(md_table(TABLES["data_flags"]))
     L.append(f"\n- Codebook variables absent from analysis_master: {', '.join(R['codebook_absent'])}.")
     L.append(f"- {R['p1_rev_excl_not_in_denominator']} eligible women whose imaging-only infarct was revoked/excluded/"
-             f"undecided have blank `stroke_confirmed_imaging` although their scans were reviewed, so they fall "
-             f"outside the Paper 1 denominator as defined in the brief.")
+             f"undecided have blank `stroke_confirmed_imaging` although their scans were reviewed. PI decision: all "
+             f"enter the Paper 1 denominator; {R['p1_n_restored']} with brain-lesion wording count as covert infarcts, "
+             f"the rest as imaged without infarct (see sheet `P1_restored_cases`).")
     L.append(f"- {R['p1_io_desc_blank']} imaging-only cases have blank location/territory/number fields and "
              f"{R['p1_io_date_blank']} have blank `stroke_date` in analysis_master; all blank-timing strokes in the "
              f"eligible cohort are imaging-only cases.\n")
@@ -635,9 +643,10 @@ def analysis_log():
              f"or after index.\n")
     L.append("## 11. Open questions for the PI\n")
     L.append("1. (Resolved 2026-09-28) Migraine: any diagnosis = 1, type/aura ignored.\n"
-             "2. Should the revoked/excluded imaging-only patients (blank `stroke_confirmed_imaging`) be added to the "
+             "2. (Resolved 2026-09-28) Revoked/excluded imaging-only patients: brain wording = covert infarct, others "
+             "imaged-negative; all in the denominator. Former question: should they be added to the "
              "Paper 1 imaged-negative denominator?\n"
-             "3. Confirm the covert-infarct definition (currently includes 'multiple/territorial, no symptoms' and "
+             "3. (Resolved 2026-09-28: broad definition kept.) Confirm the covert-infarct definition (currently includes 'multiple/territorial, no symptoms' and "
              "'chronic, hedged wording' in addition to 'incidental on scan for another indication').\n")
     L.append("## 12. Chronological run log\n")
     L += [f"- **{s}** — {t}" for s, t in LOG]

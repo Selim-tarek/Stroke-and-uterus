@@ -144,7 +144,7 @@ def build():
     P("Running title: Anaemia and stroke in benign uterine disease")
     P("Authors: [Author names, degrees, affiliations]")
     P("Corresponding author: [name, address, email]")
-    P("Word count (main text): [to be completed]; Tables: 3; Figures: 5; Supplementary material: eTables 1–11, "
+    P("Word count (main text): [to be completed]; Tables: 3; Figures: 5; Supplementary material: eTables 1–12, "
       "eFigures 1–3")
     P("Keywords: anaemia; haemoglobin; ischaemic stroke; uterine fibroids; endometriosis; adenomyosis; women")
     B.append({"t": "note", "text": "DRAFT generated from the analysis pipeline (python -m analysis.run_all). All numbers "
@@ -173,10 +173,12 @@ def build():
       f"{pg('After', 'Any stroke', 'Below')['Estimate (95% CI)']}. The association persisted after "
       f"excluding women with haemoglobinopathies or other anaemia-causing conditions. It was stronger for normocytic "
       f"(OR {normo['Adjusted OR (95% CI)']}) and macrocytic (OR {macro['Adjusted OR (95% CI)']}) than for microcytic "
-      f"anaemia (OR {micro['Adjusted OR (95% CI)']}), and was not seen for TIA.")
+      f"anaemia (OR {micro['Adjusted OR (95% CI)']}), although anaemia with a coded iron-deficiency diagnosis was also "
+      f"associated (OR {mor('Any stroke', 'Anaemia, iron deficiency coded')['Adjusted OR (95% CI)']}). No association "
+      f"was seen for TIA.")
     P("**Conclusions.** In women with benign uterine disease, moderate anaemia, and less precisely severe anaemia, "
-      "was associated with a higher risk of subsequent stroke, particularly ischaemic stroke. The pattern by red-cell morphology suggests that anaemia not explained by "
-      "iron loss may mark vascular risk. Haemoglobin measured at gynaecological diagnosis could help identify women "
+      "was associated with a higher risk of subsequent stroke, particularly ischaemic stroke. Anaemia may mark underlying illness as well as vascular risk; whether it "
+      "contributes to stroke cannot be determined from these data. Haemoglobin measured at gynaecological diagnosis could help identify women "
       "for vascular risk assessment.")
     checks.append(("Abstract: moderate & severe ORs exclude 1", gmod["lo"] > 1 and gsev["lo"] > 1))
     checks.append(("Abstract: TTE moderate RR excludes 1", tte_mod["CI low"] > 1))
@@ -338,7 +340,7 @@ def build():
       f"{cpt('After', 11)['Estimate vs 13 g/dL (95% CI)']} at 11 g/dL, {cpt('After', 9)['Estimate vs 13 g/dL (95% CI)']} "
       f"at 9 g/dL and {cpt('After', 8)['Estimate vs 13 g/dL (95% CI)']} at 8 g/dL (overall {_p(fmt_p(_ct['p_overall']))}, "
       f"non-linearity {_p(fmt_p(_ct['p_nonlin']))}; {_ct['events']} strokes). Above 13 g/dL neither curve departed "
-      f"from 1 (eTable 11).")
+      f"from 1 (eTable 12).")
     checks.append(("Curves: OR at 9 g/dL and RR at 9 g/dL exclude 1; values above 13 include 1",
                    cpt("Cross", 9)["lo"] > 1 and cpt("After", 9)["lo"] > 1 and
                    all(cpt(dd, h)["lo"] < 1 < cpt(dd, h)["hi"] for dd in ["Cross", "After"] for h in [14, 15, 16])))
@@ -362,6 +364,17 @@ def build():
       f"{xr('Hb ≥30 d before stroke + 2a: Any stroke')} (Table 3, Figure 4). The E-value for the moderate-anaemia OR "
       f"was {ev_mod['E-value (point)']} (confidence limit {ev_mod['E-value (CI limit)']}), and for the per-grade OR "
       f"{ev_pg['E-value (point)']} ({ev_pg['E-value (CI limit)']}).")
+    il = R["p2x_ill"].set_index("Analysis")
+    _d1, _si = il.loc["Excluding deaths within 1 y of Hb"], il.loc["Excluding cancer, heart failure, CKD, liver disease, HIV"]
+    P(f"To examine whether anaemia simply marked women who were already seriously ill, we excluded women who died "
+      f"within 1 year of the Hb measurement (n = {R['p2x_n_death1y']:,}) and, separately, women with cancer, heart "
+      f"failure, chronic kidney disease, chronic liver disease or HIV recorded at any time "
+      f"(n = {R['p2x_n_serious']:,}), with adjustment 2a. The OR for moderate anaemia was "
+      f"{xr('Excluding deaths within 1 y of Hb (+2a): Any stroke')} and "
+      f"{xr('Excluding cancer, heart failure, CKD, liver disease, HIV (+2a): Any stroke')}, respectively. In the "
+      f"time-to-event analysis, the per-grade RR was {_d1['Per grade RR (95% CI)']} after excluding early deaths and "
+      f"{_si['Per grade RR (95% CI)']} after excluding serious chronic illness ({int(_si['Strokes'])} strokes; "
+      f"eTable 11). Healthcare use could not be measured.")
     H2("Anaemia type, stroke subtype and subgroups")
     P(f"Compared with no anaemia, microcytic anaemia was not clearly associated with stroke "
       f"(OR {micro['Adjusted OR (95% CI)']}), whereas normocytic (OR {normo['Adjusted OR (95% CI)']}) and macrocytic "
@@ -416,9 +429,10 @@ def build():
       f"mainly ischaemic stroke. Severe anaemia showed a similar cross-sectional association (OR {gsev['txt']}), but "
       f"estimates before stroke were imprecise because few women had severe anaemia before a stroke. The association held when anaemia was measured "
       f"before the stroke and when women were followed forward from the Hb measurement. It was attenuated but "
-      f"persisted after adjustment for, or exclusion of, haemoglobinopathies and other anaemia-causing conditions. It "
-      f"was carried mainly by normocytic and macrocytic anaemia rather than by the microcytic, iron-deficiency pattern "
-      f"expected from menstrual blood loss. It was also weaker in women with heavy uterine bleeding.")
+      f"persisted after adjustment for, or exclusion of, haemoglobinopathies and other anaemia-causing conditions. By MCV, "
+      f"it was stronger for normocytic and macrocytic than for microcytic anaemia, but anaemia with a coded "
+      f"iron-deficiency diagnosis was also associated, so the data do not clearly separate iron-deficiency anaemia "
+      f"from anaemia of other causes. It was also weaker in women with heavy uterine bleeding.")
     _hs = xr('Hb ≥30 d before stroke: Any stroke', 'Severe')
     _ab = pvx.loc["Coded acute blood-loss anaemia (±1 y of Hb)"]
     _ns, _ms, _ss = (abr("Any stroke", g) for g in ["None", "Moderate", "Severe"])
@@ -433,6 +447,10 @@ def build():
       f"anaemia fell to {_hs} when Hb had to precede the stroke by at least 30 days, suggesting that some very low "
       f"values were measured during the stroke admission. The continuous analyses, which do not depend on the small "
       f"severe group, showed risk rising steadily as Hb fell below 13 g/dL (Figure 3).")
+    P(f"MCV-based classification has limitations here. MCV is a weak marker of iron deficiency on its own, its "
+      f"measurement date could not be verified (the laboratory date field was back-filled), and the macrocytic group was "
+      f"small ({int(macro['n']):,} women, {int(macro['Events'])} strokes). The morphology findings should therefore be "
+      f"treated as exploratory.")
     P("These findings extend reports linking anaemia and iron deficiency with stroke in general populations [ref] to a "
       "group of young and middle-aged women with a very high prevalence of anaemia. The morphology pattern and the "
       "bleeding interaction suggest two interpretations. Anaemia that is not explained by menstrual iron loss may "
@@ -465,11 +483,13 @@ def build():
       f"{T['codebook_summary'].set_index('Variable').loc['smoking', 'Code 9 %']}% of women. Iron therapy captured "
       f"only facility-administered doses. Transfusion data were not available, and ICD-10 pregnancy codes were "
       f"available only as free-text descriptions. Severe anaemia before stroke was uncommon, which limited precision. "
-      f"Finally, although we adjusted for many conditions, residual confounding is possible.")
+      f"Healthcare use (number of visits) was not available, so women who were seen and tested more often may "
+      f"have had more anaemia and more stroke recorded. Finally, although we adjusted for many conditions, residual "
+      f"confounding by general ill health, inflammation or socioeconomic factors is possible.")
     H2("Conclusions")
     P("Among women with benign uterine disease, moderate anaemia is associated with a higher risk of subsequent "
       "stroke, particularly ischaemic stroke, independent of recognised anaemia-causing conditions. Anaemia at gynaecological "
-      "diagnosis, particularly when not explained by iron loss, may be a useful marker for vascular risk assessment. "
+      "diagnosis may be a useful marker for vascular risk assessment. "
       "Prospective studies should examine its causes and whether treating it modifies stroke risk.")
     H2("Acknowledgements, funding, disclosures")
     P("[To be completed by the authors.]")
@@ -538,6 +558,8 @@ def build():
            "Excluding Hb within 30 d of stroke: Any stroke", "2a Pre-Hb conditions: Any stroke",
            "2a Pre-Hb conditions: Ischaemic stroke", "2b Over-adjustment check (+ undated/post-stroke): Any stroke",
            "Hb ≥30 d before stroke + 2a: Any stroke", "Excluding haemoglobinopathies: Any stroke",
+           "Excluding deaths within 1 y of Hb (+2a): Any stroke",
+           "Excluding cancer, heart failure, CKD, liver disease, HIV (+2a): Any stroke",
            "Excluding all anaemia-causing conditions: Any stroke",
            "Excluding all anaemia-causing conditions: Ischaemic stroke"]
     t3 = X.loc[[s_ for s_ in sel if s_ in X.index], ["N", "Events", "Mild", "Moderate", "Severe", "Per grade (trend)",
@@ -550,7 +572,8 @@ def build():
               "heart failure, atrial fibrillation, VTE, malignancy and anticoagulant use (undated or potentially post-"
               "stroke; over-adjustment check). Anaemia-causing conditions: haemoglobinopathy, CKD, chronic liver "
               "disease, alcohol use disorder, GI bleeding or pregnancy in the year before Hb, malabsorption, IBD, HIV, "
-              "neoplastic/chemotherapy anaemia.",
+              "neoplastic/chemotherapy anaemia. Serious chronic illness: cancer, heart failure, CKD, chronic liver "
+              "disease or HIV recorded at any time.",
           widths=[3300, 900, 800, 1400, 1400, 1400, 1400, 800], font=7)
     BR()
 
@@ -604,7 +627,11 @@ def build():
          .rename(columns={"p (text)": "P"}),
          "Piecewise-linear models: separate slopes below and above 13 g/dL. Crude rates are in the workbook sheet "
          "P2X_absolute_rates."),
-        ("eTable 11. Stroke risk at selected Hb values vs 13 g/dL (spline, adjusted for covariates and pre-Hb conditions)",
+        ("eTable 11. Rate ratios after excluding early deaths and serious chronic illness (adjustment 2a)",
+         R["p2x_ill"][["Analysis", "Women", "Strokes", "EPV", "Moderate RR (95% CI)", "Severe RR (95% CI)",
+                       "Per grade RR (95% CI)"]], "Serious chronic illness: cancer, heart failure, CKD, chronic liver "
+                                                  "disease or HIV recorded at any time."),
+        ("eTable 12. Stroke risk at selected Hb values vs 13 g/dL (spline, adjusted for covariates and pre-Hb conditions)",
          R["p2x_curve_pts"][["Design", "Hb (g/dL)", "Estimate vs 13 g/dL (95% CI)", "N", "Events", "p overall",
                              "p non-linearity"]], ""),
     ]

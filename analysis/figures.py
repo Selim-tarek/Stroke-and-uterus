@@ -345,6 +345,8 @@ P2X_SHORT = {
     "Hb ≥30 d before stroke + 2a: Any stroke": "Hb before stroke + 2a",
     "Excluding haemoglobinopathies: Any stroke": "Excluding haemoglobinopathies",
     "Excluding all anaemia-causing conditions: Any stroke": "Excluding all anaemia-causing conditions",
+    "Excluding deaths within 1 y of Hb (+2a): Any stroke": "Excluding deaths within 1 y of Hb (+2a)",
+    "Excluding cancer, heart failure, CKD, liver disease, HIV (+2a): Any stroke": "Excluding serious chronic illness (+2a)",
     "Primary: Ischaemic stroke": "Ischaemic stroke only",
 }
 

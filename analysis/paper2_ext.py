@@ -249,6 +249,21 @@ def run(elig):
         for o, olab in [("stroke_any", "Any stroke"), ("y_isch", "Ischaemic stroke")]:
             fit_pair(dd, o, base_terms(o, dd, excl), f"{lab}: {olab}", "3. Restricted cohort")
 
+    # 3b. markers of general illness: early death and serious chronic illness (adjustment 2a)
+    from .followup import encounters as _enc
+    _lc, _dth = _enc()
+    dd_dt = pd.to_datetime(d.mrn.map(_dth))
+    d["death_1y_hb"] = ((dd_dt.notna()) & ((dd_dt - hbd).dt.days <= 365)).astype(float)
+    d["serious_illness"] = d[["malignancy_ever", "chf", "ckd", "liver_any", "hiv"]].max(axis=1)
+    RESULTS["p2x_n_death1y"] = int(d.loc[d.hgb.notna(), "death_1y_hb"].sum())
+    RESULTS["p2x_n_serious"] = int(d.loc[d.hgb.notna(), "serious_illness"].sum())
+    for excl, lab in [("death_1y_hb", "Excluding deaths within 1 y of Hb (+2a)"),
+                      ("serious_illness", "Excluding cancer, heart failure, CKD, liver disease, HIV (+2a)")]:
+        dd = d[d[excl] == 0].copy()
+        ea = [x for x in ext_a if dd[x.var].nunique() > 1]
+        for o, olab in [("stroke_any", "Any stroke"), ("y_isch", "Ischaemic stroke")]:
+            fit_pair(dd, o, base_terms(o, dd, excl) + ea, f"{lab}: {olab}", "3. Restricted cohort")
+
     # 4. anaemia morphology
     d["anaemia_type"] = np.select(
         [d.anemia_any == 0, (d.anemia_any == 1) & (d.mcv < 80), (d.anemia_any == 1) & (d.mcv <= 100),
@@ -625,6 +640,31 @@ def run(elig):
     RESULTS["p2x_curves"] = pd.concat(curves, ignore_index=True)
     RESULTS["p2x_curve_pts"] = cpts
     RESULTS["p2x_curve_info"] = cinfo
+
+    # 10c. time-to-event with the illness-marker exclusions (adjustment 2a)
+    t["death_1y"] = ((pd.to_datetime(t.mrn.map(_dth)).notna()) &
+                     ((pd.to_datetime(t.mrn.map(_dth)) - t.start).dt.days <= 365)).astype(float)
+    t["serious_illness"] = t[["malignancy_ever", "chf", "ckd", "liver_any", "hiv"]].max(axis=1)
+    ill = []
+    for excl, lab in [(None, "All women (as Table 2)"), ("death_1y", "Excluding deaths within 1 y of Hb"),
+                      ("serious_illness", "Excluding cancer, heart failure, CKD, liver disease, HIV")]:
+        tt_ = t if excl is None else t[t[excl] == 0]
+        ea = [x for x in ext_a3 if tt_[x.var].nunique() > 1]
+        cvb = cov_for(tt_, "ev_any", ["anemia_cat"], f"ill{excl}")
+        r_, n_, e_, epv_ = pois(tt_, "ev_any", [EXPO["anemia_cat"]] + cvb + ea)
+        rt_, _, _, _ = pois(tt_, "ev_any", [Term("anemia", "cont")] + cvb + ea)
+        m_, pg_ = rr(r_, "anemia_cat=Moderate (8–9.9)"), rr(rt_, "anemia")
+        sv_ = rr(r_, "anemia_cat=Severe (<8)")
+        ill.append({"Analysis": lab, "Women": n_, "Strokes": e_, "EPV": round(float(epv_), 1),
+                    "Moderate RR (95% CI)": m_["txt"], "Severe RR (95% CI)": sv_["txt"], "Per grade RR (95% CI)": pg_["txt"],
+                    "Mod RR": m_["RR"], "Mod lo": m_["lo"], "Mod hi": m_["hi"],
+                    "PG RR": pg_["RR"], "PG lo": pg_["lo"], "PG hi": pg_["hi"], "PG p": pg_["p"]})
+    ill = pd.DataFrame(ill)
+    add_table("P2X_illness_marker_tte", ill, "Rate ratios for any stroke after the Hb measurement (Poisson, adjusted "
+              "for Paper 2 covariates and pre-Hb conditions 2a) after excluding women who died within 1 year of the Hb "
+              "or who had serious chronic illness recorded at any time. Healthcare-use counts are not available "
+              "(one encounter row per patient).")
+    RESULTS["p2x_ill"] = ill
 
     # 7. E-values
     tab = pd.DataFrame(rows)

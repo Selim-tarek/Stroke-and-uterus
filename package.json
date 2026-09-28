@@ -1,0 +1,6 @@
+{
+  "name": "stroke-uterus-manuscript",
+  "private": true,
+  "description": "Builds the Word manuscript from outputs/anaemia_manuscript.json",
+  "dependencies": { "docx": "^9.0.0" }
+}

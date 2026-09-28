@@ -227,6 +227,8 @@ def run():
     add_table("data_flags", pd.DataFrame(flags), "Data problems flagged, not fixed. -1 = not computed for all records.")
 
     RESULTS["eligible_race"] = elig["race4"].value_counts().to_dict()
+    _idx = pd.to_datetime(elig["index_date"], errors="coerce")
+    RESULTS["index_range"] = (int(_idx.min().year), int(_idx.max().year))
     RESULTS["n_stroke_before_or_same"] = int(elig.stroke_timing.isin([1, 2]).sum())
     RESULTS["n_stroke_before"] = int((elig.stroke_timing == 1).sum())
     return df, elig

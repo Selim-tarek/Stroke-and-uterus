@@ -371,6 +371,35 @@ def fig_p2x():
                   "fig11_p2_extended", width=6.6)
 
 
+def fig_p2_flow():
+    """Participant flow for the anaemia manuscript."""
+    f = RESULTS["flow"]
+    n_all, n_el = RESULTS["n_total"], RESULTS["n_eligible"]
+    n_nohb = RESULTS["missing"]["anemia_cat"][0]
+    fa = RESULTS["p2_fits"][("stroke_any", "anemia_cat")]
+    tc = RESULTS["p2x_tte_cohort"]
+    fig, ax = plt.subplots(figsize=(6.6, 6.6))
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+    box(ax, 0.38, 0.93, 0.56, 0.08, f"Women with benign uterine pathology\n(fibroids, adenomyosis, endometriosis), n = {n_all:,}", bold=True)
+    box(ax, 0.82, 0.78, 0.34, 0.14, f"Excluded, n = {RESULTS['n_excluded']:,}\nActive malignancy: {f.get(1, 0):,}\n"
+                                    f"Age >60: {f.get(6, 0):,}\nAge <18: {f.get(3, 0):,}\nAge not derivable: {f.get(5, 0):,}", fs=8)
+    arrow(ax, 0.38, 0.89, 0.38, 0.72)
+    ax.plot([0.38, 0.65], [0.78, 0.78], color=MUTED, lw=0.9)
+    box(ax, 0.38, 0.68, 0.56, 0.07, f"Eligible women aged 18–60, n = {n_el:,}", bold=True)
+    box(ax, 0.82, 0.55, 0.34, 0.08, f"No Hb within ±3 years\nof index, n = {n_nohb:,}", fs=8)
+    arrow(ax, 0.38, 0.645, 0.38, 0.475)
+    ax.plot([0.38, 0.65], [0.55, 0.55], color=MUTED, lw=0.9)
+    box(ax, 0.38, 0.44, 0.56, 0.07, f"Hb available, n = {n_el - n_nohb:,}", bold=True)
+    arrow(ax, 0.25, 0.405, 0.2, 0.27)
+    arrow(ax, 0.51, 0.405, 0.58, 0.27)
+    box(ax, 0.2, 0.2, 0.36, 0.14, f"Primary analysis\n(complete covariates)\nn = {fa.n:,}; strokes = {fa.events:,}", fs=8)
+    box(ax, 0.62, 0.2, 0.4, 0.14, f"Time-to-event cohort\n(no stroke before Hb/index)\nn = {tc['n']:,}; strokes = {tc['ev']}\n"
+                                  f"{tc['py']:,.0f} person-years", fs=8)
+    return save(fig, "fig12_p2_flow")
+
+
 def run():
     out = {}
     out["flow"] = flow_diagram()
@@ -384,5 +413,6 @@ def run():
     out["p3_prev"] = fig_p3_migraine_prev()
     out["p3_age"] = fig_p3_migraine_age()
     out["p2x"] = fig_p2x()
+    out["p2_flow"] = fig_p2_flow()
     RESULTS["figures"] = out
     return out

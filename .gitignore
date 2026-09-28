@@ -9,3 +9,4 @@ nomice/
 .Rproj.user/
 outputs/
 __pycache__/
+node_modules/

@@ -119,11 +119,9 @@ def derive(df: pd.DataFrame) -> pd.DataFrame:
     d["race4"] = [race4(r, b) for r, b in zip(d["race"], d["black_race"])]
     # smoking: 3-level never / ever (current or former) / unknown (code 9)
     d["smoking3"] = d["smoking"].map({0: "Never", 1: "Ever", 2: "Ever", 9: "Unknown"})
-    # migraine: 0 none, 1 without aura, 2 with aura, 9 unknown -> missing
-    d["migraine3"] = d["migraine"].map({0: "None", 1: "Without aura", 2: "With aura"})
-    # sensitivity-only coding (NOT a redefinition): 9 kept as its own level
-    d["migraine4_sens"] = d["migraine"].map(
-        {0: "None", 1: "Without aura", 2: "With aura", 9: "Code 9 (aura not stated)"})
+    # migraine (PI decision 2026-09-28): type and aura are not used. Any migraine
+    # diagnosis (codes 1 without aura, 2 with aura, 9 aura/type not stated) = 1,
+    # code 0 = 0. Used as the covariate in Papers 1-2 and the outcome in Paper 3.
     d["anemia_cat"] = d["anemia"].map({0: "None (Hb ≥12)", 1: "Mild (10–11.9)",
                                        2: "Moderate (8–9.9)", 3: "Severe (<8)"})
     d["anemia_any"] = np.where(d["anemia"].isna(), np.nan, (d["anemia"] >= 1).astype(float))
@@ -144,8 +142,7 @@ def derive(df: pd.DataFrame) -> pd.DataFrame:
         4: "GnRH agonist/antagonist", 5: "Menopausal HT", 6: "Other/multiple"})
     d["obesity"] = np.where(d["bmi"].isna(), np.nan, (d["bmi"] >= 30).astype(float))
     d["smoking_ever"] = d["smoking"].map({0: 0.0, 1: 1.0, 2: 1.0})
-    d["migraine_any"] = d["migraine"].map({0: 0.0, 1: 1.0, 2: 1.0})
-    d["migraine_aura"] = d["migraine"].map({0: 0.0, 1: 0.0, 2: 1.0})
+    d["migraine_any"] = d["migraine"].map({0: 0.0, 1: 1.0, 2: 1.0, 9: 1.0})
     for c in ["htn", "dm", "dyslipidemia", "cad", "afib", "chf", "vte_history",
               "thrombophilia", "uterine_bleeding", "fibroids", "adenomyosis",
               "endometriosis", "stroke_any"]:

@@ -11,7 +11,7 @@ from .utils import (LINEARITY, RESULTS, Term, add_table, design, fit_logit, fmt_
 # ---------------------------------------------------------------------------
 # Covariates (brief, Paper 2): age (linear), race (4-level, White ref), BMI (linear),
 # hypertension, diabetes, dyslipidaemia, smoking (Never/Ever/Unknown),
-# migraine (None/without aura/with aura; code 9 -> missing), thrombophilia,
+# migraine (any diagnosis, yes/no; PI decision), thrombophilia,
 # hormonal_type (None ref; Codebook levels 1-6; code 9 -> missing),
 # uterine_bleeding, uterine_dx_group (Fibroids only ref).
 # Pre-specified sparse rule: a hormonal_type level with <5 outcome events is
@@ -24,7 +24,7 @@ COV = [
     Term("dm", "bin", label="Diabetes"),
     Term("dyslipidemia", "bin", label="Dyslipidaemia"),
     Term("smoking3", "cat", ref="Never", levels=["Never", "Ever", "Unknown"], label="Smoking"),
-    Term("migraine3", "cat", ref="None", levels=["None", "Without aura", "With aura"], label="Migraine"),
+    Term("migraine_any", "bin", label="Migraine (any type)"),
     Term("thrombophilia", "bin", label="Thrombophilia"),
     Term("hormonal_type_cat", "cat", ref="None", label="Hormonal therapy type"),
     Term("uterine_bleeding", "bin", label="Heavy/abnormal uterine bleeding"),
@@ -128,7 +128,7 @@ def run(elig):
     from .utils import table1
     spec = [("age_index", "Age at index, years", "cont"), ("race4", "Race", "cat"), ("bmi", "BMI, kg/m²", "cont"),
             ("htn", "Hypertension", "bin"), ("dm", "Diabetes", "bin"), ("dyslipidemia", "Dyslipidaemia", "bin"),
-            ("smoking3", "Smoking", "cat"), ("migraine3", "Migraine (code 9 = missing)", "cat"),
+            ("smoking3", "Smoking", "cat"), ("migraine_any", "Migraine (any type)", "bin"),
             ("thrombophilia", "Thrombophilia", "bin"), ("hormonal_type_cat", "Hormonal therapy type", "cat"),
             ("uterine_bleeding", "Heavy/abnormal uterine bleeding", "bin"), ("dxgrp", "Uterine diagnosis group", "cat"),
             ("hgb", "Haemoglobin, g/dL", "cont"), ("mcv", "MCV, fL", "cont"), ("platelets", "Platelets, ×10³/µL", "cont"),
@@ -369,7 +369,7 @@ def run(elig):
              "plt_cat_aux", "afib", "cad", "vte_history"]
     base["stroke_type_aux"] = base["stroke_type"].fillna(0).astype(int).astype(str)
     base["hormonal_type_aux"] = base["hormonal_type_cat"].fillna("None")
-    imps = mice(base, {"bmi": "pmm", "migraine3": "mlogit"}, preds, m=20, iters=10, seed=202)
+    imps = mice(base, {"bmi": "pmm"}, preds + ["migraine_any"], m=20, iters=10, seed=202)
     RESULTS["p2_mi_n"] = len(base)
     mi_rows = []
     for o in ["stroke_any", "y_isch"]:
@@ -398,19 +398,9 @@ def run(elig):
         prj["n (complete case)"] = cj.n
         mi_rows.append(prj)
     mi = pd.concat(mi_rows, ignore_index=True)
-    add_table("P2_sens_MICE", mi, "MICE m=20: BMI (PMM) and migraine (multinomial logit) imputed among patients with "
+    add_table("P2_sens_MICE", mi, "MICE m=20: BMI (PMM) imputed among patients with "
                                   "Hb; outcome and stroke type in the imputation model; exposures not imputed.")
     RESULTS["p2_mi"] = mi
-
-    # -------------------------------------------------- migraine code 9 as own level (sensitivity)
-    cv4 = [Term("migraine4_sens", "cat", ref="None",
-                levels=["None", "Without aura", "With aura", "Code 9 (aura not stated)"], label="Migraine (4-level)")
-           if t.var == "migraine3" else t for t in C("stroke_any", ["anemia_cat"])]
-    f4 = register_fit(fit_logit(d, "stroke_any", [EXPO["anemia_cat"]] + cv4, name="mig4"), "P2",
-                      "Any stroke ~ anaemia, migraine code 9 as level")
-    t4 = or_table(f4, only_vars=["anemia_cat", "migraine4_sens"], model_label="Migraine code 9 kept as level")
-    add_table("P2_sens_migraine9", t4)
-    RESULTS["p2_mig4"] = f4
 
     # -------------------------------------------------- Mediation (exploratory, difference method)
     # Exposure: fibroids (1 vs 0). Mediator: anaemia grade. Covariates: as above

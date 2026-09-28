@@ -55,6 +55,37 @@ def orp(f, col):
     return f"{g['txt']}; {ptxt(g['p'])}"
 
 
+def assoc(f, col):
+    """Direction phrase driven by the CI, so wording always matches the estimate."""
+    g = get_or(f, col)
+    if g["lo"] > 1:
+        return "higher odds"
+    if g["hi"] < 1:
+        return "lower odds"
+    return "no clear difference in odds"
+
+
+def _interaction_text(ints):
+    import re
+    out = []
+    mt = ints.iloc[0]
+    out.append(f"The microcytosis × thrombocytosis interaction was "
+               f"{'statistically significant' if mt['p interaction'] < 0.05 else 'not statistically significant'} "
+               f"({ptxt(mt['p (text)'])}).")
+    ab = ints.iloc[2]
+    txt = (f"The anaemia grade × uterine bleeding interaction was "
+           f"{'statistically significant' if ab['p interaction'] < 0.05 else 'not statistically significant'} "
+           f"for any stroke ({ptxt(ab['p (text)'])}; ischaemic stroke {ptxt(ints.iloc[3]['p (text)'])})")
+    if ab["p interaction"] < 0.05:
+        mods = re.findall(r"Moderate \(8–9\.9\): ([0-9.]+ \([0-9.]+–[0-9.]+\))", str(ab["Stratum-specific anaemia ORs"]))
+        sev = re.findall(r"Severe \(<8\): ([0-9.]+ \([0-9.]+–[0-9.]+\))", str(ab["Stratum-specific anaemia ORs"]))
+        if len(mods) == 2 and len(sev) == 2:
+            txt += (f"; moderate anaemia OR {mods[0]} without and {mods[1]} with heavy/abnormal bleeding, severe "
+                    f"anaemia OR {sev[0]} and {sev[1]}, respectively")
+    out.append(txt + ".")
+    return " ".join(out)
+
+
 def orx(f, col):
     return get_or(f, col)["txt"]
 
@@ -72,7 +103,6 @@ def methods_results():
     core = R["p1_core"]
     mf = R["p1_main_fits"]
     wf = R["p1_whole_fits"]
-    mi = R["p1_mi"].set_index("coef")
     desc = R["p1_desc"]
 
     def dsc(descr, level):
@@ -84,7 +114,6 @@ def methods_results():
     sub = R["p1_io_subcat"]
     imp = R["p1_imaged_pct_by_mig"]
     strict = R["p1_strict_fit"]
-    mig4 = R["p1_mig4"]
 
     # ---------------- Paper 2 numbers
     f2 = R["p2_fits"]
@@ -116,7 +145,7 @@ def methods_results():
 
     def p3(out, grp, col="M2 OR (95% CI) age+race+BMI"):
         r = m3[(m3.Outcome == out) & (m3["Group vs fibroids only"] == grp)].iloc[0]
-        return f"{r[col]}; BH-adjusted {ptxt(r['M2 p (BH-adjusted, 33 contrasts) (text)'])}"
+        return f"{r[col]}; BH-adjusted {ptxt(r['M2 p (BH-adjusted, all contrasts) (text)'])}"
 
     def p3s(out, grp, age):
         r = st[(st.Outcome == out) & (st["Group vs fibroids only"] == grp) & (st.Age == age)].iloc[0]
@@ -128,8 +157,9 @@ def methods_results():
 
     gn = R["p3_group_n"]
     ag = R["p3_age_by_group"]
-    n_sig = int((m3["M2 p (BH-adjusted, 33 contrasts)"] < 0.05).sum())
-    n_tests = int(m3["M2 p (BH-adjusted, 33 contrasts)"].notna().sum())
+    n_out = m3["Outcome"].nunique()
+    n_sig = int((m3["M2 p (BH-adjusted, all contrasts)"] < 0.05).sum())
+    n_tests = int(m3["M2 p (BH-adjusted, all contrasts)"].notna().sum())
 
     L = []
     L.append("# Statistical methods and results — draft for three manuscripts\n")
@@ -160,7 +190,7 @@ def methods_results():
         f"infarct and clinical-stroke groups using Kruskal–Wallis and χ² tests. Factors associated with covert infarct "
         f"(versus imaged-negative) were estimated by logistic regression with heteroskedasticity-robust (HC1) standard "
         f"errors. Covariates were pre-specified: age, race, BMI, hypertension, diabetes, dyslipidaemia, smoking "
-        f"(never/ever/unknown), migraine (none/without aura/with aura), thrombophilia, atrial fibrillation, uterine "
+        f"(never/ever/unknown), migraine (any diagnosis, yes/no), thrombophilia, atrial fibrillation, uterine "
         f"diagnosis group and anaemia grade. The full model had {R['p1_full_events']} events for {R['p1_full_df']} "
         f"parameters (events per variable [EPV] {R['p1_full_epv']:.1f}) and sparse cells. We therefore applied the "
         f"pre-specified simplification: a core model (age, hypertension, diabetes, dyslipidaemia, smoking, migraine), "
@@ -170,12 +200,10 @@ def methods_results():
         f"factors with <5 events were not estimated. Linearity of continuous terms was checked with restricted cubic "
         f"splines (4 knots). Collinearity (variance inflation factor, VIF) and EPV were recorded for every model. "
         f"Brain imaging is not performed at random. Because of that, we re-estimated all models with the whole eligible "
-        f"cohort without stroke as the comparator, and we modelled the probability of being imaged. Migraine code 9 "
-        f"(“unknown”) was treated as missing; it was missing for {R['p1_mig_missing_imaged_pct']}% of the imaged "
-        f"analysis sample. We therefore re-estimated the core model after multiple imputation by chained equations "
-        f"(m = 20; migraine by multinomial logistic regression, BMI by predictive mean matching; outcome included). "
-        f"Further sensitivity analyses used the strict covert definition, kept migraine code 9 as a separate level, "
-        f"and restricted cases to infarcts dated after index (stroke_timing = 3), excluding patients with a stroke "
+        f"cohort without stroke as the comparator, and we modelled the probability of being imaged. Migraine was "
+        f"coded as present for any migraine diagnosis regardless of type or aura status. No pre-specified variable "
+        f"was more than {R['p1_max_missing_pct']}% missing in the imaged analysis sample, so multiple imputation was "
+        f"not required (threshold 10%). Further sensitivity analyses used the strict covert definition and restricted cases to infarcts dated after index (stroke_timing = 3), excluding patients with a stroke "
         f"before or at index. Analyses used {sw}.\n")
     L.append("### Results\n")
     L.append(
@@ -200,29 +228,25 @@ def methods_results():
         f"{dsc('Location', 'Cerebellum')}.\n")
     L.append(
         f"In the core model (n = {core.n:,}; {core.events} covert infarcts; EPV {core.epv:.1f}), covert infarct was "
-        f"associated with hypertension (OR {orp(core, 'htn')}). The association with dyslipidaemia was borderline "
-        f"(OR {orp(core, 'dyslipidemia')}). There was no association with diabetes (OR {orp(core, 'dm')}) or age "
-        f"(per year, OR {orp(core, 'age_index')}). Migraine without aura (OR {orp(core, 'migraine3=Without aura')}) "
-        f"and with aura (OR {orp(core, 'migraine3=With aura')}) were inversely associated with covert infarct relative "
-        f"to imaged women without migraine. Added one at a time, atrial fibrillation was associated with covert infarct "
+        f"associated with hypertension (OR {orp(core, 'htn')}). Dyslipidaemia was associated with "
+        f"{assoc(core, 'dyslipidemia')} (OR {orp(core, 'dyslipidemia')}). There was no association with diabetes "
+        f"(OR {orp(core, 'dm')}) or age (per year, OR {orp(core, 'age_index')}). Relative to imaged women without "
+        f"migraine, imaged women with migraine had {assoc(core, 'migraine_any')} of covert infarct "
+        f"(OR {orp(core, 'migraine_any')}). Added one at a time, atrial fibrillation was associated with covert infarct "
         f"(OR {orp(mf['afib'], 'afib')}). Endometriosis only (OR {orp(mf['dxgrp_collapsed'], 'dxgrp3=Endometriosis only')}) "
         f"and adenomyosis only or >1 condition (OR {orp(mf['dxgrp_collapsed'], 'dxgrp3=Adenomyosis only or >1')}) had "
         f"lower odds of covert infarct than fibroids only. Anaemia was not clearly associated "
         f"(moderate–severe: OR {orp(mf['anemia_cat_collapsed'], 'anemia3=Moderate/severe (<10)')}). Thrombophilia was "
         f"too sparse to estimate.\n")
     L.append(
-        f"Imaging was strongly selective. {imp.get('None')}% of women without migraine were imaged, compared with "
-        f"{imp.get('Without aura')}% with migraine without aura and {imp.get('With aura')}% with migraine with aura "
-        f"(adjusted OR for imaging, migraine with aura: {R['p1_sel_mig_aura']['txt']}). With the whole eligible cohort "
-        f"as the comparator, the inverse migraine associations disappeared (without aura: OR "
-        f"{orx(wf['CORE'], 'migraine3=Without aura')}; with aura: OR {orx(wf['CORE'], 'migraine3=With aura')}). The "
-        f"estimates for hypertension (OR {orx(wf['CORE'], 'htn')}) and atrial fibrillation "
-        f"(OR {orx(wf['afib'], 'afib')}) became larger. Because the inverse migraine association reverses with the "
-        f"comparator, it is consistent with preferential imaging of women with migraine (ascertainment bias). "
-        f"After multiple imputation the migraine estimates were similar (with aura: OR "
-        f"{mi.loc['migraine3=With aura', 'OR (95% CI)']}; hypertension: OR {mi.loc['htn', 'OR (95% CI)']}). Keeping "
-        f"migraine code 9 as its own level gave OR {orx(mig4, 'migraine4_sens=Code 9 (aura not stated)')} for that "
-        f"level. Under the strict definition ({strict.events} cases; model reduced to age, hypertension and migraine "
+        f"Imaging was strongly selective: {imp.get(0.0)}% of women without migraine were imaged, compared with "
+        f"{imp.get(1.0)}% of women with migraine (adjusted OR for being imaged {R['p1_sel_mig']['txt']}). With the "
+        f"whole eligible cohort as the comparator, migraine was associated with {assoc(wf['CORE'], 'migraine_any')} "
+        f"of covert infarct (OR {orp(wf['CORE'], 'migraine_any')}), the opposite direction to the imaged-only "
+        f"comparison. The estimates for hypertension (OR {orx(wf['CORE'], 'htn')}) and atrial fibrillation "
+        f"(OR {orx(wf['afib'], 'afib')}) became larger. The reversal for migraine is consistent with preferential "
+        f"imaging of women with migraine: restricting the comparator to imaged women over-represents migraine among "
+        f"controls. Under the strict definition ({strict.events} cases; model reduced to age, hypertension and migraine "
         f"because of EPV), hypertension remained associated (OR {orp(strict, 'htn')}). Only "
         f"{R['p1_incident_events']} covert infarcts were dated after index, because the event date is blank for most "
         f"imaging-only cases (timing of covert cases: "
@@ -242,7 +266,7 @@ def methods_results():
         f"unknown or blank timing neither cases nor controls). Each exposure was modelled separately and then jointly "
         f"(anaemia, MCV, platelets) by logistic regression with HC1 robust standard errors. Covariates were "
         f"pre-specified: age, race, BMI, hypertension, diabetes, dyslipidaemia, smoking (never/ever/unknown), migraine "
-        f"(none/without aura/with aura), thrombophilia, hormonal therapy type, heavy or abnormal uterine bleeding and "
+        f"(any diagnosis, yes/no), thrombophilia, hormonal therapy type, heavy or abnormal uterine bleeding and "
         f"uterine diagnosis group. Hormonal-therapy levels with <5 events in a model's sample were merged into "
         f"“other/multiple”. Linear trend across anaemia grades was tested by entering grade as a score. Haemoglobin "
         f"was also modelled as a restricted cubic spline (4 knots at the 5th, 35th, 65th and 95th centiles) and "
@@ -252,10 +276,10 @@ def methods_results():
         f"{R['p2_ferritin_n']:,} women ({R['p2_ferritin_pct']:.1f}%). As an exploratory analysis, we estimated the "
         f"proportion of the fibroid–stroke association statistically accounted for by anaemia grade with the "
         f"difference-of-coefficients method, using 1,000 bootstrap resamples for 95% CIs. Uterine bleeding and "
-        f"diagnosis group were excluded from that model; adenomyosis and endometriosis flags were included. Because "
-        f"migraine code 9 made migraine {miss['migraine3'][1]}% missing, the anaemia and joint models were repeated "
-        f"after multiple imputation by chained equations (m = 20; BMI by predictive mean matching, migraine by "
-        f"multinomial logistic regression; outcome and stroke type included). Exposures were not imputed. Lab timing "
+        f"diagnosis group were excluded from that model; adenomyosis and endometriosis flags were included. Because the "
+        f"exposure (Hb) was {miss['anemia_cat'][1]}% missing, the anaemia and joint models were repeated after "
+        f"multiple imputation by chained equations among women with Hb (m = 20; BMI by predictive mean matching; "
+        f"outcome and stroke type included). Exposures were not imputed. Lab timing "
         f"was examined by restricting to Hb (or ferritin) within ±1 year of index. MCV and platelet dates could not be "
         f"verified (see analysis log). Continuous covariate linearity, VIF and EPV were checked for every model. "
         f"Analyses used {sw}.\n")
@@ -265,8 +289,8 @@ def methods_results():
         f"stroke. Hb was available for {n_el - miss['anemia_cat'][0]:,}, MCV for {n_el - miss['mcv_cat'][0]:,} and "
         f"platelets for {n_el - miss['plt_cat'][0]:,}. In adjusted models (n = {fa.n:,}; {fa.events:,} events), "
         f"moderate (OR {orp(fa, 'anemia_cat=Moderate (8–9.9)')}) and severe anaemia (OR "
-        f"{orp(fa, 'anemia_cat=Severe (<8)')}) were associated with stroke. Mild anaemia was not clearly associated "
-        f"(OR {orp(fa, 'anemia_cat=Mild (10–11.9)')}). The OR per anaemia grade was {tr['stroke_any']['txt']} "
+        f"{orp(fa, 'anemia_cat=Severe (<8)')}) were associated with stroke. Mild anaemia was associated with "
+        f"{assoc(fa, 'anemia_cat=Mild (10–11.9)')} of stroke (OR {orp(fa, 'anemia_cat=Mild (10–11.9)')}). The OR per anaemia grade was {tr['stroke_any']['txt']} "
         f"(p-trend {fmt_p(tr['stroke_any']['p'])}). The spline showed a non-linear relationship (non-linearity "
         f"{ptxt(R['p2_spline_p_nonlin'])}). Compared with Hb 13 g/dL, the adjusted OR was {pts.loc[10, 'OR vs 13 g/dL (95% CI)']} "
         f"at 10 g/dL and {pts.loc[8, 'OR vs 13 g/dL (95% CI)']} at 8 g/dL. There was little association above 13 g/dL "
@@ -274,17 +298,16 @@ def methods_results():
         f"(moderate: OR {orp(fi, 'anemia_cat=Moderate (8–9.9)')}; severe: OR {orp(fi, 'anemia_cat=Severe (<8)')}; "
         f"p-trend {fmt_p(tr['y_isch']['p'])}).\n")
     L.append(
-        f"Microcytosis was not associated with any stroke (OR {orp(fm, 'mcv_cat=Microcytic (<80)')}). It was "
-        f"associated with ischaemic stroke when modelled alone (OR {orp(fmi, 'mcv_cat=Microcytic (<80)')}), but not "
-        f"after adjustment for anaemia grade in the joint model (OR "
-        f"{orx(f2[('y_isch', 'joint')], 'mcv_cat=Microcytic (<80)')}). Macrocytosis was associated with stroke "
-        f"(OR {orp(fm, 'mcv_cat=Macrocytic (>100)')}). Thrombocytosis was not associated with stroke "
-        f"(OR {orp(fp, 'plt_cat=Thrombocytosis (>400)')}), whereas a low platelet count was "
-        f"(OR {orp(fp, 'plt_cat=Low (<150)')}). In the joint model, the anaemia estimates were unchanged (severe: OR "
-        f"{orx(fj, 'anemia_cat=Severe (<8)')}) and the low-platelet association was attenuated (OR "
-        f"{orx(fj, 'plt_cat=Low (<150)')}). There was no evidence of interaction between microcytosis and "
-        f"thrombocytosis ({ptxt(ints.iloc[0]['p (text)'])}) or between anaemia grade and uterine bleeding "
-        f"({ptxt(ints.iloc[2]['p (text)'])}).\n")
+        f"Compared with a normal MCV, microcytosis was associated with {assoc(fm, 'mcv_cat=Microcytic (<80)')} of any "
+        f"stroke (OR {orp(fm, 'mcv_cat=Microcytic (<80)')}) and {assoc(fmi, 'mcv_cat=Microcytic (<80)')} of ischaemic "
+        f"stroke (OR {orp(fmi, 'mcv_cat=Microcytic (<80)')}; joint model with anaemia grade: OR "
+        f"{orx(f2[('y_isch', 'joint')], 'mcv_cat=Microcytic (<80)')}). Macrocytosis was associated with "
+        f"{assoc(fm, 'mcv_cat=Macrocytic (>100)')} of stroke (OR {orp(fm, 'mcv_cat=Macrocytic (>100)')}). "
+        f"Thrombocytosis was associated with {assoc(fp, 'plt_cat=Thrombocytosis (>400)')} of stroke "
+        f"(OR {orp(fp, 'plt_cat=Thrombocytosis (>400)')}), and a low platelet count with "
+        f"{assoc(fp, 'plt_cat=Low (<150)')} (OR {orp(fp, 'plt_cat=Low (<150)')}). In the joint model, severe anaemia "
+        f"had OR {orx(fj, 'anemia_cat=Severe (<8)')} (separate model {orx(fa, 'anemia_cat=Severe (<8)')}) and a low "
+        f"platelet count OR {orx(fj, 'plt_cat=Low (<150)')}. {_interaction_text(ints)}\n")
     L.append(
         f"Women with a ferritin result differed from those without: stroke {fsel.loc['stroke_any', 'ferritin measured']}% "
         f"vs {fsel.loc['stroke_any', 'ferritin not measured']}%, and uterine bleeding "
@@ -313,9 +336,9 @@ def methods_results():
     L.append("### Statistical methods\n")
     L.append(
         f"All {n_el:,} eligible women were classified by uterine_dx_group: fibroids only (reference), adenomyosis only, "
-        f"endometriosis only, or more than one condition. There were 11 outcomes, each modelled separately: "
+        f"endometriosis only, or more than one condition. There were {n_out} outcomes, each modelled separately: "
         f"hypertension, diabetes, dyslipidaemia, obesity (BMI ≥30 kg/m²), ever smoking (current or former vs never; "
-        f"unknown excluded), any migraine and migraine with aura (code 9 excluded), atrial fibrillation, coronary "
+        f"unknown excluded), migraine (any migraine diagnosis, regardless of type or aura), atrial fibrillation, coronary "
         f"artery disease, prior venous thromboembolism and thrombophilia. Prevalences were directly age-standardised "
         f"to the whole eligible cohort in 5-year age bands, with normal-approximation 95% CIs. Odds ratios came from "
         f"logistic regression with HC1 robust standard errors. The minimal model adjusted for age and race; the primary "
@@ -323,10 +346,10 @@ def methods_results():
         f"were: collapse, then drop, race; fall back to age-only adjustment; and suppress contrasts with <5 events. "
         f"None were triggered in the primary models. Analyses were repeated within the age strata 18–39 and 40–60 "
         f"years, and a condition × age-group interaction was tested (3-df robust Wald). P values were corrected with "
-        f"the Benjamini–Hochberg procedure across the 33 condition contrasts (11 outcomes × 3 groups) and across the 11 "
-        f"global tests; raw and adjusted values are reported. In a sensitivity analysis, we excluded "
+        f"the Benjamini–Hochberg procedure across the {3 * n_out} condition contrasts ({n_out} outcomes × 3 groups) and across "
+        f"the {n_out} global tests; raw and adjusted values are reported. In a sensitivity analysis, we excluded "
         f"{R['p3_excl_prior_n']:,} women whose stroke preceded or coincided with index, because stroke can prompt "
-        f"risk-factor ascertainment. In another, we counted migraine code 9 (migraine, aura not stated) as migraine. "
+        f"risk-factor ascertainment. "
         f"BMI, the only covariate with missing data, was {miss['bmi'][1]}% missing (<10%), so multiple imputation was "
         f"not required. Ever smoking was analysable in {R['p3_smoking_known']:,} women "
         f"({100 * R['p3_smoking_known'] / n_el:.1f}%) because smoking status was unknown for most; smoking was not "
@@ -345,10 +368,7 @@ def methods_results():
         f"with adenomyosis only and {asp('Migraine (any)', 'Endometriosis only')} with endometriosis only. Adjusted "
         f"ORs were {p3('Migraine (any)', 'Adenomyosis only')} for adenomyosis only, "
         f"{p3('Migraine (any)', 'Endometriosis only')} for endometriosis only and "
-        f"{p3('Migraine (any)', '>1 condition')} for more than one condition. Migraine with aura showed the same "
-        f"pattern (adenomyosis only: {p3('Migraine with aura', 'Adenomyosis only')}; endometriosis only: "
-        f"{p3('Migraine with aura', 'Endometriosis only')}). Counting code 9 as migraine gave similar estimates "
-        f"(adenomyosis only: {R['p3_mig9'].iloc[0]['Code 9 counted as migraine']}).\n")
+        f"{p3('Migraine (any)', '>1 condition')} for more than one condition.\n")
     L.append(
         f"Women with endometriosis only had lower odds of most cardiometabolic factors than women with fibroids only: "
         f"hypertension {p3('Hypertension', 'Endometriosis only')}; diabetes {p3('Diabetes', 'Endometriosis only')}; "
@@ -391,30 +411,21 @@ def methods_results():
             pass
     claims = [
         ("P1 hypertension associated (core)", ci_excl1(G(core, "htn"))),
-        ("P1 dyslipidaemia borderline (0.03<p<0.10)", 0.03 < G(core, "dyslipidemia")["p"] < 0.10),
+        ("P1 dyslipidaemia wording generated from CI", True),
         ("P1 diabetes/age not associated", not ci_excl1(G(core, "dm")) and not ci_excl1(G(core, "age_index"))),
-        ("P1 migraine inverse vs imaged", G(core, "migraine3=Without aura")["hi"] < 1 and G(core, "migraine3=With aura")["hi"] < 1),
+        ("P1 migraine direction opposite vs imaged and vs whole cohort",
+         (G(core, "migraine_any")["OR"] - 1) * (G(wf["CORE"], "migraine_any")["OR"] - 1) < 0),
         ("P1 afib associated", ci_excl1(G(mf["afib"], "afib"))),
         ("P1 endometriosis-only / adeno-or->1 lower", G(mf["dxgrp_collapsed"], "dxgrp3=Endometriosis only")["hi"] < 1
          and G(mf["dxgrp_collapsed"], "dxgrp3=Adenomyosis only or >1")["hi"] < 1),
         ("P1 anaemia not clearly associated", not ci_excl1(G(mf["anemia_cat_collapsed"], "anemia3=Moderate/severe (<10)"))),
-        ("P1 migraine null vs whole cohort", not ci_excl1(G(wf["CORE"], "migraine3=Without aura"))
-         and not ci_excl1(G(wf["CORE"], "migraine3=With aura"))),
         ("P1 htn & afib larger vs whole cohort", G(wf["CORE"], "htn")["OR"] > G(core, "htn")["OR"]
          and G(wf["afib"], "afib")["OR"] > G(mf["afib"], "afib")["OR"]),
         ("P1 strict htn associated", ci_excl1(G(strict, "htn"))),
         ("P1 incident covert < 10", R["p1_incident_events"] < 10),
         ("P2 moderate & severe anaemia associated", G(fa, "anemia_cat=Moderate (8–9.9)")["lo"] > 1 and G(fa, "anemia_cat=Severe (<8)")["lo"] > 1),
-        ("P2 mild anaemia not clearly associated", not ci_excl1(G(fa, "anemia_cat=Mild (10–11.9)"))),
         ("P2 spline non-linear", R["p2_spline_p_nonlin"] < 0.05),
-        ("P2 microcytosis null (any stroke)", not ci_excl1(G(fm, "mcv_cat=Microcytic (<80)"))),
-        ("P2 microcytosis assoc ischaemic alone", G(fmi, "mcv_cat=Microcytic (<80)")["lo"] > 1),
-        ("P2 microcytosis null ischaemic joint", not ci_excl1(G(f2[("y_isch", "joint")], "mcv_cat=Microcytic (<80)"))),
-        ("P2 macrocytosis associated", G(fm, "mcv_cat=Macrocytic (>100)")["lo"] > 1),
-        ("P2 thrombocytosis null / low plt associated", not ci_excl1(G(fp, "plt_cat=Thrombocytosis (>400)"))
-         and G(fp, "plt_cat=Low (<150)")["lo"] > 1),
-        ("P2 low plt attenuated in joint", not ci_excl1(G(fj, "plt_cat=Low (<150)"))),
-        ("P2 no interaction evidence", ints.iloc[0]["p interaction"] > 0.05 and ints.iloc[2]["p interaction"] > 0.05),
+        ("P2 MCV/platelet/interaction wording generated from CIs and p values", True),
         ("P2 iron deficiency inverse", id_adj["CI high"] < 1),
         ("P2 incident moderate associated", G(finc, "anemia_cat=Moderate (8–9.9)")["lo"] > 1),
         ("P2 ±1y unchanged (severe within 10%)", abs(np.log(lt_any.loc["Severe (<8)", "OR ±1y"] /
@@ -508,10 +519,10 @@ def analysis_log():
         "Pacific Islander, 'Choose Not to Disclose', 'Unknown' and the invalid value '0', → Other/unknown.",
         "Smoking: 3 levels (never / ever = current or former / unknown); not imputed. Paper 3 'ever smoking' outcome "
         "is restricted to known status.",
-        "Migraine: 0 none, 1 without aura, 2 with aura; code 9 treated as missing (Codebook/brief). Because code 9 "
-        "actually denotes 'migraine, aura status not stated' (see §6), every paper also reports a sensitivity analysis "
-        "with code 9 as its own level (Papers 1–2) or counted as migraine (Paper 3). The Codebook definition was NOT "
-        "changed; this needs a decision from the PI.",
+        "Migraine (PI decision, 2026-09-28): type and aura are not used. Migraine = 1 for any migraine diagnosis "
+        "(codes 1 without aura, 2 with aura, 9 aura/type not stated), 0 for code 0; no missing values. Used as a "
+        "binary covariate in Papers 1–2 and a binary outcome in Paper 3. This supersedes the brief's 3-level "
+        "migraine covariate and removes the 'migraine with aura' outcome from Paper 3.",
         "Other coded 9 values: hormonal_type 9 (1 patient) → missing. No other 9s in the analysis covariates.",
         "Paper 1 denominator = `stroke_confirmed_imaging` in {0,1}. Imaging-only cases identified from the notes column "
         "(tags listed in `analysis/paper1.py::TAGS`). Classification of included imaging-only cases (hierarchical): "
@@ -543,7 +554,7 @@ def analysis_log():
         "fibroid flag); adenomyosis and endometriosis flags adjusted. Point estimates from the same complete-case "
         "sample for both models; 1,000 non-parametric bootstrap resamples, percentile CI.",
         "MICE (own implementation in `utils.mice`, 10 iterations × m = 20): BMI by Bayesian linear regression + "
-        "predictive mean matching (5 donors); migraine by multinomial logistic regression with parameter draws. "
+        "predictive mean matching (5 donors) (a multinomial-logit imputer for categorical variables is also implemented). "
         "Predictors include the outcome, all covariates and, as auxiliary variables with a 'not measured' level, "
         "the lab exposures (which are never imputed). Pooled by Rubin's rules (Barnard–Rubin-type df).",
         "Paper 3: BMI missing < 10%, so MI not required. Age standardisation: 5-year bands (18–24 … 55–60), "
@@ -584,12 +595,11 @@ def analysis_log():
     dl_prev = TABLES["codebook_summary"].set_index("Variable").loc["dyslipidemia", "Observed distribution (eligible)"]
     L.append(f"- Diabetes ({dm_prev}) and dyslipidaemia ({dl_prev}) are very common for women aged 18–60; this may "
              f"reflect EHR ascertainment in a tertiary centre and should be checked against source definitions.")
-    L.append(f"- Migraine code 9 affects {R['flag_migraine_9_is_migraine'][1]:,} eligible women, who are imaged far more "
-             f"often than women without migraine (see `P1_imaging_selection`), consistent with code 9 meaning "
-             f"'migraine present, aura not stated'.")
+    L.append(f"- Migraine code 9 ('migraine, aura status not stated') covers {R['flag_migraine_9_is_migraine'][1]:,} "
+             f"eligible women; the Codebook labels it 'Unknown'. Resolved by the PI: counted as migraine.")
     L.append("- Paper 1: relative to imaged women, migraine appears protective against covert infarct; relative to "
-             "the whole cohort it does not. This is an ascertainment artefact from preferential imaging of migraine "
-             "patients.")
+             "the whole cohort the direction reverses. This is an ascertainment artefact from preferential imaging of "
+             "migraine patients.")
     L.append("- Paper 2: iron deficiency is inversely associated with stroke in the ferritin subset; ferritin is "
              "an acute-phase reactant and was measured in a selected subset (`P2_ferritin_selection`).")
     L.append("- Paper 2: macrocytosis and low platelets are associated with stroke; these were not hypotheses of the "
@@ -624,8 +634,7 @@ def analysis_log():
              f"- Hormonal therapy is ascertained from administered medications (combined OC under-captured) and is at "
              f"or after index.\n")
     L.append("## 11. Open questions for the PI\n")
-    L.append("1. Migraine code 9 = 'migraine, aura status not stated'. Should `migraine_any` (Paper 3) and the migraine "
-             "covariate include code 9? Current outputs follow the Codebook (9 = missing) with sensitivity analyses.\n"
+    L.append("1. (Resolved 2026-09-28) Migraine: any diagnosis = 1, type/aura ignored.\n"
              "2. Should the revoked/excluded imaging-only patients (blank `stroke_confirmed_imaging`) be added to the "
              "Paper 1 imaged-negative denominator?\n"
              "3. Confirm the covert-infarct definition (currently includes 'multiple/territorial, no symptoms' and "

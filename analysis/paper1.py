@@ -87,7 +87,7 @@ def read_sheet(name):
 #   age (linear, per year), race (White ref / Black / Asian / Other-unknown),
 #   BMI (linear, per kg/m2), hypertension, diabetes, dyslipidaemia,
 #   smoking (Never ref / Ever / Unknown - 3 level, not imputed),
-#   migraine (None ref / without aura / with aura; code 9 -> missing),
+#   migraine (any diagnosis, codes 1/2/9 = yes; PI decision - type/aura not used),
 #   thrombophilia, atrial fibrillation,
 #   uterine_dx_group (Fibroids only ref / Adenomyosis only / Endometriosis only / >1),
 #   anaemia grade (None ref / mild / moderate / severe).
@@ -99,7 +99,7 @@ FULL_TERMS = [
     Term("dm", "bin", label="Diabetes"),
     Term("dyslipidemia", "bin", label="Dyslipidaemia"),
     Term("smoking3", "cat", ref="Never", levels=["Never", "Ever", "Unknown"], label="Smoking"),
-    Term("migraine3", "cat", ref="None", levels=["None", "Without aura", "With aura"], label="Migraine"),
+    Term("migraine_any", "bin", label="Migraine (any type)"),
     Term("thrombophilia", "bin", label="Thrombophilia"),
     Term("afib", "bin", label="Atrial fibrillation"),
     Term("dxgrp", "cat", ref="Fibroids only",
@@ -111,7 +111,7 @@ FULL_TERMS = [
 # Pre-specified simplification if the full model has EPV < 10:
 #   CORE = age, hypertension, diabetes, dyslipidaemia, smoking (3-level), migraine (3-level)
 #   (8 df), then each remaining pre-specified factor added ONE AT A TIME to CORE.
-CORE_VARS = ["age_index", "htn", "dm", "dyslipidemia", "smoking3", "migraine3"]
+CORE_VARS = ["age_index", "htn", "dm", "dyslipidemia", "smoking3", "migraine_any"]
 ADDON_VARS = ["race4", "bmi", "thrombophilia", "afib", "dxgrp", "anemia_cat"]
 # Pre-specified second-level simplification: if a CORE+factor model has EPV<10
 # or a level with <5 events, a categorical factor is refitted in collapsed form
@@ -267,9 +267,9 @@ def run(df_all, elig):
         s = im[im.age2 == g]
         prev_rows.append({"Definition": f"Covert infarct (primary), age {g}", "Denominator": "all imaged",
                           "Text": fmt_prev(int(s.covert.sum()), len(s))})
-    for g in ["None", "Without aura", "With aura"]:
-        s = im[im.migraine3 == g]
-        prev_rows.append({"Definition": f"Covert infarct (primary), migraine {g}", "Denominator": "all imaged",
+    for g in [0.0, 1.0]:
+        s = im[im.migraine_any == g]
+        prev_rows.append({"Definition": f"Covert infarct (primary), migraine {'yes' if g else 'no'}", "Denominator": "all imaged",
                           "Text": fmt_prev(int(s.covert.sum()), len(s))})
     add_table("P1_prevalence", pd.DataFrame(prev_rows), "Covert infarct prevalence with Wilson 95% CI.")
     sub_tab = im[im.io_included == 1]["io_subcat"].value_counts().rename_axis("Imaging-only subcategory").reset_index(name="n")
@@ -282,7 +282,7 @@ def run(df_all, elig):
             ("obesity", "Obesity (BMI ≥30)", "bin"), ("htn", "Hypertension", "bin"), ("dm", "Diabetes", "bin"),
             ("dyslipidemia", "Dyslipidaemia", "bin"), ("cad", "Coronary artery disease", "bin"),
             ("afib", "Atrial fibrillation", "bin"), ("smoking3", "Smoking", "cat"),
-            ("migraine3", "Migraine (code 9 = missing)", "cat"), ("thrombophilia", "Thrombophilia", "bin"),
+            ("migraine_any", "Migraine (any type)", "bin"), ("thrombophilia", "Thrombophilia", "bin"),
             ("vte_history", "Prior VTE", "bin"), ("dxgrp", "Uterine diagnosis group", "cat"),
             ("anemia_cat", "Anaemia grade", "cat"), ("uterine_bleeding", "Heavy/abnormal uterine bleeding", "bin"),
             ("hormonal_tx", "Hormonal therapy", "bin")]
@@ -292,21 +292,17 @@ def run(df_all, elig):
 
     # ------------------------------------------------------------ Imaging selection
     sel_rows = []
-    for var, lab in [("migraine3", "Migraine"), ("age2", "Age"), ("htn", "Hypertension"), ("race4", "Race"),
+    for var, lab in [("migraine_any", "Migraine"), ("age2", "Age"), ("htn", "Hypertension"), ("race4", "Race"),
                      ("dxgrp", "Uterine dx group")]:
         for lv, s in d.groupby(var):
             sel_rows.append({"Factor": lab, "Level": lv, "n": len(s), "Imaged n": int(s.imaged.sum()),
                              "Imaged %": round(100 * s.imaged.mean(), 1)})
-    s9 = d[d.migraine == 9]
-    sel_rows.append({"Factor": "Migraine", "Level": "Code 9 (aura not stated)", "n": len(s9),
-                     "Imaged n": int(s9.imaged.sum()), "Imaged %": round(100 * s9.imaged.mean(), 1)})
     add_table("P1_imaging_selection", pd.DataFrame(sel_rows), "Proportion of the eligible cohort with brain imaging reviewed.")
     fsel = register_fit(fit_logit(d, "imaged", [Term("age_index"), FULL_TERMS[1], FULL_TERMS[7]],
                                   name="P(imaged) ~ age + race + migraine"), "P1", "Selection: P(imaged)")
     sel_or = or_table(fsel, model_label="Selection model: odds of being imaged")
     add_table("P1_selection_model", sel_or)
-    RESULTS["p1_sel_mig_aura"] = get_or(fsel, "migraine3=With aura")
-    RESULTS["p1_sel_mig_noaura"] = get_or(fsel, "migraine3=Without aura")
+    RESULTS["p1_sel_mig"] = get_or(fsel, "migraine_any")
     RESULTS["p1_imaged_pct_by_mig"] = {r["Level"]: r["Imaged %"] for r in sel_rows if r["Factor"] == "Migraine"}
 
     # ------------------------------------------------------------ Models
@@ -375,7 +371,7 @@ def run(df_all, elig):
     # ---- Sensitivity B: strict covert definition (incidental on scan for another indication only)
     strict = im[(im.p1_group == "Imaged, no infarct") | (im.covert_strict == 1)].copy()
     strict["y"] = strict["covert_strict"].astype(float)
-    fs = register_fit(fit_logit(strict, "y", terms_for(["age_index", "htn", "migraine3"]),
+    fs = register_fit(fit_logit(strict, "y", terms_for(["age_index", "htn", "migraine_any"]),
                                 name="Sens B strict covert: age+HTN+migraine"), "P1", "Sens B strict covert")
     add_table("P1_sensB_strict", or_table(fs, model_label=f"Strict covert (n events={fs.events}); reduced to age, "
                                                              f"HTN, migraine because of EPV"))
@@ -402,37 +398,16 @@ def run(df_all, elig):
     log("Paper 1", inc_note)
     add_table("P1_sensC_incident", pd.concat(inc_rows) if inc_rows else pd.DataFrame([{"Note": inc_note}]), inc_note)
 
-    # ---- Sensitivity D: MICE for migraine (code 9 -> missing; >10% missing in the imaged)
-    RESULTS["p1_mig_missing_imaged_pct"] = round(100 * ana.migraine3.isna().mean(), 1)
+    # ---- Sensitivity D: MICE. Brief: run MI where the exposure or a key covariate
+    # has >10% missing. With migraine code 9 kept as a level, nothing in the
+    # imaged analysis sample reaches 10%, so MI is not run (logged).
+    core_terms = terms_for(CORE_VARS)
     RESULTS["p1_anemia_missing_imaged_pct"] = round(100 * ana.anemia_cat.isna().mean(), 1)
     RESULTS["p1_bmi_missing_imaged_pct"] = round(100 * ana.bmi.isna().mean(), 1)
-    mi_vars = {"migraine3": "mlogit"}
-    if ana.bmi.isna().any():
-        mi_vars["bmi"] = "pmm"
-    preds = ["y_covert", "age_index", "race4", "htn", "dm", "dyslipidemia", "smoking3", "thrombophilia", "afib",
-             "dxgrp", "cad", "vte_history", "uterine_bleeding", "anemia_lvl_aux"]
-    ana["anemia_lvl_aux"] = ana["anemia_cat"].fillna("not measured")  # auxiliary only; anaemia not imputed
-    imps = mice(ana, mi_vars, preds, m=20, iters=10, seed=101)
-    core_terms = terms_for(CORE_VARS)
-    fits = [fit_logit(x, "y_covert", core_terms, compute_vif=False) for x in imps]
-    cols = [c for c in fits[0].params.index if c != "const"]
-    pooled = pool_fits(fits, cols)
-    cc = main_fits["CORE"]
-    pooled.insert(1, "Complete-case OR (95% CI)", [get_or(cc, c)["txt"] for c in cols])
-    pooled.insert(0, "Model", f"CORE, MICE m=20 (n={len(ana)}, events={int(ana.y_covert.sum())})")
-    add_table("P1_sensD_MICE", pooled, "Multiple imputation (m=20) of migraine (multinomial logit) and BMI (PMM); "
-                                       "outcome included as predictor; anaemia not imputed.")
-    RESULTS["p1_mi"] = pooled
-    RESULTS["p1_mi_n"] = len(ana)
-
-    # ---- Sensitivity E: migraine code 9 kept as its own level (not a redefinition)
-    t_mig4 = [Term("migraine4_sens", "cat", ref="None",
-                   levels=["None", "Without aura", "With aura", "Code 9 (aura not stated)"], label="Migraine (4-level)")
-              if t.var == "migraine3" else t for t in core_terms]
-    fm4 = register_fit(fit_logit(ana, "y_covert", t_mig4, name="CORE with migraine 4-level"), "P1",
-                       "Sens E migraine code 9 as level")
-    add_table("P1_sensE_migraine9", or_table(fm4, model_label="CORE with migraine code 9 as own level"))
-    RESULTS["p1_mig4"] = fm4
+    RESULTS["p1_max_missing_pct"] = max(round(100 * ana[t.var].isna().mean(), 1) for t in FULL_TERMS)
+    log("Paper 1", f"Max missingness of any pre-specified term in the imaged analysis sample: "
+                   f"{RESULTS['p1_max_missing_pct']}% (anaemia {RESULTS['p1_anemia_missing_imaged_pct']}%, BMI "
+                   f"{RESULTS['p1_bmi_missing_imaged_pct']}%) -> MICE not required.")
 
     # ------------------------------------------------------------ Covert descriptors
     cand = sheets["imaging_only_candidates"]

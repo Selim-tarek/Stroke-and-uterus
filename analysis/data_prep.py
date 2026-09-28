@@ -120,10 +120,10 @@ def run():
     miss_rows = []
     model_vars = {
         "age_index": "all", "race4": "all", "bmi": "all", "htn": "all", "dm": "all", "dyslipidemia": "all",
-        "smoking3": "all", "migraine3": "all", "thrombophilia": "all", "afib": "all", "cad": "all",
+        "smoking3": "all", "migraine_any": "all (covariate P1-2, outcome P3)", "thrombophilia": "all", "afib": "all", "cad": "all",
         "vte_history": "all", "dxgrp": "all", "anemia_cat": "P1,P2", "mcv_cat": "P2", "plt_cat": "P2",
         "iron_deficiency": "P2", "hormonal_type_cat": "P2", "uterine_bleeding": "P2", "stroke_any": "all",
-        "smoking_ever": "P3 outcome", "migraine_any": "P3 outcome", "migraine_aura": "P3 outcome",
+        "smoking_ever": "P3 outcome",
         "obesity": "P3 outcome",
     }
     for v, use in model_vars.items():
@@ -133,10 +133,9 @@ def run():
                           "Missing %": round(100 * miss / len(elig), 2),
                           "> 10% missing": "yes" if miss / len(elig) > 0.10 else "no",
                           "Source of missingness": {
-                              "migraine3": "code 9 (treated as missing)",
                               "smoking3": "none: code 9 retained as 'Unknown' level (per brief)",
                               "smoking_ever": "code 9 (unknown) excluded",
-                              "migraine_any": "code 9 excluded", "migraine_aura": "code 9 excluded",
+                              "migraine_any": "none: codes 1/2/9 = migraine (PI decision)",
                               "hormonal_type_cat": "code 9 (treated as missing)",
                               "anemia_cat": "no Hb within ±3 y", "iron_deficiency": "no ferritin within ±3 y",
                               "obesity": "BMI blank"}.get(v, "blank")})
@@ -172,8 +171,8 @@ def run():
          "migraine == 9: per migraine_terms sheet, code 9 was assigned to 'migraine, aura status not stated' "
          "(e.g. 'Chronic Migraine'), i.e. these patients HAVE migraine; Codebook label is 'Unknown'",
          int((df.migraine == 9).sum()), int((e.migraine == 9).sum()),
-         "Codebook/brief definition kept (9 = unknown -> missing). Sensitivity analyses keep 9 as its own level. "
-         "QUESTION FOR PI: should migraine_any include code 9?")
+         "RESOLVED by PI 2026-09-28: migraine type/aura not used; migraine = 1 for codes 1, 2 and 9, "
+         "0 for code 0, in all papers.")
     ld = pd.to_datetime(e.lab_date, errors="coerce")
     idx = pd.to_datetime(e.index_date, errors="coerce")
     lab_days = (ld - idx).dt.days

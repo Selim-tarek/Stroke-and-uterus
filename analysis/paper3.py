@@ -8,7 +8,7 @@ from .utils import (LINEARITY, RESULTS, Term, add_table, bh, fit_logit, fmt_p, g
 GROUPS = ["Fibroids only", "Adenomyosis only", "Endometriosis only", ">1 condition"]
 OUTCOMES = {
     "htn": "Hypertension", "dm": "Diabetes", "dyslipidemia": "Dyslipidaemia", "obesity": "Obesity (BMI ≥30)",
-    "smoking_ever": "Ever smoking", "migraine_any": "Migraine (any)", "migraine_aura": "Migraine with aura",
+    "smoking_ever": "Ever smoking", "migraine_any": "Migraine (any)",
     "afib": "Atrial fibrillation", "cad": "Coronary artery disease", "vte_history": "Prior VTE",
     "thrombophilia": "Thrombophilia",
 }
@@ -20,8 +20,8 @@ OUTCOMES = {
 # M1 (minimal): exposure + age (linear) + race (White/Black/Asian/Other-unknown).
 # M2 (primary): M1 + BMI (linear), except when obesity is the outcome (M2 = M1).
 # Outcome definitions: smoking ever = current/former vs never (code 9 excluded);
-# migraine any = with or without aura vs none (code 9 excluded); migraine with
-# aura = with aura vs (none or without aura) (code 9 excluded); obesity = BMI >= 30.
+# migraine = any migraine diagnosis (codes 1, 2, 9) vs none - type and aura not
+# used (PI decision 2026-09-28); obesity = BMI >= 30.
 # Pre-specified simplification when a model is unstable:
 #   - sparse covariate level (<5 events)  -> race collapsed to 3 levels, then dropped;
 #   - EPV < 10                           -> exposure + age only;
@@ -109,7 +109,7 @@ def run(elig):
     spec = [("age_index", "Age at index, years", "cont"), ("age2", "Age group", "cat"), ("race4", "Race", "cat"),
             ("bmi", "BMI, kg/m²", "cont"), ("uterine_bleeding", "Heavy/abnormal uterine bleeding", "bin"),
             ("hormonal_tx", "Hormonal therapy", "bin")] + \
-           [(o, lab + (" (code 9 excluded)" if o in ("smoking_ever", "migraine_any", "migraine_aura") else ""), "bin")
+           [(o, lab + (" (code 9 excluded)" if o == "smoking_ever" else ""), "bin")
             for o, lab in OUTCOMES.items()] + [("stroke_any", "Any stroke", "bin")]
     t1 = table1(d, "dxgrp", GROUPS, spec)
     add_table("P3_Table1", t1, "Characteristics by uterine diagnosis group (crude).")
@@ -190,18 +190,18 @@ def run(elig):
     add_table("P3_prevalence", prev, "Crude and age-standardised prevalence (direct standardisation, 5-year bands, "
                                      "standard = whole eligible cohort).")
     main = pd.DataFrame(main_rows)
-    main["M2 p (BH-adjusted, 33 contrasts)"] = bh(main["M2 p (raw)"].values)
-    main["M1 p (BH-adjusted, 33 contrasts)"] = bh(main["M1 p"].values)
+    main["M2 p (BH-adjusted, all contrasts)"] = bh(main["M2 p (raw)"].values)
+    main["M1 p (BH-adjusted, all contrasts)"] = bh(main["M1 p"].values)
     gl = pd.DataFrame(pvals, columns=["o", "p"])
     gl["p_bh"] = bh(gl["p"].values)
-    main["Global p M2 (BH-adjusted, 11 outcomes)"] = main["Outcome"].map(
+    main["Global p M2 (BH-adjusted, all outcomes)"] = main["Outcome"].map(
         dict(zip([OUTCOMES[o] for o in gl.o], gl.p_bh)))
-    for c in ["M1 p", "M2 p (raw)", "M2 p (BH-adjusted, 33 contrasts)", "M1 p (BH-adjusted, 33 contrasts)",
-              "Global p M2 (3 df)", "Global p M2 (BH-adjusted, 11 outcomes)"]:
+    for c in ["M1 p", "M2 p (raw)", "M2 p (BH-adjusted, all contrasts)", "M1 p (BH-adjusted, all contrasts)",
+              "Global p M2 (3 df)", "Global p M2 (BH-adjusted, all outcomes)"]:
         main[c + " (text)"] = main[c].map(fmt_p)
     add_table("P3_main_models", main, "Logistic regression, HC1 robust SEs; reference = fibroids only. "
-                                      "Benjamini-Hochberg correction across 33 contrasts (11 outcomes × 3 groups) "
-                                      "and across the 11 global tests.")
+                                      f"Benjamini-Hochberg correction across {3 * len(OUTCOMES)} contrasts ({len(OUTCOMES)} outcomes × 3 "
+                                      f"groups) and across the {len(OUTCOMES)} global tests.")
     RESULTS["p3_main"] = main
     RESULTS["p3_prev"] = prev
     RESULTS["p3_forest"] = pd.DataFrame(forest)
@@ -224,8 +224,8 @@ def run(elig):
         em.append({"Outcome": olab, "Wald χ² (condition × age group)": round(chi2, 2), "df": dfi, "p": p,
                    "p (text)": fmt_p(p), "Flags": "; ".join(f.flags)})
     em = pd.DataFrame(em)
-    em["p BH (11 outcomes)"] = bh(em["p"].values)
-    em["p BH (text)"] = em["p BH (11 outcomes)"].map(fmt_p)
+    em["p BH (all outcomes)"] = bh(em["p"].values)
+    em["p BH (text)"] = em["p BH (all outcomes)"].map(fmt_p)
     add_table("P3_age_interaction", em, "Test of condition × age-group (18–39 vs 40–60) interaction, M2.")
     RESULTS["p3_em"] = em
     add_table("P3_sens_excl_prior_stroke", pd.DataFrame(inc_rows),
@@ -234,15 +234,5 @@ def run(elig):
     RESULTS["p3_inc"] = pd.DataFrame(inc_rows)
     RESULTS["p3_excl_prior_n"] = int(d.stroke_timing.isin([1, 2]).sum())
 
-    # sensitivity: migraine code 9 counted as migraine (aura unspecified) for migraine_any
-    d["migraine_any_incl9"] = d["migraine"].map({0: 0.0, 1: 1.0, 2: 1.0, 9: 1.0})
-    f9 = register_fit(stable_fit(d, "migraine_any_incl9", model_terms("migraine_any", True), "mig incl 9"), "P3",
-                      "Migraine any incl code 9 (sensitivity)")
-    c9 = contrasts(f9)
-    rows9 = [{"Group vs fibroids only": g, "Primary (code 9 excluded)":
-              main.query("Outcome == 'Migraine (any)' and `Group vs fibroids only` == @g")["M2 OR (95% CI) age+race+BMI"].iloc[0],
-              "Code 9 counted as migraine": c9[g]["txt"], "N": f9.n, "Events": f9.events} for g in GROUPS[1:]]
-    add_table("P3_sens_migraine9", pd.DataFrame(rows9), "Sensitivity only - not a redefinition (see analysis_log).")
-    RESULTS["p3_mig9"] = pd.DataFrame(rows9)
     RESULTS["p3_smoking_known"] = int(d.smoking_ever.notna().sum())
     return d

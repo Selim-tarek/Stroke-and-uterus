@@ -211,6 +211,129 @@ def forest_surgery():
                   "Fibroid procedures and subsequent stroke (women with fibroids; time-varying exposure)",
                   "fig6_forest_surgery", xlabel="Adjusted rate ratio (95% CI, log scale)")
 
+# ---------------------------------------------------------------------------
+# Key-finding figures for the two recommended papers
+# ---------------------------------------------------------------------------
+ANAEMIA_LEVELS = ["Mild (10–11.9)", "Moderate (8–9.9)", "Severe (<8)"]
+
+
+def fig_p2_gradient():
+    """Paper 2: adjusted OR by anaemia grade, for any, ischaemic and incident stroke."""
+    from .utils import get_or
+    fits = RESULTS["p2_fits"]
+    outs = [("stroke_any", "Any stroke"), ("y_isch", "Ischaemic stroke"), ("y_incident", "Incident stroke (after diagnosis)")]
+    fig, ax = plt.subplots(figsize=(6.4, 3.9))
+    x0 = np.arange(len(ANAEMIA_LEVELS) + 1)
+    for j, (o, lab) in enumerate(outs):
+        f = fits[(o, "anemia_cat")]
+        pts = [(1.0, 1.0, 1.0)] + [(get_or(f, f"anemia_cat={lv}")["OR"], get_or(f, f"anemia_cat={lv}")["lo"],
+                                    get_or(f, f"anemia_cat={lv}")["hi"]) for lv in ANAEMIA_LEVELS]
+        xs = x0 + (j - 1) * 0.18
+        o_, lo_, hi_ = map(np.array, zip(*pts))
+        ax.vlines(xs[1:], lo_[1:], hi_[1:], color=SERIES[j], lw=1.8)
+        ax.plot(xs, o_, color=SERIES[j], lw=1.2, alpha=0.6)
+        ax.plot(xs, o_, "o", color=SERIES[j], ms=6, mec="white", mew=0.8,
+                label=f"{lab} (p-trend {_ptrend(o)})")
+    ax.axhline(1, color=MUTED, lw=0.8, ls="--")
+    ax.set_yscale("log")
+    ax.set_yticks([0.75, 1, 1.5, 2, 3])
+    ax.set_ylim(0.65, 3.8)
+    ax.get_yaxis().set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
+    ax.get_yaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
+    ax.set_xticks(x0)
+    ax.set_xticklabels(["None\n(Hb ≥12)", "Mild\n(10–11.9)", "Moderate\n(8–9.9)", "Severe\n(<8)"])
+    ax.set_xlabel("Anaemia grade (Hb g/dL)")
+    ax.set_ylabel("Adjusted odds ratio (95% CI, log scale)")
+    ax.grid(axis="y", color=GRID, lw=0.5)
+    ax.legend(frameon=False, fontsize=7.5, loc="upper left")
+    ax.set_title("Stroke odds rise with anaemia severity", fontsize=9, loc="left", color=INK)
+    return save(fig, "fig7_p2_anaemia_gradient")
+
+
+def _ptrend(o):
+    from .utils import fmt_p
+    t = fmt_p(RESULTS[f"p2_trend_{o}"]["p"])
+    return t if t.startswith("<") else f"= {t}"
+
+
+def fig_p2_robustness():
+    """Paper 2: moderate and severe anaemia ORs across primary and sensitivity analyses."""
+    from .utils import get_or
+    fits = RESULTS["p2_fits"]
+    lt = RESULTS["p2_lab_timing"]
+    lt = lt[lt.Outcome == "Any stroke (primary)"].set_index("Level")
+    mi = RESULTS["p2_mi"]
+    mi = mi[mi.Outcome == "Any stroke (primary)"].set_index("coef")
+    rows = []
+    for lv in ["Moderate (8–9.9)", "Severe (<8)"]:
+        c = f"anemia_cat={lv}"
+        for lab, (o, lo, hi) in [
+            ("Primary (Hb within ±3 y)", _t(get_or(fits[("stroke_any", "anemia_cat")], c))),
+            ("Hb within ±1 y of diagnosis", (lt.loc[lv, "OR ±1y"], lt.loc[lv, "CI low ±1y"], lt.loc[lv, "CI high ±1y"])),
+            ("Multiple imputation (m = 20)", (mi.loc[c, "OR"], mi.loc[c, "CI low"], mi.loc[c, "CI high"])),
+            ("Joint model (+ MCV, platelets)", _t(get_or(fits[("stroke_any", "joint")], c))),
+            ("Ischaemic stroke only", _t(get_or(fits[("y_isch", "anemia_cat")], c))),
+            ("Incident stroke only", _t(get_or(fits[("y_incident", "anemia_cat")], c))),
+        ]:
+            rows.append({"Analysis": lab, "Grade": lv.split(" ")[0] + " anaemia", "OR": o, "lo": lo, "hi": hi})
+    df = pd.DataFrame(rows)
+    return forest(df, ["Analysis"], "Grade", ["Moderate anaemia", "Severe anaemia"],
+                  "Anaemia–stroke association across sensitivity analyses (reference: Hb ≥12 g/dL)",
+                  "fig8_p2_robustness", width=6.4)
+
+
+def _t(g):
+    return g["OR"], g["lo"], g["hi"]
+
+
+def fig_p3_migraine_prev():
+    """Paper 3: age-standardised migraine prevalence by uterine condition."""
+    pv = RESULTS["p3_prev"]
+    pv = pv[pv.Outcome == "Migraine (any)"].set_index("Group")
+    groups = ["Fibroids only", "Adenomyosis only", "Endometriosis only", ">1 condition"]
+    m3 = RESULTS["p3_main"]
+    fig, ax = plt.subplots(figsize=(5.6, 3.8))
+    y = pv.loc[groups, "Age-std %"].values
+    lo = pv.loc[groups, "Age-std low"].values
+    hi = pv.loc[groups, "Age-std high"].values
+    cols = [MUTED] + SERIES
+    ax.bar(range(4), y, color=cols, width=0.6, edgecolor="white", linewidth=2)
+    ax.errorbar(range(4), y, yerr=[y - lo, hi - y], fmt="none", ecolor=INK, capsize=3, lw=0.9)
+    for i, g in enumerate(groups):
+        n = int(pv.loc[g, "N (outcome known)"])
+        lab = f"{y[i]:.1f}%"
+        if g != "Fibroids only":
+            r = m3[(m3.Outcome == "Migraine (any)") & (m3["Group vs fibroids only"] == g)].iloc[0]
+            lab += f"\nOR {r['OR']:.2f}"
+        ax.text(i, hi[i] + 0.8, lab, ha="center", va="bottom", fontsize=8, color=INK)
+        ax.text(i, 0.8, f"n={n:,}", ha="center", va="bottom", fontsize=7, color="white")
+    ax.set_xticks(range(4))
+    ax.set_xticklabels(["Fibroids\nonly", "Adenomyosis\nonly", "Endometriosis\nonly", ">1\ncondition"])
+    ax.set_ylabel("Age-standardised migraine prevalence, % (95% CI)")
+    ax.set_ylim(0, max(hi) + 7)
+    ax.grid(axis="y", color=GRID, lw=0.5)
+    ax.set_axisbelow(True)
+    ax.set_title("Migraine by uterine condition (OR vs fibroids only; age, race, BMI adjusted)", fontsize=9,
+                 loc="left", color=INK)
+    return save(fig, "fig9_p3_migraine_prevalence")
+
+
+def fig_p3_migraine_age():
+    """Paper 3: migraine ORs overall and by age stratum."""
+    m3 = RESULTS["p3_main"]
+    st = RESULTS["p3_strata"]
+    rows = []
+    for g in ["Adenomyosis only", "Endometriosis only", ">1 condition"]:
+        r = m3[(m3.Outcome == "Migraine (any)") & (m3["Group vs fibroids only"] == g)].iloc[0]
+        rows.append({"Stratum": "All ages", "Group": g, "OR": r["OR"], "lo": r["CI low"], "hi": r["CI high"]})
+        for ag in ["18–39", "40–60"]:
+            r = st[(st.Outcome == "Migraine (any)") & (st["Group vs fibroids only"] == g) & (st.Age == ag)].iloc[0]
+            rows.append({"Stratum": f"Age {ag}", "Group": g, "OR": r["OR"], "lo": r["CI low"], "hi": r["CI high"]})
+    df = pd.DataFrame(rows)
+    return forest(df, ["Stratum"], "Group", ["Adenomyosis only", "Endometriosis only", ">1 condition"],
+                  "Migraine vs fibroids only, overall and by age (age, race, BMI adjusted)",
+                  "fig10_p3_migraine_by_age", width=6.0)
+
 
 def run():
     out = {}
@@ -220,5 +343,9 @@ def run():
     out["p2"] = forest_p2()
     out["p3"] = forest_p3()
     out["surgery"] = forest_surgery()
+    out["p2_gradient"] = fig_p2_gradient()
+    out["p2_robust"] = fig_p2_robustness()
+    out["p3_prev"] = fig_p3_migraine_prev()
+    out["p3_age"] = fig_p3_migraine_age()
     RESULTS["figures"] = out
     return out

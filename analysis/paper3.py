@@ -167,6 +167,8 @@ def run(elig):
                                     "n in group": n_g, "events in group": ev_g,
                                     "OR (95% CI)": "not estimated (sparse)" if b and b["sparse"] else (b["txt"] if b else ""),
                                     "OR": b["OR"] if b and not b["sparse"] else np.nan,
+                                    "CI low": b["lo"] if b and not b["sparse"] else np.nan,
+                                    "CI high": b["hi"] if b and not b["sparse"] else np.nan,
                                     "p": b["p"] if b and not b["sparse"] else np.nan,
                                     "N": fs.n, "Events": fs.events, "Simplification": fs.simplification,
                                     "Flags": "; ".join(fs.flags)})

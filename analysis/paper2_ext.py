@@ -53,7 +53,7 @@ from .utils import (RESULTS, Term, add_table, fit_logit, fmt_or, fmt_p, get_or, 
 
 GRADES = ["Mild (10–11.9)", "Moderate (8–9.9)", "Severe (<8)"]
 HEREDITARY = ["sickle_disease", "sickle_trait", "thal_minor", "thal_other", "other_haemoglobinopathy"]
-CHRONIC = ["ckd", "ckd_esrd", "cirrhosis", "chronic_liver", "alcohol_disorder", "malabsorption", "menopause"]
+CHRONIC = ["ckd", "ckd_esrd", "cirrhosis", "chronic_liver", "alcohol_disorder", "malabsorption", "ibd", "menopause"]
 ANAEMIA_CODED = ["anaemia_iron", "anaemia_b12_folate", "anaemia_nutritional", "anaemia_blood_loss_acute",
                  "anaemia_neoplastic_chemo", "anaemia_chronic_disease", "anaemia_haemolytic_aplastic",
                  "anaemia_pregnancy", "anaemia_unspecified"]
@@ -65,7 +65,8 @@ LABELS = {"sickle_disease": "Sickle cell disease", "sickle_trait": "Sickle cell 
           "chronic_liver": "Chronic liver disease (incl. NAFLD/NASH)", "liver_any": "Any chronic liver disease",
           "alcohol_disorder": "Alcohol use disorder", "gi_bleed_recent": "GI bleeding within 1 y before Hb",
           "gi_bleed_ever": "GI bleeding (ever)", "malabsorption": "Malabsorption / coeliac / bariatric",
-          "pregnancy_recent": "Pregnancy/delivery within 1 y before Hb", "hiv": "HIV infection",
+          "pregnancy_recent": "Pregnancy/delivery/postpartum within 1 y before Hb", "hiv": "HIV infection",
+          "ibd": "Inflammatory bowel disease",
           "postmenopausal": "Postmenopausal at Hb/index (coded)",
           "anaemia_iron_nearhb": "Coded iron-deficiency anaemia (±1 y of Hb)",
           "anaemia_b12_folate_nearhb": "Coded B12/folate anaemia (±1 y of Hb)",
@@ -116,7 +117,7 @@ def build_flags(elig):
     out["haemoglobinopathy_any"] = out[HEREDITARY].max(axis=1)
     out["liver_any"] = out[["cirrhosis", "chronic_liver"]].max(axis=1)
     out["any_anaemia_cause"] = out[["haemoglobinopathy_any", "ckd", "ckd_esrd", "liver_any", "alcohol_disorder",
-                                    "gi_bleed_recent", "malabsorption", "hiv", "pregnancy_recent",
+                                    "gi_bleed_recent", "malabsorption", "ibd", "hiv", "pregnancy_recent",
                                     "anaemia_neoplastic_chemo_nearhb"]].max(axis=1)
     RESULTS["p2x_preg_recent"] = int(out.pregnancy_recent.sum())
     RESULTS["p2x_preg_icd10_patients"] = int(kept[(kept.flag == "pregnancy") &
@@ -218,7 +219,7 @@ def run(elig):
 
     # 2. extended adjustment
     pre_vars = ["cad", "haemoglobinopathy_any", "ckd", "liver_any", "alcohol_disorder", "gi_bleed_recent",
-                "malabsorption", "hiv", "pregnancy_recent"]
+                "malabsorption", "ibd", "hiv", "pregnancy_recent"]
     post_vars = ["chf", "afib", "vte_history", "malignancy_ever", "anticoag"]
     ext_a = [Term(v, "bin", label=LABELS.get(v, v)) for v in pre_vars]
     ext_b = ext_a + [Term(v, "bin", label=LABELS.get(v, v)) for v in post_vars]
@@ -370,6 +371,144 @@ def run(elig):
     sg = pd.DataFrame(sg)
     add_table("P2X_subgroups", sg, "Per-grade anaemia OR for any stroke within subgroups; interaction = product term.")
     RESULTS["p2x_sg"] = sg
+
+    # 8. Time-to-event from the Hb measurement (prospective ordering guaranteed)
+    import statsmodels.api as sm
+    from .followup import encounters, treatments
+    from .utils import design
+    lc_, dth_ = encounters()
+    t = d[d.anemia_cat.notna()].copy()
+    t = t[~t.stroke_timing.isin([1, 2])]
+    t = t[~((t.stroke_any == 1) & ~t.stroke_timing.isin([3]))]
+    t["start"] = pd.concat([pd.to_datetime(t.index_date), pd.to_datetime(t.hgb_date, errors="coerce")], axis=1).max(axis=1)
+    sdt = pd.to_datetime(t.stroke_date, errors="coerce")
+    n_before_start = int(((t.stroke_any == 1) & (sdt <= t.start)).sum())
+    t = t[~((t.stroke_any == 1) & (sdt <= t.start))]
+    sdt = pd.to_datetime(t.stroke_date, errors="coerce")
+    lastc = t.mrn.map(lc_)
+    dth = t.mrn.map(dth_)
+    cens = pd.concat([lastc, dth], axis=1).min(axis=1)
+    t["ev_any"] = (t.stroke_any == 1).astype(int)
+    t["ev_isch"] = ((t.stroke_any == 1) & (t.stroke_type == 1)).astype(int)
+    t["end"] = np.where(t.ev_any == 1, sdt, cens)
+    t["end"] = pd.to_datetime(t["end"])
+    t = t[t.end.notna() & (t.end > t.start)]
+    t["py"] = (t.end - t.start).dt.days / 365.25
+    RESULTS["p2x_tte_cohort"] = dict(n=len(t), py=float(t.py.sum()), ev=int(t.ev_any.sum()), ev_isch=int(t.ev_isch.sum()),
+                                     excl_before_start=n_before_start, fu_median=float(t.py.median()))
+
+    def pois(data, oc, terms):
+        data = data.dropna(subset=[x.var for x in terms])
+        X, cm = design(data, terms)
+        X = X.loc[:, (X != 0).any(axis=0)]
+        r = sm.GLM(data[oc].values, X, family=sm.families.Poisson(), offset=np.log(data.py.values)).fit(cov_type="HC1")
+        return r, len(data), int(data[oc].sum()), data[oc].sum() / (X.shape[1] - 1)
+
+    def rr(r, c):
+        b, se = r.params[c], r.bse[c]
+        from scipy import stats as _st
+        return dict(txt=fmt_or(np.exp(b), np.exp(b - 1.96 * se), np.exp(b + 1.96 * se)), RR=np.exp(b),
+                    lo=np.exp(b - 1.96 * se), hi=np.exp(b + 1.96 * se), p=2 * _st.norm.sf(abs(b / se)))
+    tte = []
+    for oc, lab in [("ev_any", "Any stroke"), ("ev_isch", "Ischaemic stroke")]:
+        g = t.groupby("anemia_cat").agg(ev=(oc, "sum"), py=("py", "sum"), n=("mrn", "size"))
+        cvb = cov_for(t, oc, ["anemia_cat"], f"tte{oc}")
+        ext_a2 = [Term(v, "bin") for v in pre_vars]
+        fits_ = {}
+        for nm, terms in [("Crude", [EXPO["anemia_cat"]]), ("Adjusted (Paper 2 covariates)", [EXPO["anemia_cat"]] + cvb),
+                          ("Adjusted + pre-Hb conditions (2a)", [EXPO["anemia_cat"]] + cvb + ext_a2)]:
+            fits_[nm] = pois(t, oc, terms)
+            tr_terms = [Term("anemia", "cont") if x.var == "anemia_cat" else x for x in terms]
+            rt, _, _, _ = pois(t, oc, tr_terms)
+            fits_[nm + " trend"] = rr(rt, "anemia")
+        for lv in ["None (Hb ≥12)"] + GRADES:
+            row = {"Outcome": lab, "Anaemia grade": lv, "Women": int(g.n.get(lv, 0)), "Events": int(g.ev.get(lv, 0)),
+                   "Person-years": round(float(g.py.get(lv, 0)), 1),
+                   "Rate /1,000 PY": round(1000 * g.ev.get(lv, 0) / g.py.get(lv, 1), 2)}
+            for nm in ["Crude", "Adjusted (Paper 2 covariates)", "Adjusted + pre-Hb conditions (2a)"]:
+                r_, n_, e_, epv_ = fits_[nm]
+                if lv == "None (Hb ≥12)":
+                    row[nm + " RR"] = "1.00 (reference)"
+                elif row["Events"] < 5:
+                    row[nm + " RR"] = "not estimated (<5 events)"
+                else:
+                    q = rr(r_, f"anemia_cat={lv}")
+                    row[nm + " RR"] = q["txt"]
+                    if nm.startswith("Adjusted + pre"):
+                        row.update({"RR": q["RR"], "CI low": q["lo"], "CI high": q["hi"], "EPV": round(epv_, 1)})
+            tte.append(row)
+        tte.append({"Outcome": lab, "Anaemia grade": "Per grade (trend)",
+                    **{nm + " RR": fits_[nm + " trend"]["txt"] + f"; p={fmt_p(fits_[nm + ' trend']['p'])}"
+                       for nm in ["Crude", "Adjusted (Paper 2 covariates)", "Adjusted + pre-Hb conditions (2a)"]},
+                    "RR": fits_["Adjusted + pre-Hb conditions (2a) trend"]["RR"],
+                    "CI low": fits_["Adjusted + pre-Hb conditions (2a) trend"]["lo"],
+                    "CI high": fits_["Adjusted + pre-Hb conditions (2a) trend"]["hi"],
+                    "p": fits_["Adjusted + pre-Hb conditions (2a) trend"]["p"]})
+    tte = pd.DataFrame(tte)
+    add_table("P2X_time_to_event", tte, "Stroke rates after the Hb measurement by anaemia grade. Follow-up from the "
+                                        "later of index and Hb date to stroke, death or last encounter; women with "
+                                        "a stroke before or at that start excluded. Poisson rate ratios, HC1 SEs.")
+    RESULTS["p2x_tte"] = tte
+    log("Paper 2 ext", f"Time-to-event cohort: {RESULTS['p2x_tte_cohort']}")
+
+    # 9. Anaemia treatment (exploratory landmark analysis)
+    tx, audit = treatments()
+    add_table("P2X_medication_classes", audit, "Medications Administered extract: classification of products "
+                                              "(excluded = multivitamins/prenatal/OC iron placebo/spironolactone).")
+    hbd_t = pd.to_datetime(t.hgb_date, errors="coerce")
+    txm = tx.merge(pd.DataFrame({"mrn": t.mrn, "hbd": hbd_t}), on="mrn")
+    win = txm[(txm.date >= txm.hbd - pd.Timedelta(days=30)) & (txm.date <= txm.hbd + pd.Timedelta(days=90))]
+    for c_ in ["iv_iron", "oral_iron", "esa"]:
+        t[f"tx_{c_}"] = t.mrn.isin(win.loc[win.cls == c_, "mrn"].unique()).astype(int)
+    t["tx_any"] = t[["tx_iv_iron", "tx_oral_iron", "tx_esa"]].max(axis=1)
+    lm = t.copy()
+    lm["lstart"] = lm.start + pd.Timedelta(days=90)
+    lm = lm[lm.end > lm.lstart]
+    lm["py"] = (lm.end - lm.lstart).dt.days / 365.25
+    lm["tx_group"] = np.select([lm.anemia_any == 0, lm.tx_any == 1], ["No anaemia", "Anaemia, treated (iron/ESA)"],
+                               "Anaemia, no administered iron/ESA")
+    tg = Term("tx_group", "cat", ref="No anaemia",
+              levels=["No anaemia", "Anaemia, no administered iron/ESA", "Anaemia, treated (iron/ESA)"])
+    txr = []
+    for oc, lab in [("ev_any", "Any stroke"), ("ev_isch", "Ischaemic stroke")]:
+        cvb = cov_for(lm, oc, ["tx_group"], f"lm{oc}")
+        r_, n_, e_, epv_ = pois(lm, oc, [tg, Term("anemia", "cont")] + cvb)
+        r2, _, _, _ = pois(lm, oc, [tg] + cvb)
+        g = lm.groupby("tx_group").agg(ev=(oc, "sum"), py=("py", "sum"), n=("mrn", "size"))
+        for lv in tg.levels:
+            row = {"Outcome": lab, "Group": lv, "Women": int(g.n.get(lv, 0)), "Events": int(g.ev.get(lv, 0)),
+                   "Rate /1,000 PY": round(1000 * g.ev.get(lv, 0) / g.py.get(lv, 1), 2)}
+            if lv == tg.ref:
+                row["Adjusted RR"] = "1.00 (reference)"
+            elif row["Events"] < 5:
+                row["Adjusted RR"] = "not estimated (<5 events)"
+            else:
+                q = rr(r2, f"tx_group={lv}")
+                row.update({"Adjusted RR": q["txt"], "RR": q["RR"], "CI low": q["lo"], "CI high": q["hi"]})
+            txr.append(row)
+        if all(f"tx_group={lv}" in r_.params.index for lv in tg.levels[1:]) and \
+                int(g.ev.get("Anaemia, treated (iron/ESA)", 0)) >= 5:
+            q = rr(r_, "tx_group=Anaemia, treated (iron/ESA)")
+            q0 = rr(r_, "tx_group=Anaemia, no administered iron/ESA")
+            L = np.zeros(len(r_.params))
+            idx = list(r_.params.index)
+            L[idx.index("tx_group=Anaemia, treated (iron/ESA)")] = 1
+            L[idx.index("tx_group=Anaemia, no administered iron/ESA")] = -1
+            b = float(L @ r_.params.values)
+            se = float(np.sqrt(L @ r_.cov_params().values @ L))
+            from scipy import stats as _st
+            txr.append({"Outcome": lab, "Group": "Treated vs untreated anaemia, additionally adjusted for grade",
+                        "Adjusted RR": fmt_or(np.exp(b), np.exp(b - 1.96 * se), np.exp(b + 1.96 * se)),
+                        "RR": np.exp(b), "CI low": np.exp(b - 1.96 * se), "CI high": np.exp(b + 1.96 * se),
+                        "p": 2 * _st.norm.sf(abs(b / se))})
+    txr = pd.DataFrame(txr)
+    RESULTS["p2x_tx"] = txr
+    RESULTS["p2x_tx_counts"] = {c_: int(lm.loc[lm.anemia_any == 1, f"tx_{c_}"].sum()) for c_ in ["iv_iron", "oral_iron", "esa"]}
+    RESULTS["p2x_tx_n_anaemic"] = int((lm.anemia_any == 1).sum())
+    add_table("P2X_treatment_landmark", txr, "EXPLORATORY. Iron/ESA administered from 30 d before to 90 d after the Hb "
+                                             "(facility-administered only; outpatient oral iron not captured). "
+                                             "Landmark at 90 d after follow-up start; strokes after the landmark. "
+                                             "Poisson, HC1 SEs, Paper 2 covariates.")
 
     # 7. E-values
     tab = pd.DataFrame(rows)

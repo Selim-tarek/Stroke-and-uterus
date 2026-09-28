@@ -92,6 +92,29 @@ HIC_RULES = [
     ("anaemia_unspecified", r"^anemia"),
 ]
 FLAGS = [r[0] for r in RULES] + [r[0] for r in ANAEMIA_RULES]
+
+# Description-only extracts (Diagnosis_31, pregnancy; no ICD code supplied)
+PREG_INCLUDE = re.compile(
+    r"pregnan|gestation|deliver|postpartum|post-partum|puerper|prenatal|antepartum|trimester|labou?r|cesarean|"
+    r"caesarean|abortion|miscarriage|ectopic|mother|multigravida|primigravida|obstetric|eclampsia|placent|fetal|"
+    r"fetus|lactation|breastfeed|\bpreg\b|chldbrth|childbirth|gravidarum|peripartum|puerp", re.I)
+PREG_EXCLUDE = re.compile(
+    r"^personal history|not pregnant|result unknown|result negative|unconfirmed|family planning|avoid pregnancy|"
+    r"^pregnancy test$|^pregnancy examination or test$|contracepti(ve|on) management|^history of", re.I)
+
+
+CURRENT_PREG = re.compile(r"^(pregnancy|supervision|high.?risk|encounter for supervision)", re.I)
+
+
+def classify_desc_only(desc):
+    d = str(desc)
+    if PREG_INCLUDE.search(d):
+        if PREG_EXCLUDE.search(d):
+            return "EXCLUDED"
+        if re.search(r"personal history|\bprior\b", d, re.I) and not CURRENT_PREG.search(d):
+            return "EXCLUDED"
+        return "pregnancy"
+    return "UNMATCHED"
 PERI_RE = re.compile(r"perimenopaus|hot flash|hot flush", re.I)
 
 
@@ -119,12 +142,28 @@ def anaemia_type(code):
     return None
 
 
+def _read_xlsb(f):
+    """Read an .xlsb extract once and cache it as CSV in data/dx/_cache/."""
+    cache = DATA_DIR / "dx" / "_cache" / (f.rsplit("/", 1)[-1].replace(".xlsb", ".csv"))
+    if cache.exists():
+        return pd.read_csv(cache, dtype=str)
+    x = pd.read_excel(f, engine="pyxlsb", dtype=str)
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    x.to_csv(cache, index=False)
+    return x
+
+
 def load_extracts():
-    files = sorted(glob.glob(str(DATA_DIR / "dx" / "MDE_Workflow_Results_for_Diagnosis_*.csv")))
+    pat = str(DATA_DIR / "dx" / "MDE_Workflow_Results_for_Diagnosis_*")
+    files = sorted(f for f in glob.glob(pat) if f.endswith((".csv", ".xlsb")))
     parts = []
     for f in files:
-        x = pd.read_csv(f, dtype=str)
-        x["source_file"] = f.rsplit("_", 1)[-1].replace(".csv", "")
+        x = _read_xlsb(f) if f.endswith(".xlsb") else pd.read_csv(f, dtype=str)
+        if x.shape[1] == 3:  # description-only extract: Clinic Number, Description, Date
+            x = pd.DataFrame({"Clinic Number": x.iloc[:, 0], "Diagnosis Code System": "DESC_ONLY",
+                              "Diagnosis Code": "", "Diagnosis Description": x.iloc[:, 1],
+                              "Diagnosis Date": x.iloc[:, 2]})
+        x["source_file"] = f.rsplit("_", 1)[-1].split(".")[0]
         parts.append(x)
     x = pd.concat(parts, ignore_index=True)
     x.columns = ["mrn", "system", "code", "desc", "date", "source_file"]
@@ -138,7 +177,9 @@ def classify_rows(x):
     rows = []
     for r in x.itertuples(index=False):
         flags = set()
-        if str(r.system).upper() == "HIC":
+        if r.system == "DESC_ONLY":
+            flags.add(classify_desc_only(r.desc))
+        elif str(r.system).upper() == "HIC":
             d = str(r.desc).lower()
             for flag, pat in HIC_RULES:
                 if re.search(pat, d):

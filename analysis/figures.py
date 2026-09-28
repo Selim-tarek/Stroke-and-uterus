@@ -360,9 +360,14 @@ def fig_p2x():
                      "lo": r["Moderate lo"], "hi": r["Moderate hi"]})
         rows.append({"Analysis": lab, "Estimate": "Per anaemia grade (trend)", "OR": r["trend OR"],
                      "lo": r["trend lo"], "hi": r["trend hi"]})
+    tt = RESULTS["p2x_tte"]
+    tt = tt[tt.Outcome == "Any stroke"].set_index("Anaemia grade")
+    for key, est in [("Moderate (8–9.9)", "Moderate anaemia (8–9.9 g/dL)"), ("Per grade (trend)", "Per anaemia grade (trend)")]:
+        rows.append({"Analysis": "Time-to-event from Hb date (rate ratio, 2a)", "Estimate": est,
+                     "OR": tt.loc[key, "RR"], "lo": tt.loc[key, "CI low"], "hi": tt.loc[key, "CI high"]})
     df = pd.DataFrame(rows)
     return forest(df, ["Analysis"], "Estimate", ["Moderate anaemia (8–9.9 g/dL)", "Per anaemia grade (trend)"],
-                  "Anaemia and any stroke: temporality, confounding and restriction analyses",
+                  "Anaemia and any stroke: temporality, confounding and restriction analyses (OR; last row RR)",
                   "fig11_p2_extended", width=6.6)
 
 

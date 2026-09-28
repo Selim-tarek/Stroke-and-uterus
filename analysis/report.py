@@ -424,6 +424,41 @@ def methods_results():
         f"{sgi('Fibroids')}, menopausal status {sgi('Menopausal status (coded)')}, and heavy bleeding "
         f"{sgi('Heavy/abnormal bleeding')}. The E-value for the primary per-grade estimate was "
         f"{ev_pg['E-value (point)']} (CI limit {ev_pg['E-value (CI limit)']}).\n")
+    tc = R["p2x_tte_cohort"]
+    tt = R["p2x_tte"]
+
+    def tte(outcome, grade, col="Adjusted + pre-Hb conditions (2a) RR"):
+        return tt[(tt.Outcome == outcome) & (tt["Anaemia grade"] == grade)].iloc[0][col]
+
+    def rate(outcome, grade):
+        return tt[(tt.Outcome == outcome) & (tt["Anaemia grade"] == grade)].iloc[0]["Rate /1,000 PY"]
+    txr = R["p2x_tx"]
+
+    def txv(outcome, grp):
+        return txr[(txr.Outcome == outcome) & (txr.Group == grp)].iloc[0]["Adjusted RR"]
+    L.append(
+        f"**Time-to-event analysis.** Using last-encounter and death dates from the Encounters extracts, "
+        f"{tc['n']:,} women were followed from the later of the index date and the Hb measurement "
+        f"({tc['py']:,.0f} person-years; median {tc['fu_median']:.1f} years). Women whose stroke occurred before that "
+        f"start ({tc['excl_before_start']}) were excluded, so anaemia always preceded the outcome. There were "
+        f"{tc['ev']} strokes ({tc['ev_isch']} ischaemic). Stroke rates per 1,000 person-years were "
+        f"{rate('Any stroke', 'None (Hb ≥12)')} without anaemia, {rate('Any stroke', 'Mild (10–11.9)')} with mild, "
+        f"{rate('Any stroke', 'Moderate (8–9.9)')} with moderate and {rate('Any stroke', 'Severe (<8)')} with severe "
+        f"anaemia. Adjusted for Paper 2 covariates and conditions documented before the Hb (Poisson regression), the "
+        f"rate ratio (RR) was {tte('Any stroke', 'Moderate (8–9.9)')} for moderate and "
+        f"{tte('Any stroke', 'Severe (<8)')} for severe anaemia (per grade {tte('Any stroke', 'Per grade (trend)')}). "
+        f"For ischaemic stroke the RR was {tte('Ischaemic stroke', 'Moderate (8–9.9)')} for moderate anaemia (per grade "
+        f"{tte('Ischaemic stroke', 'Per grade (trend)')}).\n")
+    L.append(
+        f"**Anaemia treatment (exploratory).** Among {R['p2x_tx_n_anaemic']:,} anaemic women in a landmark analysis "
+        f"starting 90 days after the Hb, {R['p2x_tx_counts']['iv_iron']} received IV iron, "
+        f"{R['p2x_tx_counts']['oral_iron']} facility-administered oral iron and {R['p2x_tx_counts']['esa']} an ESA "
+        f"between 30 days before and 90 days after the Hb. Compared with no anaemia, the adjusted RR for stroke was "
+        f"{txv('Any stroke', 'Anaemia, no administered iron/ESA')} for untreated and "
+        f"{txv('Any stroke', 'Anaemia, treated (iron/ESA)')} for treated anaemia. Treated vs untreated anaemia, "
+        f"additionally adjusted for grade: {txv('Any stroke', 'Treated vs untreated anaemia, additionally adjusted for grade')}. "
+        f"Treatment reflects severity and indication, and outpatient oral iron was not captured, so no inference "
+        f"about the effect of treatment should be drawn.\n")
 
     # ------------------------------------------------------------------ P3
     L.append("---\n\n## Paper 3 — Vascular risk-factor burden across fibroids, adenomyosis and endometriosis\n")
@@ -514,8 +549,8 @@ def methods_results():
     L.append(
         f"Among eligible women with fibroids, we examined strokes occurring after the index date. Women with a stroke "
         f"before or at index ({sc['n_prior']}) and strokes that could not be placed in time ({sc['n_unknown']}) were "
-        f"excluded. Follow-up ran from index to the first stroke or {sc['end']}, the latest date recorded in the "
-        f"dataset. No death or transfer-out dates were available, so complete follow-up to that date was assumed. "
+        f"excluded. Follow-up ran from index to the first of stroke, death ({sc['n_death']} deaths) or the last "
+        f"recorded encounter. "
         f"Procedure exposure was time-varying. Person-time before a procedure was unexposed, and after it was assigned "
         f"to the most recent procedure (myomectomy, hysterectomy, uterine artery embolisation [UAE], endometrial "
         f"ablation or other gynaecological surgery). This avoids immortal-time bias. The primary exposure was any "
@@ -611,6 +646,8 @@ def methods_results():
     claims.append(("P2X 2a moderate and severe 'remained associated'",
                    X.loc["2a Pre-Hb conditions: Any stroke", "Moderate lo"] > 1 and
                    X.loc["2a Pre-Hb conditions: Any stroke", "Severe lo"] > 1))
+    claims.append(("P2X time-to-event per-grade CI excludes 1 (2a)",
+                   R["p2x_tte"].query("Outcome == 'Any stroke' and `Anaemia grade` == 'Per grade (trend)'")["CI low"].iloc[0] > 1))
     claims.append(("P2X anaemia-related conditions more common with stroke (CKD, haemoglobinopathy)",
                    pvx.loc["Chronic kidney disease (any)", "Stroke %"] > pvx.loc["Chronic kidney disease (any)", "No stroke %"]
                    and pvx.loc["Any haemoglobinopathy", "Stroke %"] > pvx.loc["Any haemoglobinopathy", "No stroke %"]))
@@ -747,7 +784,12 @@ def analysis_log():
         "Extended adjustment split into 2a (documented before Hb) and 2b (adds undated/post-stroke factors incl. "
         "anticoagulants) after finding that anticoagulant use (largely post-stroke) and undated conditions pull the "
         "estimate towards the null (over-adjustment). Not available: IBD, iron/transfusion/ESA treatment, "
-        "death/last-follow-up dates; ICD-10 pregnancy codes only via anaemia-of-pregnancy codes.",
+        "death/last-follow-up dates; ICD-10 pregnancy codes only via anaemia-of-pregnancy codes. UPDATE: IBD "
+        "(Diagnosis_30), pregnancy descriptions (Diagnosis_31.xlsb, classified by text; histories excluded), "
+        "Medications Administered (iron/ESA; multivitamins, prenatal vitamins, OC iron placebo and spironolactone "
+        "excluded) and Encounters 6/8/13 (death; Create Date of Encounters_8 verified as last encounter - on/after "
+        "every recorded stroke, surgery and Hb date; Encounters_13 Arrive Dates include future appointments and are "
+        "not used) were added later; the surgery analysis now censors at death/last encounter.",
         "Supplementary surgery analysis (requested 2026-09-28): fibroid cohort, strokes after index, time-varying "
         "procedure exposure (most recent procedure), Poisson rate ratios, follow-up assumed complete to the latest date "
         "in the dataset (no death/transfer data). Myomectomy from `myomectomy_date`; other procedures from "

@@ -8,9 +8,8 @@ Design (pre-specified before fitting)
   unknown or blank timing are excluded (cannot be placed in time).
   Secondary outcome: ischaemic stroke (stroke_type == 1) after index; other
   stroke types are censored at their date.
-- Follow-up: index_date to the first of stroke or END, where END is the latest
-  date recorded anywhere in the dataset. No death / transfer-out dates exist,
-  so everyone is assumed to be followed to END (stated as a limitation).
+- Follow-up: index_date to the first of stroke, death or last encounter
+  (Encounters extracts; END = latest date in the dataset if missing).
 - Exposure is time-varying: person-time is split at each procedure date.
   Procedures: myomectomy (myomectomy_date, any myomectomy in the record) and the
   surgical_tx procedure (surgical_tx_date: hysterectomy, uterine artery
@@ -58,6 +57,19 @@ COV = [Term("age_index", label="Age (per year)"),
 REDUCED = [t for t in COV if t.var in ("age_index", "bmi", "htn", "dm", "dyslipidemia", "afib")]
 
 
+def death_dates():
+    """Death Date from the Encounters extract (one row per patient), keyed by MRN (in memory only)."""
+    import glob
+    from .utils import DATA_DIR
+    fs = sorted(glob.glob(str(DATA_DIR / "enc" / "MDE_Workflow_Results_for_Encounters_*.csv")))
+    if not fs:
+        return pd.Series(dtype="datetime64[ns]")
+    x = pd.concat([pd.read_csv(f, dtype=str) for f in fs])
+    x["mrn"] = pd.to_numeric(x["Clinic Number"], errors="coerce")
+    x["death"] = pd.to_datetime(x["Death Date"].str.slice(0, 10), errors="coerce")
+    return x.dropna(subset=["mrn", "death"]).groupby("mrn")["death"].min()
+
+
 def build_cohort(d):
     end = max(pd.to_datetime(d[c], errors="coerce").max() for c in DATE_COLS)
     f = d[(d.eligible == 1) & (d.fibroids == 1)].copy()
@@ -71,14 +83,31 @@ def build_cohort(d):
     f["ev_any"] = ((f.stroke_any == 1) & (f.stroke_timing == 3)).astype(int)
     f["ev_isch"] = (f.ev_any.astype(bool) & (f.stroke_type == 1)).astype(int)
     f["t1"] = pd.to_datetime(np.where(f.ev_any == 1, sd, end))
+    # censor at death or last encounter (Encounters extracts); strokes are events whenever recorded
+    from .followup import encounters
+    lc_, dd_ = encounters()
+    lastc = f.mrn.map(lc_)
+    f.loc[(f.ev_any == 0) & lastc.notna(), "t1"] = np.minimum(f.loc[(f.ev_any == 0) & lastc.notna(), "t1"],
+                                                               lastc[(f.ev_any == 0) & lastc.notna()])
+    n_last = int(lastc.notna().sum())
+    dth = f.mrn.map(dd_)
+    n_death = int(dth.notna().sum())
+    n_death_before_index = int((dth < f.t0).sum())
+    cens = dth.notna() & (dth < f.t1)
+    f.loc[cens & (f.ev_any == 0), "t1"] = dth[cens & (f.ev_any == 0)]
+    n_ev_after_death = int((dth.notna() & (f.ev_any == 1) & (sd > dth)).sum())
     bad = int((f.t1 <= f.t0).sum())
     f = f[f.t1 > f.t0]
     RESULTS["surg_cohort"] = dict(end=end.date().isoformat(), n_fibroid=n0, n_prior=n_prior, n_unknown=n_unk,
                                   n_zero_time=bad, n=len(f), events=int(f.ev_any.sum()),
-                                  events_isch=int(f.ev_isch.sum()))
+                                  events_isch=int(f.ev_isch.sum()), n_death=n_death,
+                                  n_death_before_index=n_death_before_index, n_ev_after_death=n_ev_after_death,
+                                  n_last=n_last)
     log("Surgery", f"Fibroid cohort {n0:,}; excluded {n_prior} with stroke before/at index, {n_unk} with unknown "
-                   f"timing, {bad} with stroke on the index date; analysed {len(f):,}, {int(f.ev_any.sum())} incident "
-                   f"strokes. Follow-up assumed to {end.date()} (latest date in the dataset).")
+                   f"timing, {bad} with no follow-up time (stroke, death or last encounter on the index date); analysed {len(f):,}, {int(f.ev_any.sum())} incident "
+                   f"strokes. Follow-up to death ({n_death} deaths; {n_death_before_index} dated before index; "
+                   f"{n_ev_after_death} strokes dated after death - flagged) or last encounter (available for "
+                   f"{n_last:,}; otherwise {end.date()}).")
     return f
 
 

@@ -7,7 +7,7 @@ writes everything to outputs/.
 """
 import time
 
-from . import data_prep, excel_out, figures, paper1, paper2, paper3, report, surgery
+from . import data_prep, excel_out, figures, paper1, paper2, paper2_ext, paper3, report, surgery
 from .utils import OUT_DIR, RESULTS, log
 
 
@@ -17,6 +17,7 @@ def main():
     df, elig = data_prep.run()
     paper1.run(df, elig)
     paper2.run(elig)
+    paper2_ext.run(elig)
     paper3.run(elig)
     surgery.run(df)
     figures.run()

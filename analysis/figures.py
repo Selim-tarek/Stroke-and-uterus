@@ -335,6 +335,37 @@ def fig_p3_migraine_age():
                   "fig10_p3_migraine_by_age", width=6.0)
 
 
+P2X_SHORT = {
+    "Primary: Any stroke": "Primary model",
+    "Hb ≥30 d before stroke: Any stroke": "Hb measured ≥30 d before stroke",
+    "Excluding Hb within 30 d of stroke: Any stroke": "Excluding Hb within 30 d of stroke",
+    "Primary: Incident stroke": "Incident strokes only",
+    "2a Pre-Hb conditions: Any stroke": "+ conditions documented before Hb (2a)",
+    "2b Over-adjustment check (+ undated/post-stroke): Any stroke": "+ undated / post-stroke factors (2b)",
+    "Hb ≥30 d before stroke + 2a: Any stroke": "Hb before stroke + 2a",
+    "Excluding haemoglobinopathies: Any stroke": "Excluding haemoglobinopathies",
+    "Excluding all anaemia-causing conditions: Any stroke": "Excluding all anaemia-causing conditions",
+    "Primary: Ischaemic stroke": "Ischaemic stroke only",
+}
+
+
+def fig_p2x():
+    t = RESULTS["p2x_tab"].set_index("Analysis")
+    rows = []
+    for a, lab in P2X_SHORT.items():
+        if a not in t.index:
+            continue
+        r = t.loc[a]
+        rows.append({"Analysis": lab, "Estimate": "Moderate anaemia (8–9.9 g/dL)", "OR": r["Moderate OR"],
+                     "lo": r["Moderate lo"], "hi": r["Moderate hi"]})
+        rows.append({"Analysis": lab, "Estimate": "Per anaemia grade (trend)", "OR": r["trend OR"],
+                     "lo": r["trend lo"], "hi": r["trend hi"]})
+    df = pd.DataFrame(rows)
+    return forest(df, ["Analysis"], "Estimate", ["Moderate anaemia (8–9.9 g/dL)", "Per anaemia grade (trend)"],
+                  "Anaemia and any stroke: temporality, confounding and restriction analyses",
+                  "fig11_p2_extended", width=6.6)
+
+
 def run():
     out = {}
     out["flow"] = flow_diagram()
@@ -347,5 +378,6 @@ def run():
     out["p2_robust"] = fig_p2_robustness()
     out["p3_prev"] = fig_p3_migraine_prev()
     out["p3_age"] = fig_p3_migraine_age()
+    out["p2x"] = fig_p2x()
     RESULTS["figures"] = out
     return out

@@ -345,6 +345,86 @@ def methods_results():
         f"{100 * med['ci'][0]:.1f}% to {100 * med['ci'][1]:.1f}%). Because the temporal order of fibroids, anaemia and "
         f"stroke cannot be established, this is not evidence of mediation in a causal sense.\n")
 
+    # ------------------------------------------------------------------ P2 extended
+    X = R["p2x_tab"].set_index("Analysis")
+    pvx = R["p2x_prev"].set_index("Condition")
+    mo = R["p2x_morph"]
+    sb_ = R["p2x_sub"].set_index("Subtype")
+    sg_ = R["p2x_sg"]
+    ht = R["p2x_hb_timing"]
+
+    def xr(a, col="Moderate"):
+        return X.loc[a, col]
+
+    def xt(a):
+        return f"{X.loc[a, 'Per grade (trend)']}, p-trend {X.loc[a, 'p-trend']}"
+
+    def sig(a, key="Moderate"):
+        lo = X.loc[a, f"{key} lo"] if key != "trend" else X.loc[a, "trend lo"]
+        return "remained associated" if lo > 1 else "was no longer statistically significant"
+
+    def mor(outcome, typ):
+        r = mo[(mo.Outcome == outcome) & (mo["Anaemia type"] == typ)].iloc[0]
+        return f"OR {r['Adjusted OR (95% CI)']}"
+
+    def sgi(name):
+        r = sg_[(sg_.Subgroup == name) & (sg_.Level.str.startswith("Interaction"))].iloc[0]
+        return ptxt(r["p (text)"])
+    ev_ = R["p2x_ev"]
+    ev_pg = ev_[(ev_.Analysis == "Primary: Any stroke") & (ev_.Contrast == "Per grade")].iloc[0]
+    n_hb_before = ht.get("Hb >=30 d before stroke", 0)
+    n_hb_after = ht.get("Hb >=30 d after stroke", 0)
+    n_hb_acute = ht.get("Hb within 30 d of stroke", 0)
+    L.append("### Additional analyses: temporality, confounding by anaemia-causing conditions, anaemia type\n")
+    L.append("**Methods.** Supplementary diagnosis extracts identified haemoglobinopathies (sickle cell disease or "
+             "trait, thalassaemia, other haemoglobinopathies and hereditary haemolytic anaemias, recorded at any "
+             "date). They also identified the following, each counted if documented before the Hb measurement: "
+             "chronic kidney disease (including dialysis and transplant), chronic liver disease (including cirrhosis), "
+             "alcohol use disorder, malabsorption (coeliac disease, bariatric surgery), HIV and menopause. GI bleeding "
+             "and pregnancy in the year before the Hb were also captured, as were coded anaemia types within a year of "
+             "the Hb. We fitted four sets of models. (1) Temporality: stroke cases were restricted to those whose Hb was "
+             "measured at least 30 days before the stroke. (2a) Adjustment for conditions documented before the Hb. "
+             "(2b) As 2a, plus heart failure, atrial fibrillation, VTE, malignancy ever and anticoagulant use. These are "
+             "undated or may follow the stroke, so 2b checks for over-adjustment. (3) Restriction to women without any "
+             "anaemia-causing condition. Anaemia was further classified by MCV as microcytic, normocytic or "
+             "macrocytic. Stroke subtypes were modelled separately, effect modification was tested in pre-specified "
+             "subgroups, and E-values were calculated.\n")
+    L.append(
+        f"**Results.** Of strokes with an Hb value, the Hb was measured at least 30 days before the stroke in "
+        f"{n_hb_before}, within 30 days of it in {n_hb_acute}, and at least 30 days after it in {n_hb_after}. "
+        f"Restricting cases to Hb measured before the stroke, moderate anaemia "
+        f"{sig('Hb ≥30 d before stroke: Any stroke')} with any stroke (OR {xr('Hb ≥30 d before stroke: Any stroke')}) "
+        f"and ischaemic stroke (OR {xr('Hb ≥30 d before stroke: Ischaemic stroke')}). Severe anaemia was rare before "
+        f"stroke and its estimate was imprecise (OR {xr('Hb ≥30 d before stroke: Any stroke', 'Severe')}); per grade "
+        f"{xt('Hb ≥30 d before stroke: Any stroke')}. Anaemia-related conditions were more common among women with "
+        f"stroke: chronic kidney disease {pvx.loc['Chronic kidney disease (any)', 'Stroke %']}% vs "
+        f"{pvx.loc['Chronic kidney disease (any)', 'No stroke %']}%, and any haemoglobinopathy "
+        f"{pvx.loc['Any haemoglobinopathy', 'Stroke %']}% vs {pvx.loc['Any haemoglobinopathy', 'No stroke %']}%. After "
+        f"adjustment for conditions documented before the Hb (2a), moderate "
+        f"(OR {xr('2a Pre-Hb conditions: Any stroke')}) and severe anaemia "
+        f"(OR {xr('2a Pre-Hb conditions: Any stroke', 'Severe')}) remained associated with stroke (per grade "
+        f"{xt('2a Pre-Hb conditions: Any stroke')}; ischaemic stroke per grade "
+        f"{xt('2a Pre-Hb conditions: Ischaemic stroke')}). With further adjustment for undated and potentially "
+        f"post-stroke factors (2b), the per-grade OR was {xt('2b Over-adjustment check (+ undated/post-stroke): Any stroke')}. "
+        f"Combining the Hb-before-stroke restriction with adjustment 2a, moderate anaemia "
+        f"{sig('Hb ≥30 d before stroke + 2a: Any stroke')} (OR {xr('Hb ≥30 d before stroke + 2a: Any stroke')}; per "
+        f"grade {xt('Hb ≥30 d before stroke + 2a: Any stroke')}). Excluding women with haemoglobinopathies "
+        f"(per grade {xt('Excluding haemoglobinopathies: Any stroke')}) or with any anaemia-causing condition "
+        f"(per grade {xt('Excluding all anaemia-causing conditions: Any stroke')}) did not remove the association.\n")
+    L.append(
+        f"By anaemia type, compared with no anaemia, the adjusted ORs for any stroke were "
+        f"{mor('Any stroke', 'Microcytic anaemia')} for microcytic, {mor('Any stroke', 'Normocytic anaemia')} for "
+        f"normocytic and {mor('Any stroke', 'Macrocytic anaemia')} for macrocytic anaemia. For ischaemic stroke, "
+        f"microcytic anaemia had {mor('Ischaemic stroke', 'Microcytic anaemia')}. Anaemia with a coded iron-deficiency "
+        f"diagnosis had {mor('Ischaemic stroke', 'Anaemia, iron deficiency coded')} for ischaemic stroke. By subtype, "
+        f"the per-grade OR was {sb_.loc['Ischaemic stroke', 'Per grade OR (95% CI)']} for ischaemic stroke, "
+        f"{sb_.loc['TIA', 'Per grade OR (95% CI)']} for TIA and "
+        f"{sb_.loc['Intracerebral haemorrhage', 'Per grade OR (95% CI)']} for intracerebral haemorrhage (few events, "
+        f"minimally adjusted). Interaction p values were: age {sgi('Age')}, race {sgi('Race')}, fibroids "
+        f"{sgi('Fibroids')}, menopausal status {sgi('Menopausal status (coded)')}, and heavy bleeding "
+        f"{sgi('Heavy/abnormal bleeding')}. The E-value for the primary per-grade estimate was "
+        f"{ev_pg['E-value (point)']} (CI limit {ev_pg['E-value (CI limit)']}).\n")
+
     # ------------------------------------------------------------------ P3
     L.append("---\n\n## Paper 3 — Vascular risk-factor burden across fibroids, adenomyosis and endometriosis\n")
     L.append("### Statistical methods\n")
@@ -525,6 +605,15 @@ def methods_results():
             & (st.Age == "40–60")]["OR"].iloc[0] < 1.5),
     ]
     claims.append(("SUPP surgery wording generated from CIs (direction phrases computed)", True))
+    claims.append(("P2X 'did not remove the association': restricted cohorts per-grade CI excludes 1",
+                   all(X.loc[a, "trend lo"] > 1 for a in ["Excluding haemoglobinopathies: Any stroke",
+                                                          "Excluding all anaemia-causing conditions: Any stroke"])))
+    claims.append(("P2X 2a moderate and severe 'remained associated'",
+                   X.loc["2a Pre-Hb conditions: Any stroke", "Moderate lo"] > 1 and
+                   X.loc["2a Pre-Hb conditions: Any stroke", "Severe lo"] > 1))
+    claims.append(("P2X anaemia-related conditions more common with stroke (CKD, haemoglobinopathy)",
+                   pvx.loc["Chronic kidney disease (any)", "Stroke %"] > pvx.loc["Chronic kidney disease (any)", "No stroke %"]
+                   and pvx.loc["Any haemoglobinopathy", "Stroke %"] > pvx.loc["Any haemoglobinopathy", "No stroke %"]))
     RESULTS["claims"] = claims
     failed = [c for c, ok in claims if not ok]
     if failed:
@@ -571,7 +660,9 @@ def methods_results():
              "3. `figures/fig3_forest_paper1.png` / `.svg` — covert infarct: imaged vs whole-cohort comparator.\n"
              "4. `figures/fig4_forest_paper2.png` / `.svg` — haematological indices and stroke.\n"
              "5. `figures/fig5_forest_paper3.png` / `.svg` — risk factors by uterine condition.\n"
-             "6. `figures/fig6_forest_surgery.png` / `.svg` — fibroid procedures and subsequent stroke (supplement).\n")
+             "6. `figures/fig6_forest_surgery.png` / `.svg` — fibroid procedures and subsequent stroke (supplement).\n"
+             "7–10. Key-finding figures (anaemia gradient, robustness, migraine prevalence, migraine by age).\n"
+             "11. `figures/fig11_p2_extended.png` / `.svg` — anaemia: temporality, confounding and restriction.\n")
     L.append("## Automated consistency checks of qualitative wording\n")
     L.append("Each qualitative statement above (e.g. 'associated', 'not clearly associated', 'unchanged') is checked "
              "against the fitted estimates in the same run:\n")
@@ -649,6 +740,14 @@ def analysis_log():
         "`linearity_checks`. Where non-linear, the exposure estimates should be checked against an RCS adjustment "
         "before submission (not done automatically to preserve EPV in Paper 1).",
         "VIF computed per design column (dummy level), not generalised VIF.",
+        "Supplementary diagnosis extracts Diagnosis_22-29 (haemoglobinopathy, CKD, liver+pregnancy(ICD-9), alcohol, "
+        "GI bleeding/malabsorption, HIV, menopause, anaemia diagnoses) classified by code prefix in "
+        "`analysis/comorbid_codes.py`; non-qualifying terms (screening, family history, abnormal LFT, perimenopause, "
+        "hot flash, HIV exposure/PrEP) listed in sheet `P2X_codes_not_counted`. Linked by MRN in memory only. "
+        "Extended adjustment split into 2a (documented before Hb) and 2b (adds undated/post-stroke factors incl. "
+        "anticoagulants) after finding that anticoagulant use (largely post-stroke) and undated conditions pull the "
+        "estimate towards the null (over-adjustment). Not available: IBD, iron/transfusion/ESA treatment, "
+        "death/last-follow-up dates; ICD-10 pregnancy codes only via anaemia-of-pregnancy codes.",
         "Supplementary surgery analysis (requested 2026-09-28): fibroid cohort, strokes after index, time-varying "
         "procedure exposure (most recent procedure), Poisson rate ratios, follow-up assumed complete to the latest date "
         "in the dataset (no death/transfer data). Myomectomy from `myomectomy_date`; other procedures from "

@@ -200,6 +200,18 @@ def forest_p3():
                   "fig5_forest_paper3")
 
 
+def forest_surgery():
+    t = RESULTS["surg_tab"].dropna(subset=["RR"]).copy()
+    t["Row"] = t["Analysis"].str.slice(0, 2).map({"A.": "Any fibroid procedure vs none", "B.": "", "S.": None,
+                                                  "C.": "Myomectomy vs hysterectomy (from surgery)"})
+    t = t[t["Row"].notna()]
+    t.loc[t["Row"] == "", "Row"] = t["Group"] + " vs no procedure"
+    t = t.rename(columns={"RR": "OR", "CI low": "lo", "CI high": "hi"})
+    return forest(t, ["Row"], "Outcome", ["Any stroke", "Ischaemic stroke"],
+                  "Fibroid procedures and subsequent stroke (women with fibroids; time-varying exposure)",
+                  "fig6_forest_surgery", xlabel="Adjusted rate ratio (95% CI, log scale)")
+
+
 def run():
     out = {}
     out["flow"] = flow_diagram()
@@ -207,5 +219,6 @@ def run():
     out["p1"] = forest_p1()
     out["p2"] = forest_p2()
     out["p3"] = forest_p3()
+    out["surgery"] = forest_surgery()
     RESULTS["figures"] = out
     return out

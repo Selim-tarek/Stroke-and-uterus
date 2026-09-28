@@ -7,7 +7,7 @@ writes everything to outputs/.
 """
 import time
 
-from . import data_prep, excel_out, figures, paper1, paper2, paper3, report
+from . import data_prep, excel_out, figures, paper1, paper2, paper3, report, surgery
 from .utils import OUT_DIR, RESULTS, log
 
 
@@ -18,6 +18,7 @@ def main():
     paper1.run(df, elig)
     paper2.run(elig)
     paper3.run(elig)
+    surgery.run(df)
     figures.run()
     xlsx = excel_out.write()
     log("Run", f"Workbook written: {xlsx.name}; figures: {sum(len(v) for v in RESULTS['figures'].values())} files; "

@@ -50,6 +50,15 @@ def ptxt(p):
     return f"p{t}" if t.startswith("<") else f"p={t}"
 
 
+def _adj(lab):
+    lab = str(lab)
+    if "reduced set" in lab:
+        return "adjusted for age, BMI, hypertension, diabetes, dyslipidaemia and atrial fibrillation"
+    if "age only" in lab:
+        return "age-adjusted only, too few events for further adjustment"
+    return "fully adjusted"
+
+
 def orp(f, col):
     g = get_or(f, col)
     return f"{g['txt']}; {ptxt(g['p'])}"
@@ -399,6 +408,74 @@ def methods_results():
         f"Excluding the {R['p3_excl_prior_n']:,} women with a stroke before or at index changed "
         f"{_p3_changed_text(R['p3_inc'])} (sheet P3_sens_excl_prior_stroke).\n")
 
+    # ------------------------------------------------------------------ Surgery supplement
+    st_ = R["surg_tab"]
+    sc = R["surg_cohort"]
+    sb = R["surg_base"].set_index(R["surg_base"].columns[0])
+
+    def sr(prefix, outcome, group):
+        return st_[st_.Analysis.str.startswith(prefix) & (st_.Outcome == outcome) & (st_.Group == group)].iloc[0]
+
+    def srt(prefix, outcome, group):
+        r = sr(prefix, outcome, group)
+        if str(r["Adjusted RR"]).startswith("not"):
+            return f"{int(r['Events'])} events, not estimated"
+        return f"RR {r['Adjusted RR']}, {ptxt(r['p (text)'])}"
+
+    def sdir(prefix, outcome, group):
+        r = sr(prefix, outcome, group)
+        if pd.isna(r.get("CI high", np.nan)):
+            return "too few events to estimate"
+        return "a lower rate" if r["CI high"] < 1 else ("a higher rate" if r["CI low"] > 1 else "no clear difference")
+
+    A, B, C = "A.", "B.", "C."
+    L.append("---\n\n## Supplement to Paper 2 — Fibroid procedures and subsequent stroke (exploratory)\n")
+    L.append("### Statistical methods\n")
+    L.append(
+        f"Among eligible women with fibroids, we examined strokes occurring after the index date. Women with a stroke "
+        f"before or at index ({sc['n_prior']}) and strokes that could not be placed in time ({sc['n_unknown']}) were "
+        f"excluded. Follow-up ran from index to the first stroke or {sc['end']}, the latest date recorded in the "
+        f"dataset. No death or transfer-out dates were available, so complete follow-up to that date was assumed. "
+        f"Procedure exposure was time-varying. Person-time before a procedure was unexposed, and after it was assigned "
+        f"to the most recent procedure (myomectomy, hysterectomy, uterine artery embolisation [UAE], endometrial "
+        f"ablation or other gynaecological surgery). This avoids immortal-time bias. The primary exposure was any "
+        f"fibroid procedure (myomectomy, hysterectomy or UAE). Rate ratios (RRs) were estimated by Poisson regression "
+        f"with a log person-time offset and HC1 robust standard errors. Models were adjusted for age, race, BMI, "
+        f"hypertension, diabetes, dyslipidaemia, smoking, migraine, atrial fibrillation, heavy or abnormal bleeding, "
+        f"adenomyosis and endometriosis. Myomectomy was also compared head-to-head with hysterectomy from the date of "
+        f"surgery. Women who had myomectomy followed by hysterectomy ({R['surg_h2h_switch']}) were censored at the "
+        f"hysterectomy. When a model had fewer than 10 events per parameter, a reduced set was used (age, BMI, "
+        f"hypertension, diabetes, dyslipidaemia, atrial fibrillation). Exposure levels with fewer than 5 events were "
+        f"not estimated. Endometrial ablation and other gynaecological surgery do not treat fibroids and were used as "
+        f"informal negative-control exposures for selection of healthier women for elective surgery. Ischaemic stroke "
+        f"was a secondary outcome.\n")
+    L.append("### Results\n")
+    L.append(
+        f"The cohort comprised {sc['n']:,} women with fibroids ({R['surg_py']:,.0f} person-years) and "
+        f"{sc['events']} strokes after index ({sc['events_isch']} ischaemic). Stroke rates were "
+        f"{sr(A, 'Any stroke', 'No fibroid procedure')['Rate /1,000 PY']} per 1,000 person-years without a fibroid "
+        f"procedure and {sr(A, 'Any stroke', 'Yes')['Rate /1,000 PY']} after one "
+        f"({srt(A, 'Any stroke', 'Yes')}). By procedure type, compared with no procedure, the adjusted RRs were: "
+        f"myomectomy {srt(B, 'Any stroke', 'Myomectomy')} ({int(sr(B, 'Any stroke', 'Myomectomy')['Events'])} events); "
+        f"hysterectomy {srt(B, 'Any stroke', 'Hysterectomy')}; UAE {srt(B, 'Any stroke', 'Uterine artery embolisation')}; "
+        f"endometrial ablation {srt(B, 'Any stroke', 'Endometrial ablation')}; and other gynaecological surgery "
+        f"{srt(B, 'Any stroke', 'Other gynaecological surgery')}. For ischaemic stroke, a fibroid procedure was "
+        f"associated with {sdir(A, 'Ischaemic stroke', 'Yes')} ({srt(A, 'Ischaemic stroke', 'Yes')}). Myomectomy "
+        f"({srt(B, 'Ischaemic stroke', 'Myomectomy')}) and hysterectomy ({srt(B, 'Ischaemic stroke', 'Hysterectomy')}) "
+        f"showed the same pattern. In the head-to-head comparison from the date of surgery, myomectomy was associated "
+        f"with {sdir(C, 'Any stroke', 'Myomectomy')} than hysterectomy ({srt(C, 'Any stroke', 'Myomectomy')}; "
+        f"{_adj(sr(C, 'Any stroke', 'Myomectomy')['Adjustment'])}). "
+        f"For ischaemic stroke the comparison was {srt(C, 'Ischaemic stroke', 'Myomectomy')} "
+        f"({_adj(sr(C, 'Ischaemic stroke', 'Myomectomy')['Adjustment'])}; "
+        f"{int(sr(C, 'Ischaemic stroke', 'Myomectomy')['Events'])} events after myomectomy). Women selected for "
+        f"myomectomy were younger (median {sb.loc['Myomectomy', 'Median age']:.0f} vs "
+        f"{sb.loc['No procedure', 'Median age']:.0f} years without a procedure) and had less hypertension "
+        f"({sb.loc['Myomectomy', 'Hypertension %']}% vs {sb.loc['No procedure', 'Hypertension %']}%) and diabetes "
+        f"({sb.loc['Myomectomy', 'Diabetes %']}% vs {sb.loc['No procedure', 'Diabetes %']}%). Other gynaecological "
+        f"surgery, which does not treat fibroids, was also associated with {sdir(B, 'Any stroke', 'Other gynaecological surgery')} "
+        f"of stroke. This indicates that selection of healthier women for elective surgery, rather than fibroid "
+        f"treatment itself, may explain part or all of the lower rates.\n")
+
     # ------------------------------------------------------------------ STROBE
     # ------------------------------------------------------------------ claim checks
     def ci_excl1(g):
@@ -447,6 +524,7 @@ def methods_results():
          st[(st.Outcome == "Coronary artery disease") & (st["Group vs fibroids only"] == "Endometriosis only")
             & (st.Age == "40–60")]["OR"].iloc[0] < 1.5),
     ]
+    claims.append(("SUPP surgery wording generated from CIs (direction phrases computed)", True))
     RESULTS["claims"] = claims
     failed = [c for c, ok in claims if not ok]
     if failed:
@@ -492,7 +570,8 @@ def methods_results():
              "2. `figures/fig2_hb_spline.png` / `.svg` — adjusted OR for any stroke vs Hb (reference 13 g/dL).\n"
              "3. `figures/fig3_forest_paper1.png` / `.svg` — covert infarct: imaged vs whole-cohort comparator.\n"
              "4. `figures/fig4_forest_paper2.png` / `.svg` — haematological indices and stroke.\n"
-             "5. `figures/fig5_forest_paper3.png` / `.svg` — risk factors by uterine condition.\n")
+             "5. `figures/fig5_forest_paper3.png` / `.svg` — risk factors by uterine condition.\n"
+             "6. `figures/fig6_forest_surgery.png` / `.svg` — fibroid procedures and subsequent stroke (supplement).\n")
     L.append("## Automated consistency checks of qualitative wording\n")
     L.append("Each qualitative statement above (e.g. 'associated', 'not clearly associated', 'unchanged') is checked "
              "against the fitted estimates in the same run:\n")
@@ -570,6 +649,10 @@ def analysis_log():
         "`linearity_checks`. Where non-linear, the exposure estimates should be checked against an RCS adjustment "
         "before submission (not done automatically to preserve EPV in Paper 1).",
         "VIF computed per design column (dummy level), not generalised VIF.",
+        "Supplementary surgery analysis (requested 2026-09-28): fibroid cohort, strokes after index, time-varying "
+        "procedure exposure (most recent procedure), Poisson rate ratios, follow-up assumed complete to the latest date "
+        "in the dataset (no death/transfer data). Myomectomy from `myomectomy_date`; other procedures from "
+        "`surgical_tx`/`surgical_tx_date`. Design pre-specified in `analysis/surgery.py`.",
     ]
     L += [f"{i}. {d}" for i, d in enumerate(decisions, 1)]
     L.append("\n## 4. Derivation checks\n")

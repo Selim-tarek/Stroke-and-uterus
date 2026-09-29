@@ -610,3 +610,29 @@ def bh(pvals):
     ranked = np.minimum.accumulate(ranked[::-1])[::-1]
     out[order] = np.minimum(ranked, 1)
     return out
+
+
+# ---------------------------------------------------------------- US spelling (manuscript and figures)
+_US_RULES = [
+    (r"([Aa])naem", r"\1nem"), (r"([Hh])aem", r"\1em"), (r"([Ii])schaem", r"\1schem"), (r"aemia", "emia"),
+    (r"([Gg])ynaec", r"\1ynec"), (r"([Pp])aediatr", r"\1ediatr"), (r"([Oo])estrogen", r"\1strogen".replace("\\1", "e")),
+    (r"([Oo])edema", "edema"), (r"([Oo])esophag", "esophag"), (r"([Dd])iarrhoea", r"\1iarrhea"),
+    (r"\b([Cc])entre", r"\1enter"), (r"\b([Ff])ibre", r"\1iber"), (r"([Tt])umour", r"\1umor"),
+    (r"([Cc])olour", r"\1olor"), (r"([Bb])ehaviour", r"\1ehavior"), (r"([Ff])avour", r"\1avor"),
+    (r"([Mm])odell(ed|ing)", r"\1odel\2"), (r"([Ll])abell(ed|ing)", r"\1abel\2"),
+    (r"([Aa])nalys(e|ed|es|ing)\b", r"\1nalyz\2"),
+    (r"\b(characteri|standardi|categori|summari|recogni|minimi|maximi|organi|randomi|hospitali|utili|priori|"
+     r"stabili|generali|normali|optimi|visuali|emphasi|dichotomi|categori|harmoni|finali|real|stratifi)s(e|ed|es|ing|ation|ations)\b",
+     r"\1z\2"),
+    (r"\bwhilst\b", "while"), (r"\bamongst\b", "among"), (r"([Pp])rogramme", r"\1rogram"),
+]
+
+
+def us_spelling(text):
+    """Convert British to US spelling for publication text (does not touch numbers or variable names)."""
+    import re as _re
+    if not isinstance(text, str):
+        return text
+    for pat, rep in _US_RULES:
+        text = _re.sub(pat, rep, text)
+    return text

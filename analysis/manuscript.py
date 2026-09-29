@@ -164,34 +164,39 @@ def build():
 
     # ------------------------------------------------------------------ abstract
     H1("Abstract")
-    P(f"**Background.** Anaemia is common in women with uterine fibroids, adenomyosis and endometriosis, largely because "
-      f"of heavy menstrual bleeding. Whether anaemia is associated with stroke in this population is not known.")
-    P(f"**Methods.** We studied {n_el:,} women aged 18–60 years with a first diagnosis of benign uterine disease "
-      f"between {iy0} and {iy1} at a US academic medical centre, using electronic health records. Haemoglobin (Hb) closest "
-      f"to diagnosis was graded by World Health Organization thresholds. Associations with stroke or transient ischaemic "
-      f"attack (TIA) and with ischaemic stroke were estimated by logistic regression adjusted for vascular risk factors, "
-      f"migraine, hormonal therapy, uterine bleeding and diagnosis group. Stroke rates after the Hb measurement were "
-      f"estimated by Poisson regression, with further adjustment for conditions that cause anaemia.")
-    P(f"**Results.** Among {n_hb:,} women with an Hb value, {n_anaemic:,} ({pct(n_anaemic, n_hb)}) were anaemic. "
-      f"Compared with Hb ≥12 g/dL, the adjusted odds of stroke were higher with moderate "
-      f"(OR {gmod['txt']}) and severe anaemia (OR {gsev['txt']}; per grade OR {tr['stroke_any']['txt']}, "
-      f"P for trend {fmt_p(tr['stroke_any']['p'])}). The association was similar for ischaemic stroke "
-      f"(per grade OR {tr['y_isch']['txt']}). In {tc['n']:,} women followed from the Hb measurement "
-      f"({tc['py']:,.0f} person-years; {tc['ev']} strokes), moderate anaemia was associated with a higher stroke rate "
-      f"(adjusted rate ratio {tte_mod['Adjusted + pre-Hb conditions (2a) RR']}). Below 13 g/dL, each 1 g/dL lower Hb "
-      f"was associated with an OR of {pg('Cross', 'Any stroke', 'Below')['Estimate (95% CI)']} and a rate ratio of "
-      f"{pg('After', 'Any stroke', 'Below')['Estimate (95% CI)']}. The association persisted after "
-      f"excluding women with haemoglobinopathies or other anaemia-causing conditions. By laboratory pattern (MCV and "
-      f"red-cell distribution width), the association was clearest for normocytic anaemia with high RDW (OR "
-      f"{_pnh['Adjusted OR (95% CI)']}; rate ratio {_tnh['Adjusted RR (95% CI)']}) and macrocytic anaemia (OR "
-      f"{_pmac['Adjusted OR (95% CI)']}; {int(_pmac['Strokes'])} strokes), and less clear for the iron-deficiency "
-      f"pattern (OR {_pid['Adjusted OR (95% CI)']}), although anaemia with a coded iron-deficiency diagnosis was "
-      f"associated (OR {mor('Any stroke', 'Anaemia, iron deficiency coded')['Adjusted OR (95% CI)']}). No association "
-      f"was seen for TIA.")
-    P("**Conclusions.** In women with benign uterine disease, moderate anaemia, and less precisely severe anaemia, "
-      "was associated with a higher risk of subsequent stroke, particularly ischaemic stroke. Anaemia may mark underlying illness as well as vascular risk; whether it "
-      "contributes to stroke cannot be determined from these data. Haemoglobin measured at gynaecological diagnosis could help identify women "
-      "for vascular risk assessment.")
+    import re as _re
+
+    def sc(txt, first=False):
+        """'1.77 (1.41–2.21)' -> '1.77; 95% CI 1.41–2.21' (first) or '1.77; 1.41–2.21'."""
+        m = _re.match(r"\s*([\d.]+) \(([\d.]+–[\d.]+)\)", str(txt))
+        return f"{m.group(1)}; {'95% CI ' if first else ''}{m.group(2)}" if m else str(txt)
+    P("**Background.** Anaemia is common in women with uterine fibroids, adenomyosis and endometriosis, mainly because "
+      "of heavy menstrual bleeding. Whether anaemia is associated with stroke in this population is not well "
+      "characterised.")
+    P(f"**Methods.** We studied {n_el:,} women aged 18–60 years diagnosed with benign uterine disease between {iy0} "
+      f"and {iy1} at Mayo Clinic, using electronic health records. Haemoglobin (Hb) closest to diagnosis was graded by "
+      f"World Health Organization thresholds. Associations with stroke (including transient ischaemic attack) and "
+      f"ischaemic stroke were estimated by logistic regression adjusted for vascular risk factors, migraine, hormonal "
+      f"therapy, uterine bleeding and diagnosis group. Stroke rates after the Hb measurement were estimated by Poisson "
+      f"regression, with further adjustment for conditions that cause anaemia.")
+    P(f"**Results.** Of {n_hb:,} women with an Hb value, {n_anaemic:,} ({pct(n_anaemic, n_hb)}) were anaemic. "
+      f"Compared with Hb ≥12 g/dL, the adjusted odds of stroke were higher with moderate (OR {sc(gmod['txt'], True)}) "
+      f"and severe anaemia (OR {sc(gsev['txt'])}), with an OR of {tr['stroke_any']['txt']} per anaemia grade (P for "
+      f"trend {fmt_p(tr['stroke_any']['p'])}); results were similar for ischaemic stroke (per grade OR "
+      f"{sc(tr['y_isch']['txt'])}). Among {tc['n']:,} women followed from the Hb measurement ({tc['py']:,.0f} "
+      f"person-years; {tc['ev']} strokes), moderate anaemia was associated with a higher stroke rate (rate ratio "
+      f"{sc(tte_mod['Adjusted + pre-Hb conditions (2a) RR'])}). Below 13 g/dL, each 1 g/dL lower Hb was associated "
+      f"with an OR of {pg('Cross', 'Any stroke', 'Below')['Estimate (95% CI)']} and a rate ratio of "
+      f"{pg('After', 'Any stroke', 'Below')['Estimate (95% CI)']}. Associations persisted after excluding women with "
+      f"haemoglobinopathies or other anaemia-causing conditions. By red-cell pattern, the association was clearest for "
+      f"normocytic anaemia with high red-cell distribution width (OR {sc(_pnh['Adjusted OR (95% CI)'])}; rate ratio "
+      f"{sc(_tnh['Adjusted RR (95% CI)'])}) and macrocytic anaemia (OR {sc(_pmac['Adjusted OR (95% CI)'])}; "
+      f"{int(_pmac['Strokes'])} strokes), and weaker for the iron-deficiency pattern (OR "
+      f"{sc(_pid['Adjusted OR (95% CI)'])}).")
+    P("**Conclusions.** In women with benign uterine disease, moderate and, less precisely, severe anaemia were "
+      "associated with a higher risk of stroke, particularly ischaemic stroke. Anaemia may mark underlying illness as "
+      "well as vascular risk. Haemoglobin measured at gynaecological diagnosis could help identify women for vascular "
+      "risk assessment.")
     checks.append(("Abstract: moderate & severe ORs exclude 1", gmod["lo"] > 1 and gsev["lo"] > 1))
     checks.append(("Abstract: TTE moderate RR excludes 1", tte_mod["CI low"] > 1))
     checks.append(("Abstract: per-g/dL OR and RR below 13 g/dL exclude 1",
@@ -761,8 +766,20 @@ def short_version(B):
     return out
 
 
+def _us(o, key=None):
+    """US spelling for every text field of the manuscript blocks (file paths untouched)."""
+    from .utils import us_spelling
+    if key == "path":
+        return o
+    if isinstance(o, dict):
+        return {k: _us(v, k) for k, v in o.items()}
+    if isinstance(o, list):
+        return [_us(v) for v in o]
+    return us_spelling(o)
+
+
 def run():
-    B = build()
+    B = _us(build())
     (OUT_DIR / "anaemia_manuscript.json").write_text(json.dumps(B, ensure_ascii=False), encoding="utf-8")
     (OUT_DIR / "anaemia_manuscript.md").write_text(to_markdown(B), encoding="utf-8")
     r = subprocess.run(["node", "analysis/build_docx.js", str(OUT_DIR / "anaemia_manuscript.json"),

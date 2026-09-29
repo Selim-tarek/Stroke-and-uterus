@@ -21,6 +21,10 @@ SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]  # validated categorical slots 1-3 (a
 
 
 def save(fig, name):
+    from matplotlib.text import Text
+    from .utils import us_spelling
+    for t in fig.findobj(Text):  # US spelling for all figure text
+        t.set_text(us_spelling(t.get_text()))
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "svg"):
         fig.savefig(FIG_DIR / f"{name}.{ext}", dpi=300, bbox_inches="tight")

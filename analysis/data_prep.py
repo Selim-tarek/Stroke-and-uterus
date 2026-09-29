@@ -46,6 +46,12 @@ def read_codebook():
     return cb
 
 
+def raw_columns():
+    """Column order of the original master CSV."""
+    from .utils import MASTER_CSV
+    return list(pd.read_csv(MASTER_CSV, nrows=0).columns)
+
+
 def run():
     raw = load_master()
     RESULTS["n_total"] = len(raw)

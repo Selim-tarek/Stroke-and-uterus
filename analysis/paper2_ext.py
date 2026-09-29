@@ -769,4 +769,5 @@ def run(elig):
     add_table("P2X_sensitivity_summary", tab, "Anaemia grade ORs (vs Hb ≥12) across temporality, extended-adjustment "
                                               "and restricted-cohort analyses. Logistic regression, HC1 SEs.")
     RESULTS["p2x_tab"] = tab
+    RESULTS["_p2x_t"] = t
     return d

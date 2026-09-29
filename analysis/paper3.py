@@ -237,4 +237,30 @@ def run(elig):
     RESULTS["p3_excl_prior_n"] = int(d.stroke_timing.isin([1, 2]).sum())
 
     RESULTS["p3_smoking_known"] = int(d.smoking_ever.notna().sum())
+
+    # migraine sensitivity: hormonal therapy and uterine bleeding are linked to both the uterine condition and
+    # migraine (hormone-related headache; medication prompted by symptoms), so check the M2 estimates against them
+    HT = Term("hormonal_tx", "bin", label="Hormonal therapy")
+    UB = Term("uterine_bleeding", "bin", label="Heavy/abnormal uterine bleeding")
+    msens = []
+    for lab_, data_, extra in [("M2 (primary)", d, []), ("M2 + hormonal therapy", d, [HT]),
+                               ("M2 + uterine bleeding", d, [UB]), ("M2 + hormonal therapy + uterine bleeding", d, [HT, UB]),
+                               ("M2, women without hormonal therapy", d[d.hormonal_tx == 0], []),
+                               ("M2, women without heavy/abnormal bleeding", d[d.uterine_bleeding == 0], []),
+                               ("M2, excluding stroke before/at index", d[~d.stroke_timing.isin([1, 2])], [])]:
+        f = register_fit(stable_fit(data_, "migraine_any", model_terms("migraine_any", True) + extra,
+                                    f"Migraine {lab_}"), "P3", f"Migraine sensitivity: {lab_}")
+        cs = contrasts(f)
+        for g in GROUPS[1:]:
+            b = cs[g]
+            msens.append({"Model": lab_, "Group vs fibroids only": g, "N": f.n, "Migraine cases": f.events,
+                          "OR (95% CI)": "not estimated (sparse)" if b and b["sparse"] else (b["txt"] if b else ""),
+                          "OR": b["OR"] if b and not b["sparse"] else np.nan,
+                          "CI low": b["lo"] if b and not b["sparse"] else np.nan,
+                          "CI high": b["hi"] if b and not b["sparse"] else np.nan,
+                          "p": fmt_p(b["p"]) if b and not b["sparse"] else "", "Flags": "; ".join(f.flags)})
+    msens = pd.DataFrame(msens)
+    add_table("P3_migraine_sensitivity", msens, "Migraine vs fibroids only: M2 with additional adjustment for, or "
+              "restriction by, hormonal therapy and heavy/abnormal uterine bleeding.")
+    RESULTS["p3_msens"] = msens
     return d

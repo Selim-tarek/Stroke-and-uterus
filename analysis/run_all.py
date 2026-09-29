@@ -7,7 +7,7 @@ writes everything to outputs/.
 """
 import time
 
-from . import (data_prep, excel_out, figures, manuscript, master_export, paper1, paper2, paper2_ext, paper3,
+from . import (data_prep, excel_out, figures, manuscript, manuscript_p3, master_export, paper1, paper2, paper2_ext, paper3,
                report, surgery)
 from .utils import OUT_DIR, RESULTS, log
 
@@ -27,6 +27,7 @@ def main():
                f"elapsed {time.time() - t0:.0f} s")
     report.run()
     manuscript.run()
+    manuscript_p3.run()
     master_export.write(df, d2, RESULTS["_p2x_t"], data_prep.raw_columns())
     print("Done.")
 

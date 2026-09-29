@@ -509,6 +509,45 @@ def fig_p2_pattern():
     return save(fig, "fig15_p2_anaemia_pattern")
 
 
+def fig_p3_age_strata():
+    """Endometriosis only and adenomyosis only vs fibroids only, by age group (M2), for the main risk factors."""
+    st = RESULTS["p3_strata"]
+    outs = ["Hypertension", "Diabetes", "Dyslipidaemia", "Obesity (BMI ≥30)", "Coronary artery disease",
+            "Atrial fibrillation", "Migraine (any)"]
+    ages = [("18–39", SERIES[0], 0.14), ("40–60", SERIES[1], -0.14)]
+    fig, axes = plt.subplots(1, 2, figsize=(7.8, 4.2), sharey=True)
+    n = len(outs)
+    for ax, g in zip(axes, ["Endometriosis only", "Adenomyosis only"]):
+        for i, o in enumerate(outs):
+            y = n - i
+            for ag, col, off in ages:
+                r = st[(st.Outcome == o) & (st.Age == ag) & (st["Group vs fibroids only"] == g)]
+                if r.empty or pd.isna(r.iloc[0]["OR"]):
+                    ax.text(1.0, y + off, "  not estimated", va="center", fontsize=6.5, color=col)
+                    continue
+                r = r.iloc[0]
+                ax.plot([r["CI low"], r["CI high"]], [y + off] * 2, color=col, lw=1.8, solid_capstyle="round")
+                ax.plot([r["OR"]], [y + off], "o", color=col, ms=5.5, mec="white", mew=0.8,
+                        label=f"Age {ag}" if i == 0 else None)
+        ax.axvline(1, color=MUTED, lw=0.8, ls="--")
+        ax.set_xscale("log")
+        ax.set_xlim(0.05, 5)
+        ax.set_xticks([0.1, 0.25, 0.5, 1, 2, 4])
+        ax.get_xaxis().set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
+        ax.get_xaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.grid(axis="x", color=GRID, lw=0.5)
+        ax.set_title(("A  " if g.startswith("Endo") else "B  ") + g + " vs fibroids only", fontsize=9, loc="left",
+                     color=INK)
+        ax.set_xlabel("Adjusted odds ratio (log scale)")
+    axes[0].set_yticks([n - i for i in range(n)])
+    axes[0].set_yticklabels(outs, fontsize=8)
+    axes[0].set_ylim(0.4, n + 0.6)
+    h, l = axes[0].get_legend_handles_labels()
+    fig.legend(h, l, frameon=False, loc="lower center", ncol=2, fontsize=8, bbox_to_anchor=(0.6, -0.03))
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
+    return save(fig, "fig16_p3_age_strata")
+
+
 def fig_p2_flow():
     """Participant flow for the anaemia manuscript."""
     f = RESULTS["flow"]
@@ -550,6 +589,7 @@ def run():
     out["p2_robust"] = fig_p2_robustness()
     out["p3_prev"] = fig_p3_migraine_prev()
     out["p3_age"] = fig_p3_migraine_age()
+    out["p3_age_strata"] = fig_p3_age_strata()
     out["p2x"] = fig_p2x()
     out["p2_flow"] = fig_p2_flow()
     out["p2_per_hb"] = fig_p2_per_hb()

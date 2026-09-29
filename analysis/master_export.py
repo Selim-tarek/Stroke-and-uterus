@@ -44,6 +44,16 @@ DESCR = {
 }
 
 
+DESCR.update({
+    "y_type1": "Stroke subtype 1 (Codebook stroke_type = 1) vs no stroke", "y_type2": "Stroke subtype 2 vs no stroke",
+    "y_type3": "Stroke subtype 3 vs no stroke", "y_type4": "Stroke subtype 4 vs no stroke",
+    "y_type5": "Stroke subtype 5 vs no stroke", "y_type9": "Stroke subtype 9 (unknown) vs no stroke",
+    "age45": "Age ≥45 years at index", "black": "Black race (race4)", "fib_any": "Fibroids present (any group)",
+    "anticoag": "Anticoagulant use (antithrombotic = 2)", "ischaemic": "Stroke type ischemic (Codebook stroke_type = 1)",
+    "hb_lab_nearest": "CBC hemoglobin (g/dL) from Lab_Tests_2 nearest to the Codebook Hb date (validation of hgb)",
+})
+
+
 def _lab_cols(df):
     out = {}
     for k, short in LAB_NAMES.items():
@@ -68,12 +78,13 @@ def build(df, d, t, raw_cols):
     m["death_date"] = m.mrn.map(dth)
     m["last_contact_date"] = m.mrn.map(lc)
     # Paper 2 variables built on the eligible cohort (comorbidity flags, anemia type/pattern, outcomes)
-    add = [c for c in d.columns if c not in m.columns and c not in df.columns and not c.startswith("hb_below")
+    add = [c for c in d.columns if c not in m.columns and c not in df.columns and not c.startswith(("hb_below", "ht_"))
            and c not in ("hb_drop", "hb_above13", "mcv_codebook")]
     m = m.join(d[add])
     fu = t[["start", "end", "py", "ev_any", "ev_isch", "died"]].rename(columns=lambda c: f"fu_{c}")
     m = m.join(fu)
     # order: original Codebook columns, then everything added
+    m = m.drop(columns=[c for c in m.columns if c.startswith("ht_") or c in ("age2",)])
     orig = [c for c in raw_cols if c in m.columns and c not in PHI_COLUMNS]
     rest = [c for c in m.columns if c not in orig and c not in PHI_COLUMNS]
     m = m[orig + rest]
@@ -112,8 +123,9 @@ def write(df, d, t, raw_cols):
 
     wv = wb.create_sheet("Variables")
     wv.append([_cell(wv, h, hdr_font) for h in ["Variable", "Source", "Description", "Non-missing"]])
+    from .paper2_ext import LABELS
     for c in m.columns:
-        wv.append([_cell(wv, c, body), _cell(wv, groups[c], body), _cell(wv, DESCR.get(c, ""), body),
+        wv.append([_cell(wv, c, body), _cell(wv, groups[c], body), _cell(wv, DESCR.get(c, LABELS.get(c, "")), body),
                    _cell(wv, int(m[c].notna().sum()), body)])
 
     wd = wb.create_sheet("Data")

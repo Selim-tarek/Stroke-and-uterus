@@ -25,6 +25,14 @@ def save(fig, name):
     from .utils import us_spelling
     for t in fig.findobj(Text):  # US spelling for all figure text
         t.set_text(us_spelling(t.get_text()))
+    fig.canvas.draw()  # tick labels are created at draw time; convert them too
+    for ax in fig.axes:
+        for axis in (ax.xaxis, ax.yaxis):
+            labs = [t.get_text() for t in axis.get_ticklabels()]
+            new = [us_spelling(x) for x in labs]
+            if new != labs:
+                axis.set_ticks(axis.get_ticklocs())
+                axis.set_ticklabels(new)
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "svg"):
         fig.savefig(FIG_DIR / f"{name}.{ext}", dpi=300, bbox_inches="tight")

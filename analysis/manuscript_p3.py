@@ -215,8 +215,10 @@ def build():
       f"obesity ({orx('Obesity (BMI ≥30)', endo)}), atrial fibrillation ({orx('Atrial fibrillation', endo)}) and "
       f"coronary artery disease ({orx('Coronary artery disease', endo)}) (Figure 2). Adenomyosis only was associated "
       f"with lower odds of hypertension ({orx('Hypertension', aden)}) and atrial fibrillation "
-      f"({orx('Atrial fibrillation', aden)}), but higher odds of dyslipidemia ({orx('Dyslipidaemia', aden)}); diabetes "
-      f"({orx('Diabetes', aden)}) and obesity ({orx('Obesity (BMI ≥30)', aden)}) were similar. More than one condition "
+      f"({orx('Atrial fibrillation', aden)}), but higher odds of dyslipidemia ({orx('Dyslipidaemia', aden)}). Diabetes "
+      f"was slightly more common ({orx('Diabetes', aden)}; Benjamini–Hochberg-adjusted "
+      f"P={m('Diabetes', aden)['M2 p (BH-adjusted, all contrasts) (text)']}, not significant after correction) and "
+      f"obesity was similar ({orx('Obesity (BMI ≥30)', aden)}). More than one condition "
       f"showed smaller differences in the same direction as endometriosis.")
     checks.append(("Results: >1 condition cardiometabolic ORs between endometriosis OR and 1",
                    all(m(o, endo)["OR"] < m(o, multi)["OR"] < 1 for o in CARDIO)))
@@ -225,7 +227,7 @@ def build():
     checks.append(("Results: adenomyosis HTN & AF < 1; dyslipidemia > 1; diabetes & obesity CI include 1",
                    m("Hypertension", aden)["CI high"] < 1 and m("Atrial fibrillation", aden)["CI high"] < 1 and
                    m("Dyslipidaemia", aden)["CI low"] > 1 and
-                   m("Diabetes", aden)["CI low"] <= 1 <= m("Diabetes", aden)["CI high"] + 1e-9 and
+                   m("Diabetes", aden)["OR"] > 1 and m("Diabetes", aden)["M2 p (BH-adjusted, all contrasts)"] >= 0.05 and
                    m("Obesity (BMI ≥30)", aden)["CI low"] < 1 < m("Obesity (BMI ≥30)", aden)["CI high"]))
     H2("Differences by age")
     P(f"Differences in cardiometabolic risk factors varied with age (Benjamini–Hochberg-adjusted interaction P: "

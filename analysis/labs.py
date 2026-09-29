@@ -28,6 +28,8 @@ PLAUSIBLE = {  # physiological limits (values outside are treated as errors)
     "Platelets (x10^9/L)": (1, 2000),
 }
 SENTINEL = 9_999_999
+# files verified to be exact row-level subsets of another extract (not read twice)
+DUPLICATE_FILES = {6: "not used: every row identical to a row in Lab_Tests_7"}
 
 
 def _files():
@@ -80,6 +82,11 @@ def load():
     fs = _files()
     parts, audit = [], []
     for n, fn in sorted(fs.items()):
+        if n in DUPLICATE_FILES:
+            k = len(pd.read_csv(fn, dtype=str, usecols=["Clinic Number"]))
+            audit.append(pd.DataFrame([{"File": f"Lab_Tests_{n}", "analyte": "RDW (duplicate)",
+                                        "reason": DUPLICATE_FILES[n], "rows": k}]))
+            continue
         x = pd.read_csv(fn, dtype=str)
         x["v"] = pd.to_numeric(x["Value (Numeric)"], errors="coerce")
         if n == 2:

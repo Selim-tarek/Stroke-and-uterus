@@ -144,7 +144,7 @@ def build():
     P("Running title: Anaemia and stroke in benign uterine disease")
     P("Authors: [Author names, degrees, affiliations]")
     P("Corresponding author: [name, address, email]")
-    P("Word count (main text): [to be completed]; Tables: 3; Figures: 5; Supplementary material: eTables 1–12, "
+    P("Word count (main text): [to be completed]; Tables: 3; Figures: 5; Supplementary material: eTables 1–13, "
       "eFigures 1–3")
     P("Keywords: anaemia; haemoglobin; ischaemic stroke; uterine fibroids; endometriosis; adenomyosis; women")
     B.append({"t": "note", "text": "DRAFT generated from the analysis pipeline (python -m analysis.run_all). All numbers "
@@ -222,7 +222,9 @@ def build():
       "Organization thresholds for non-pregnant women: none (≥12 g/dL), mild (10–11.9 g/dL), moderate (8–9.9 g/dL) "
       "and severe (<8 g/dL). Mean corpuscular volume (MCV), taken from the dated laboratory result nearest to the Hb "
       "measurement (within 30 days), classified anaemia as microcytic (<80 fL), normocytic (80–100 fL) or macrocytic "
-      "(>100 fL). Platelet count (<150, 150–400, >400 ×10³/µL) and ferritin "
+      "(>100 fL). Laboratory anaemia patterns combined MCV with red-cell distribution width (RDW-CV, high >14.5%) "
+      "from the same record: microcytic with high RDW (iron-deficiency pattern), microcytic with normal RDW "
+      "(thalassaemia-trait pattern), normocytic with normal or high RDW, and macrocytic. Platelet count (<150, 150–400, >400 ×10³/µL) and ferritin "
       "(iron deficiency, <30 ng/mL) were secondary exposures.")
     H2("Outcomes")
     P("The primary outcome was stroke or TIA, identified from diagnosis and problem-list codes at any date, supplemented "
@@ -388,6 +390,28 @@ def build():
       f"({sgi('Age')}), race ({sgi('Race')}), fibroid status ({sgi('Fibroids')}) or menopausal status "
       f"({sgi('Menopausal status (coded)')}). It was somewhat weaker in women with heavy or abnormal uterine bleeding "
       f"(interaction {sgi('Heavy/abnormal bleeding')}; eTable 4).")
+    pa = R["p2x_pattern"]
+    ptt = R["p2x_pattern_tte"]
+
+    def pat(outcome, lv, adj="+ pre-Hb conditions (2a)"):
+        return pa[(pa.Outcome == outcome) & (pa.Adjustment == adj) & (pa.Pattern == lv)].iloc[0]
+
+    def patt(lv):
+        return ptt[(ptt.Outcome == "Any stroke") & (ptt.Pattern == lv)].iloc[0]
+    PL = [("Microcytic, high RDW (iron-deficiency pattern)", "microcytic anaemia with high RDW (iron-deficiency pattern)"),
+          ("Microcytic, normal RDW (thalassaemia-trait pattern)", "microcytic anaemia with normal RDW (thalassaemia-trait pattern)"),
+          ("Normocytic, normal RDW", "normocytic anaemia with normal RDW"),
+          ("Normocytic, high RDW (mixed / early iron deficiency)", "normocytic anaemia with high RDW"),
+          ("Macrocytic", "macrocytic anaemia")]
+    _ph = pa[(pa.Outcome == "Any stroke") & (pa.Adjustment == "+ pre-Hb conditions (2a)") &
+             pa.Pattern.str.startswith("Heterogeneity")].iloc[0]
+    P("Using the laboratory indices measured with the Hb (MCV and RDW), and with adjustment 2a, the OR for any stroke "
+      "compared with no anaemia was " + "; ".join(
+          f"{txt} {pat('Any stroke', lv)['Adjusted OR (95% CI)']} ({int(pat('Any stroke', lv)['Strokes'])} of "
+          f"{int(pat('Any stroke', lv)['Women']):,} women)" for lv, txt in PL) +
+      f" (heterogeneity {_p(_ph['p (text)'])}). {R['p2x_pattern_missing']:,} anaemic women lacked MCV or RDW within 30 "
+      f"days. After the Hb measurement, the adjusted RR was " + "; ".join(
+          f"{txt} {patt(lv)['Adjusted RR (95% CI)']}" for lv, txt in PL) + " (eTable 13).")
     H2("Other haematological indices")
     P(f"Thrombocytosis was not associated with stroke (OR {_or(fp, 'plt_cat=Thrombocytosis (>400)')}), whereas a low "
       f"platelet count (OR {_or(fp, 'plt_cat=Low (<150)')}) and macrocytosis (OR {_or(fm, 'mcv_cat=Macrocytic (>100)')}) "
@@ -636,6 +660,15 @@ def build():
         ("eTable 12. Stroke risk at selected Hb values vs 13 g/dL (spline, adjusted for covariates and pre-Hb conditions)",
          R["p2x_curve_pts"][["Design", "Hb (g/dL)", "Estimate vs 13 g/dL (95% CI)", "N", "Events", "p overall",
                              "p non-linearity"]], ""),
+        ("eTable 13. Laboratory anaemia pattern (MCV and RDW) and stroke",
+         pd.concat([R["p2x_pattern"].assign(Design="Cross-sectional OR")
+                    .rename(columns={"Adjusted OR (95% CI)": "Estimate (95% CI)", "Strokes": "Strokes"}),
+                    R["p2x_pattern_tte"].assign(Design="Rate ratio after Hb", Adjustment="+ pre-Hb conditions (2a)")
+                    .rename(columns={"Adjusted RR (95% CI)": "Estimate (95% CI)"})], ignore_index=True)
+         [["Design", "Outcome", "Adjustment", "Pattern", "Women", "Strokes", "Estimate (95% CI)", "p (text)"]]
+         .rename(columns={"p (text)": "P"}),
+         "MCV and RDW-CV from the dated laboratory record nearest the Hb (within 30 days). RDW-CV >14.5% = high. "
+         "Reference: no anaemia (Hb ≥12 g/dL)."),
     ]
     for title, df, note in sup:
         TABLE(title, df.fillna(""), note if isinstance(note, str) else "", font=7)

@@ -266,6 +266,9 @@ def run():
             ok = frame["lab_MCV (fL) gap"].abs() <= 30
             frame["mcv"] = frame["lab_MCV (fL)"].where(ok)
             frame["mcv_gap"] = frame["lab_MCV (fL) gap"].where(ok)
+            okr = frame["lab_RDW-CV (%) gap"].abs() <= 30
+            frame["rdw"] = frame["lab_RDW-CV (%)"].where(okr)
+            frame["rdw_gap"] = frame["lab_RDW-CV (%) gap"].where(okr)
             frame["mcv_cat"] = pd.Series(np.select(
                 [frame["mcv"] < 80, frame["mcv"] <= 100, frame["mcv"] > 100],
                 ["Microcytic (<80)", "Normal (80–100)", "Macrocytic (>100)"], default=None),

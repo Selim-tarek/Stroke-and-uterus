@@ -303,6 +303,60 @@ def run(elig):
             chi = float(b @ np.linalg.pinv(V) @ b)
             morph.append({"Outcome": lab, "Anaemia type": f"Heterogeneity across types χ²({len(cols) - 1})",
                           "Adjusted OR (95% CI)": f"{chi:.2f}", "p": float(_st.chi2.sf(chi, len(cols) - 1))})
+    # 4b. laboratory anaemia pattern (MCV + RDW-CV from the dated lab extracts, within ±30 d of Hb;
+    # Bessman classification; RDW-CV > 14.5% = high)
+    PAT = ["No anaemia", "Microcytic, high RDW (iron-deficiency pattern)",
+           "Microcytic, normal RDW (thalassaemia-trait pattern)", "Normocytic, normal RDW",
+           "Normocytic, high RDW (mixed / early iron deficiency)", "Macrocytic"]
+    hi_rdw = d.rdw > 14.5
+    have = d.mcv.notna() & d.rdw.notna()
+    an = d.anemia_any == 1
+    d["anaemia_pattern"] = np.select(
+        [d.anemia_any == 0, an & have & (d.mcv < 80) & hi_rdw, an & have & (d.mcv < 80) & ~hi_rdw,
+         an & have & d.mcv.between(80, 100) & ~hi_rdw, an & have & d.mcv.between(80, 100) & hi_rdw,
+         an & have & (d.mcv > 100)], PAT, default="")
+    d["anaemia_pattern"] = d["anaemia_pattern"].replace("", np.nan)
+    RESULTS["p2x_pattern_missing"] = int((an & ~have).sum())
+    pt = Term("anaemia_pattern", "cat", ref="No anaemia", levels=PAT, label="Laboratory anaemia pattern")
+    pat = []
+    for o, lab in [("stroke_any", "Any stroke"), ("y_isch", "Ischaemic stroke")]:
+        for adj, extra in [("Paper 2 covariates", []), ("+ pre-Hb conditions (2a)", ext_a)]:
+            f = register_fit(fit_logit(d, o, [pt] + cov_for(d, o, ["anaemia_pattern"], f"pat{o}") + extra), "P2X",
+                             f"Anaemia pattern: {lab} ({adj})")
+            for lv in PAT:
+                s_ = d[d.anaemia_pattern == lv]
+                r = {"Outcome": lab, "Adjustment": adj, "Pattern": lv, "Women": len(s_), "Strokes": int(s_[o].sum()),
+                     "Median MCV": round(float(s_.mcv.median()), 1) if s_.mcv.notna().any() else np.nan,
+                     "Median RDW-CV": round(float(s_.rdw.median()), 1) if s_.rdw.notna().any() else np.nan}
+                if lv == "No anaemia":
+                    r["Adjusted OR (95% CI)"] = "1.00 (reference)"
+                else:
+                    c = f"anaemia_pattern={lv}"
+                    sp = any(x.startswith(c + " ") for x in f.sparse)
+                    g = get_or(f, c)
+                    r.update({"Adjusted OR (95% CI)": "not estimated (sparse)" if sp else g["txt"],
+                              "OR": np.nan if sp else g["OR"], "CI low": np.nan if sp else g["lo"],
+                              "CI high": np.nan if sp else g["hi"], "p": np.nan if sp else g["p"]})
+                pat.append(r)
+            cols = f.colmap["anaemia_pattern"]
+            L = np.zeros((len(cols) - 1, len(f.params)))
+            idx = list(f.params.index)
+            for i in range(len(cols) - 1):
+                L[i, idx.index(cols[0])] = 1
+                L[i, idx.index(cols[i + 1])] = -1
+            b = L @ f.params.values
+            V = L @ f.cov.values @ L.T
+            from scipy import stats as _stp
+            chi = float(b @ np.linalg.pinv(V) @ b)
+            pat.append({"Outcome": lab, "Adjustment": adj, "Pattern": f"Heterogeneity across patterns χ²({len(cols) - 1})",
+                        "Adjusted OR (95% CI)": f"{chi:.2f}", "p": float(_stp.chi2.sf(chi, len(cols) - 1))})
+    pat = pd.DataFrame(pat)
+    pat["p (text)"] = pat["p"].map(lambda v: fmt_p(v) if pd.notna(v) else "")
+    add_table("P2X_anaemia_pattern", pat, "Laboratory anaemia pattern (MCV and RDW-CV from the dated laboratory "
+              "record nearest the Hb, within 30 days; RDW-CV >14.5% = high) vs no anaemia. Anaemic women without both "
+              "indices are excluded.")
+    RESULTS["p2x_pattern"] = pat
+
     # coded aetiology among anaemic women: iron-deficiency coded vs anaemia without an iron-deficiency code
     d["anaemia_coded"] = np.select([d.anemia_any == 0, (d.anemia_any == 1) & (d.anaemia_iron_nearhb == 1),
                                     d.anemia_any == 1], ["No anaemia", "Anaemia, iron deficiency coded",
@@ -665,6 +719,32 @@ def run(elig):
               "or who had serious chronic illness recorded at any time. Healthcare-use counts are not available "
               "(one encounter row per patient).")
     RESULTS["p2x_ill"] = ill
+
+    # 10d. time-to-event by laboratory anaemia pattern (adjustment 2a)
+    ptt = []
+    for oc, lab in [("ev_any", "Any stroke"), ("ev_isch", "Ischaemic stroke")]:
+        cvb = cov_for(t, oc, ["anaemia_pattern"], f"pattte{oc}")
+        tt_ = t.dropna(subset=["anaemia_pattern"])
+        r_, n_, e_, epv_ = pois(tt_, oc, [pt] + cvb + ext_a3)
+        for lv in PAT:
+            s_ = tt_[tt_.anaemia_pattern == lv]
+            k, py = int(s_[oc].sum()), float(s_.py.sum())
+            row = {"Outcome": lab, "Pattern": lv, "Women": len(s_), "Strokes": k, "Person-years": round(py, 1),
+                   "Rate /1,000 PY": round(1000 * k / py, 2) if py > 0 else np.nan}
+            if lv == "No anaemia":
+                row["Adjusted RR (95% CI)"] = "1.00 (reference)"
+            elif k < 5:
+                row["Adjusted RR (95% CI)"] = f"not estimated (<5 strokes)"
+            else:
+                q = rr(r_, f"anaemia_pattern={lv}")
+                row.update({"Adjusted RR (95% CI)": q["txt"], "RR": q["RR"], "CI low": q["lo"], "CI high": q["hi"],
+                            "p": q["p"]})
+            ptt.append(row)
+    ptt = pd.DataFrame(ptt)
+    ptt["p (text)"] = ptt["p"].map(lambda v: fmt_p(v) if pd.notna(v) else "") if "p" in ptt else ""
+    add_table("P2X_pattern_tte", ptt, "Stroke rate after the Hb measurement by laboratory anaemia pattern (Poisson, "
+              "adjusted for Paper 2 covariates and pre-Hb conditions 2a). Patterns with <5 strokes not estimated.")
+    RESULTS["p2x_pattern_tte"] = ptt
 
     # 7. E-values
     tab = pd.DataFrame(rows)

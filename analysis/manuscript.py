@@ -58,6 +58,16 @@ def build():
         assert len(m) == 1, (design, outcome, rng, adj)
         return m.iloc[0]
 
+    _pa0 = R["p2x_pattern"]
+    _pt0 = R["p2x_pattern_tte"]
+
+    def _pp(lv, adj="Paper 2 covariates"):
+        return _pa0[(_pa0.Outcome == "Any stroke") & (_pa0.Adjustment == adj) & (_pa0.Pattern == lv)].iloc[0]
+    _pnh = _pp("Normocytic, high RDW (mixed / early iron deficiency)")
+    _pmac = _pp("Macrocytic")
+    _pid = _pp("Microcytic, high RDW (iron-deficiency pattern)")
+    _tnh = _pt0[(_pt0.Outcome == "Any stroke") & (_pt0.Pattern == "Normocytic, high RDW (mixed / early iron deficiency)")].iloc[0]
+
     def abr(outcome, grade):
         m = ab[(ab.Outcome == outcome) & (ab["Anaemia grade"].str.startswith(grade))]
         assert len(m) == 1, (outcome, grade)
@@ -144,7 +154,7 @@ def build():
     P("Running title: Anaemia and stroke in benign uterine disease")
     P("Authors: [Author names, degrees, affiliations]")
     P("Corresponding author: [name, address, email]")
-    P("Word count (main text): [to be completed]; Tables: 3; Figures: 5; Supplementary material: eTables 1–13, "
+    P("Word count (main text): [to be completed]; Tables: 3; Figures: 6; Supplementary material: eTables 1–13, "
       "eFigures 1–3")
     P("Keywords: anaemia; haemoglobin; ischaemic stroke; uterine fibroids; endometriosis; adenomyosis; women")
     B.append({"t": "note", "text": "DRAFT generated from the analysis pipeline (python -m analysis.run_all). All numbers "
@@ -171,9 +181,11 @@ def build():
       f"(adjusted rate ratio {tte_mod['Adjusted + pre-Hb conditions (2a) RR']}). Below 13 g/dL, each 1 g/dL lower Hb "
       f"was associated with an OR of {pg('Cross', 'Any stroke', 'Below')['Estimate (95% CI)']} and a rate ratio of "
       f"{pg('After', 'Any stroke', 'Below')['Estimate (95% CI)']}. The association persisted after "
-      f"excluding women with haemoglobinopathies or other anaemia-causing conditions. It was stronger for normocytic "
-      f"(OR {normo['Adjusted OR (95% CI)']}) and macrocytic (OR {macro['Adjusted OR (95% CI)']}) than for microcytic "
-      f"anaemia (OR {micro['Adjusted OR (95% CI)']}), although anaemia with a coded iron-deficiency diagnosis was also "
+      f"excluding women with haemoglobinopathies or other anaemia-causing conditions. By laboratory pattern (MCV and "
+      f"red-cell distribution width), the association was clearest for normocytic anaemia with high RDW (OR "
+      f"{_pnh['Adjusted OR (95% CI)']}; rate ratio {_tnh['Adjusted RR (95% CI)']}) and macrocytic anaemia (OR "
+      f"{_pmac['Adjusted OR (95% CI)']}; {int(_pmac['Strokes'])} strokes), and less clear for the iron-deficiency "
+      f"pattern (OR {_pid['Adjusted OR (95% CI)']}), although anaemia with a coded iron-deficiency diagnosis was "
       f"associated (OR {mor('Any stroke', 'Anaemia, iron deficiency coded')['Adjusted OR (95% CI)']}). No association "
       f"was seen for TIA.")
     P("**Conclusions.** In women with benign uterine disease, moderate anaemia, and less precisely severe anaemia, "
@@ -184,6 +196,9 @@ def build():
     checks.append(("Abstract: TTE moderate RR excludes 1", tte_mod["CI low"] > 1))
     checks.append(("Abstract: per-g/dL OR and RR below 13 g/dL exclude 1",
                    pg("Cross", "Any stroke", "Below")["lo"] > 1 and pg("After", "Any stroke", "Below")["lo"] > 1))
+    checks.append(("Abstract: pattern normo-high-RDW OR & RR and macro OR exclude 1; ID pattern CI includes 1",
+                   _pnh["CI low"] > 1 and _tnh["CI low"] > 1 and _pmac["CI low"] > 1
+                   and _pid["CI low"] < 1 < _pid["CI high"]))
     checks.append(("Abstract: normo & macro > micro, micro CI includes 1",
                    normo["OR"] > micro["OR"] and macro["OR"] > micro["OR"] and micro["CI low"] < 1 < micro["CI high"]))
     checks.append(("Abstract: TIA not associated (CI includes 1)",
@@ -411,7 +426,7 @@ def build():
           f"{int(pat('Any stroke', lv)['Women']):,} women)" for lv, txt in PL) +
       f" (heterogeneity {_p(_ph['p (text)'])}). {R['p2x_pattern_missing']:,} anaemic women lacked MCV or RDW within 30 "
       f"days. After the Hb measurement, the adjusted RR was " + "; ".join(
-          f"{txt} {patt(lv)['Adjusted RR (95% CI)']}" for lv, txt in PL) + " (eTable 13).")
+          f"{txt} {patt(lv)['Adjusted RR (95% CI)']}" for lv, txt in PL) + " (eTable 13; Figure 6).")
     H2("Other haematological indices")
     P(f"Thrombocytosis was not associated with stroke (OR {_or(fp, 'plt_cat=Thrombocytosis (>400)')}), whereas a low "
       f"platelet count (OR {_or(fp, 'plt_cat=Low (<150)')}) and macrocytosis (OR {_or(fm, 'mcv_cat=Macrocytic (>100)')}) "
@@ -621,6 +636,11 @@ def build():
         "Poisson 95% CI; strokes / women under each bar). (B) Odds ratios (cross-sectional) and rate ratios (after the Hb "
         "measurement) per 1 g/dL lower Hb, below 13 g/dL and over the whole range, adjusted for covariates and "
         "pre-Hb conditions.")
+    FIG("figures/fig15_p2_anaemia_pattern.png",
+        "Figure 6. Laboratory anaemia pattern (MCV and RDW-CV from the blood count nearest the Hb, within 30 days; "
+        "RDW-CV >14.5% = high) and stroke, compared with no anaemia, adjusted for covariates and pre-Hb conditions. "
+        "(A) Odds ratios (cross-sectional). (B) Rate ratios after the Hb measurement. Labels: strokes / women; "
+        "patterns with fewer than 5 strokes were not estimated.")
     BR()
 
     # ------------------------------------------------------------------ supplement
@@ -712,7 +732,7 @@ def to_markdown(B):
 
 
 FOCUS_FIGS = ["fig7_p2_anaemia_gradient.png", "fig14_p2_hb_curves.png", "fig13_p2_per_hb.png",
-              "fig11_p2_extended.png"]
+              "fig11_p2_extended.png", "fig15_p2_anaemia_pattern.png"]
 
 
 def short_version(B):

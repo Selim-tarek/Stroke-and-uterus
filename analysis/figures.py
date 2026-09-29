@@ -453,6 +453,58 @@ def fig_p2_hb_curves():
     return save(fig, "fig14_p2_hb_curves")
 
 
+def fig_p2_pattern():
+    """Laboratory anaemia pattern (MCV + RDW): cross-sectional OR (A) and rate ratio after Hb (B), adjustment 2a."""
+    pa, pt = RESULTS["p2x_pattern"], RESULTS["p2x_pattern_tte"]
+    adj = "+ pre-Hb conditions (2a)"
+    pats = [("Microcytic, high RDW (iron-deficiency pattern)", "Microcytic, high RDW\n(iron-deficiency pattern)"),
+            ("Microcytic, normal RDW (thalassaemia-trait pattern)", "Microcytic, normal RDW\n(thalassaemia-trait pattern)"),
+            ("Normocytic, normal RDW", "Normocytic, normal RDW"),
+            ("Normocytic, high RDW (mixed / early iron deficiency)", "Normocytic, high RDW\n(mixed / early iron deficiency)"),
+            ("Macrocytic", "Macrocytic")]
+    outs = [("Any stroke", SERIES[0], 0.14), ("Ischaemic stroke", SERIES[1], -0.14)]
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.8, 4.0), sharey=True)
+    n = len(pats)
+    for ax, src, col_est, title in [(a1, pa[pa.Adjustment == adj], "OR", "A  Odds of stroke (cross-sectional)"),
+                                    (a2, pt, "RR", "B  Stroke rate after the Hb measurement")]:
+        for i, (lv, _) in enumerate(pats):
+            y = n - i
+            for oc, col, off in outs:
+                r = src[(src.Outcome == oc) & (src.Pattern == lv)]
+                if r.empty:
+                    continue
+                r = r.iloc[0]
+                est = r.get(col_est, np.nan)
+                if pd.isna(est):
+                    k = int(r["Strokes"])
+                    ax.text(1.0, y + off, f"  not estimated ({k} stroke{'s' if k != 1 else ''})", va="center",
+                            fontsize=6.5, color=col)
+                    continue
+                ax.plot([r["CI low"], r["CI high"]], [y + off] * 2, color=col, lw=1.8, solid_capstyle="round")
+                ax.plot([est], [y + off], "o", color=col, ms=5.5, mec="white", mew=0.8,
+                        label=oc if i == 0 or (lv.startswith("Normocytic, normal") and ax is a2) else None)
+        ax.axvline(1, color=MUTED, lw=0.8, ls="--")
+        ax.set_xscale("log")
+        ax.set_xlim(0.45, 6)
+        ax.set_xticks([0.5, 1, 2, 4])
+        ax.get_xaxis().set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
+        ax.get_xaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.grid(axis="x", color=GRID, lw=0.5)
+        ax.set_title(title, fontsize=9, loc="left", color=INK)
+        ax.set_xlabel(("Adjusted odds ratio" if col_est == "OR" else "Adjusted rate ratio") + " vs no anaemia (log)")
+    any_ = pa[(pa.Adjustment == adj) & (pa.Outcome == "Any stroke")].set_index("Pattern")
+    a1.set_yticks([n - i for i in range(n)])
+    a1.set_yticklabels([f"{lab}\n{int(any_.loc[lv, 'Strokes'])} / {int(any_.loc[lv, 'Women']):,}" for lv, lab in pats],
+                       fontsize=7.5)
+    a1.set_ylim(0.4, n + 0.6)
+    h, l = a1.get_legend_handles_labels()
+    seen = dict(zip(l, h))
+    fig.legend(seen.values(), seen.keys(), frameon=False, loc="lower center", ncol=2, fontsize=8,
+               bbox_to_anchor=(0.6, -0.04))
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
+    return save(fig, "fig15_p2_anaemia_pattern")
+
+
 def fig_p2_flow():
     """Participant flow for the anaemia manuscript."""
     f = RESULTS["flow"]
@@ -498,5 +550,6 @@ def run():
     out["p2_flow"] = fig_p2_flow()
     out["p2_per_hb"] = fig_p2_per_hb()
     out["p2_hb_curves"] = fig_p2_hb_curves()
+    out["p2_pattern"] = fig_p2_pattern()
     RESULTS["figures"] = out
     return out

@@ -220,8 +220,9 @@ def build():
     H2("Exposure")
     P("The exposure was the Hb value closest to the index date within ±3 years. Anaemia was graded using World Health "
       "Organization thresholds for non-pregnant women: none (≥12 g/dL), mild (10–11.9 g/dL), moderate (8–9.9 g/dL) "
-      "and severe (<8 g/dL). Mean corpuscular volume (MCV) classified anaemia as microcytic (<80 fL), normocytic "
-      "(80–100 fL) or macrocytic (>100 fL). Platelet count (<150, 150–400, >400 ×10³/µL) and ferritin "
+      "and severe (<8 g/dL). Mean corpuscular volume (MCV), taken from the dated laboratory result nearest to the Hb "
+      "measurement (within 30 days), classified anaemia as microcytic (<80 fL), normocytic (80–100 fL) or macrocytic "
+      "(>100 fL). Platelet count (<150, 150–400, >400 ×10³/µL) and ferritin "
       "(iron deficiency, <30 ng/mL) were secondary exposures.")
     H2("Outcomes")
     P("The primary outcome was stroke or TIA, identified from diagnosis and problem-list codes at any date, supplemented "
@@ -447,10 +448,11 @@ def build():
       f"anaemia fell to {_hs} when Hb had to precede the stroke by at least 30 days, suggesting that some very low "
       f"values were measured during the stroke admission. The continuous analyses, which do not depend on the small "
       f"severe group, showed risk rising steadily as Hb fell below 13 g/dL (Figure 3).")
-    P(f"MCV-based classification has limitations here. MCV is a weak marker of iron deficiency on its own, its "
-      f"measurement date could not be verified (the laboratory date field was back-filled), and the macrocytic group was "
-      f"small ({int(macro['n']):,} women, {int(macro['Events'])} strokes). The morphology findings should therefore be "
-      f"treated as exploratory.")
+    _md = R["mcv_dated"]
+    P(f"MCV-based classification has limitations. MCV is a weak marker of iron deficiency on its own, and the "
+      f"macrocytic group was small ({int(macro['n']):,} women, {int(macro['Events'])} strokes). MCV was taken from the "
+      f"dated laboratory record nearest to the Hb measurement (within 30 days; same day for {_md['same_day']:,} of "
+      f"{_md['n']:,} women). The morphology findings should be treated as exploratory.")
     P("These findings extend reports linking anaemia and iron deficiency with stroke in general populations [ref] to a "
       "group of young and middle-aged women with a very high prevalence of anaemia. The morphology pattern and the "
       "bleeding interaction suggest two interpretations. Anaemia that is not explained by menstrual iron loss may "

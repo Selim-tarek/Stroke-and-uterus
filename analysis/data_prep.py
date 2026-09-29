@@ -231,4 +231,51 @@ def run():
     RESULTS["index_range"] = (int(_idx.min().year), int(_idx.max().year))
     RESULTS["n_stroke_before_or_same"] = int(elig.stroke_timing.isin([1, 2]).sum())
     RESULTS["n_stroke_before"] = int((elig.stroke_timing == 1).sum())
+
+    # Lab Tests extracts (MCH/MCHC, RDW, platelets): cleaning audit and timing relative to Hb
+    from . import labs
+    if labs._files():
+        long, audit = labs.load()
+        wv, wg = labs.nearest_to_hb(df, long)
+        add_table("LAB_cleaning", audit.pivot_table(index=["File", "analyte"], columns="reason", values="rows",
+                                                    aggfunc="sum", fill_value=0).reset_index(),
+                  "Lab Tests extracts: rows kept and dropped by reason. Plausible ranges: " +
+                  "; ".join(f"{k} {v[0]}–{v[1]}" for k, v in labs.PLAUSIBLE.items()) +
+                  ". MCV was not included in the extracts.")
+        cov = labs.coverage(df, wv, wg)
+        add_table("LAB_coverage", cov, "Nearest plausible value to each woman's Hb date (eligible women with Hb).")
+        agree = {}
+        for an, col, fk in [("Hb (g/dL)", "hgb", "hb"), ("MCV (fL)", "mcv", "mcv"),
+                            ("Platelets (x10^9/L)", "platelets", "platelets")]:
+            lv = df.mrn.map(wv[an])
+            lg = df.mrn.map(wg[an]).abs()
+            same = (df.eligible == 1) & df[col].notna() & lv.notna() & (lg == 0)
+            eq = int(np.isclose(df.loc[same, col], lv[same], atol=0.051).sum())
+            agree[an] = (int(same.sum()), eq)
+            flag(f"{fk}_vs_lab_extract", f"Codebook {col} vs same-day {an} in the Lab Tests extracts",
+                 -1, int(same.sum()), f"{eq:,} of {int(same.sum()):,} identical (±0.05); "
+                 f"{int(((df.eligible == 1) & df[col].notna() & ~same).sum()):,} Codebook values without a same-day result.")
+        RESULTS["lab_agree"] = agree
+        # PI decision 2026-09-29: MCV for Paper 2 = dated MCV from the Lab Tests extract, the plausible value
+        # nearest to the Hb date within ±30 days (Codebook mcv kept as mcv_codebook; its lab_date is not usable).
+        for frame in (df, elig):
+            for a_ in wv.columns:
+                frame[f"lab_{a_}"] = frame.mrn.map(wv[a_])
+                frame[f"lab_{a_} gap"] = frame.mrn.map(wg[a_])
+            frame["mcv_codebook"] = frame["mcv"]
+            ok = frame["lab_MCV (fL) gap"].abs() <= 30
+            frame["mcv"] = frame["lab_MCV (fL)"].where(ok)
+            frame["mcv_gap"] = frame["lab_MCV (fL) gap"].where(ok)
+            frame["mcv_cat"] = pd.Series(np.select(
+                [frame["mcv"] < 80, frame["mcv"] <= 100, frame["mcv"] > 100],
+                ["Microcytic (<80)", "Normal (80–100)", "Macrocytic (>100)"], default=None),
+                index=frame.index).where(frame["mcv"].notna())
+        e_ = elig[elig.hgb.notna()]
+        RESULTS["mcv_dated"] = dict(n=int(e_.mcv.notna().sum()), same_day=int((e_.mcv_gap == 0).sum()),
+                                    codebook_n=int(e_.mcv_codebook.notna().sum()))
+        flag("mcv_replaced_by_dated", "PI decision 2026-09-29: Paper 2 MCV replaced by the dated MCV (Lab_Tests_3) "
+             "nearest to the Hb date within ±30 d", -1, int(e_.mcv.notna().sum()),
+             f"{int((e_.mcv_gap == 0).sum()):,} same day as Hb; Codebook mcv kept as mcv_codebook (not analysed).")
+        add_table("data_flags", pd.DataFrame(flags), "Data problems flagged, not fixed. -1 = not computed for all records.")
+        RESULTS["lab_cov"] = cov
     return df, elig

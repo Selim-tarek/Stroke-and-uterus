@@ -107,6 +107,7 @@ def write(df, d, t, raw_cols):
     m, groups = build(df, d, t, raw_cols)
     path = OUT_DIR / "stroke_master_dataset.xlsx"
     wb = Workbook(write_only=True)
+    wb._fonts[0] = Font(name=F, size=10)  # workbook default font = Arial, so data cells need no per-cell style
     hdr_font, body = Font(name=F, bold=True, color="FFFFFF"), Font(name=F, size=10)
     fill = PatternFill("solid", fgColor="2A78D6")
 
@@ -144,7 +145,7 @@ def write(df, d, t, raw_cols):
             out[c] = out[c].map(lambda v: v[:32000] if isinstance(v, str) else v)
     vals = out.astype(object).where(out.notna(), None).values.tolist()
     for r in vals:
-        wd.append([_cell(wd, (v.item() if isinstance(v, np.generic) else v), body) for v in r])
+        wd.append([(v.item() if isinstance(v, np.generic) else v) for v in r])
     wb.save(path)
     RESULTS["master_export"] = dict(rows=len(m), cols=m.shape[1], path=path.name)
     log("Master", f"{path.name}: {len(m):,} records × {m.shape[1]} variables (no MRN/DOB)")

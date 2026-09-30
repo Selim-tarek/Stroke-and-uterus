@@ -215,11 +215,11 @@ def build():
       f"{int(_pmac['Strokes'])} strokes), and weaker for the iron-deficiency pattern (OR "
       f"{sc(_pid['Adjusted OR (95% CI)'])}). With anaemia updated at every haemoglobin measurement "
       f"({_tuc['py']:,.0f} person-years; {_tuc['ev']} strokes or TIAs), the rate ratio for moderate anaemia was "
-      f"{sc(tur(TU2A, 'Moderate (8–9.9)')['RR (95% CI)'])}; it was {_dir(tur(TUT, 'Moderate (8–9.9)')['CI low'], tur(TUT, 'Moderate (8–9.9)')['CI high'], 'attenuated but persisted', 'reversed', 'attenuated and imprecise') if tur(TUT, 'Moderate (8–9.9)')['RR'] < tur(TU2A, 'Moderate (8–9.9)')['RR'] else 'unchanged'} after "
-      f"adjustment for the frequency of blood testing ({sc(tur(TUT, 'Moderate (8–9.9)')['RR (95% CI)'])}) and was "
-      f"{sc(tur(TUL, 'Moderate (8–9.9)')['RR (95% CI)'])} when exposure was lagged by 30 days. One year after "
-      f"baseline, the rate ratio was {sc(lmr(LM_PER)['Adjusted RR (95% CI)'])} for persistent and "
-      f"{sc(lmr(LM_RES)['Adjusted RR (95% CI)'])} for resolved anaemia.")
+      f"{tur(TU2A, 'Moderate (8–9.9)')['RR (95% CI)']}; it was {_dir(tur(TUT, 'Moderate (8–9.9)')['CI low'], tur(TUT, 'Moderate (8–9.9)')['CI high'], 'attenuated but persisted', 'reversed', 'attenuated and imprecise') if tur(TUT, 'Moderate (8–9.9)')['RR'] < tur(TU2A, 'Moderate (8–9.9)')['RR'] else 'unchanged'} after "
+      f"adjustment for the frequency of blood testing ({tur(TUT, 'Moderate (8–9.9)')['RR (95% CI)']}) and was "
+      f"{tur(TUL, 'Moderate (8–9.9)')['RR (95% CI)']} when exposure was lagged by 30 days. One year after "
+      f"baseline, the rate ratio was {lmr(LM_PER)['Adjusted RR (95% CI)']} for persistent and "
+      f"{lmr(LM_RES)['Adjusted RR (95% CI)']} for resolved anaemia.")
     P("**Conclusions.** In women with benign uterine disease, moderate and, less precisely, severe anaemia were "
       "associated with a higher risk of stroke, particularly ischaemic stroke. Anaemia may mark underlying illness as "
       "well as vascular risk. Haemoglobin measured at gynaecological diagnosis could help identify women for vascular "

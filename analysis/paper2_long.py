@@ -105,12 +105,29 @@ def split_intervals(x, h, cap=CAP, lag=0):
     return f, n_no_hb, n_ev_gap
 
 
+REDUCED = [Term("age_index", "cont"), Term("bmi", "cont"), Term("htn", "bin"), Term("dm", "bin"),
+           Term("dyslipidemia", "bin"), Term("migraine_any", "bin"), Term("ckd", "bin"),
+           Term("haemoglobinopathy_any", "bin")]
+
+
 def pois(df, oc, terms):
     df = df.dropna(subset=[t.var for t in terms])
     X, _ = design(df, terms)
     X = X.loc[:, (X != 0).any(axis=0)]
     r = sm.GLM(df[oc].values, X, family=sm.families.Poisson(), offset=np.log(df.py.values)).fit(cov_type="HC1")
     return r, df, df[oc].sum() / (X.shape[1] - 1)
+
+
+def pois_stable(df, oc, expo_terms, cov, extra, label=""):
+    """Pre-specified simplification: if EPV < 10 with the full covariate set, refit with the reduced set."""
+    r, used, epv = pois(df, oc, expo_terms + cov + extra)
+    note = ""
+    if epv < 10:
+        keep = [t for t in extra if t.var not in PRE_VARS]  # keep the term the model is about (e.g. test frequency)
+        r, used, epv = pois(df, oc, expo_terms + REDUCED + keep)
+        note = "EPV<10 with full covariates: reduced set (age, BMI, HTN, DM, dyslipidemia, migraine, CKD, haemoglobinopathy)"
+        log("Paper 2 long", f"{label}: EPV<10 -> reduced covariate set (EPV {epv:.1f})")
+    return r, used, epv, note
 
 
 def rr(r, c):
@@ -214,11 +231,11 @@ def run(d):
         for mlab, key, extra in specs:
             f = frames[key][0]
             cv = cov_for(f, oc, ["anemia_cat"], f"tu{key}{oc}")
-            r, used, epv = pois(f, oc, [EXPO["anemia_cat"]] + cv + extra)
-            rt, _, _ = pois(f, oc, [Term("anemia", "cont")] + cv + extra)
+            r, used, epv, note = pois_stable(f, oc, [EXPO["anemia_cat"]], cv, extra, f"{olab} {mlab}")
+            rt, _, _ = pois(f, oc, [Term("anemia", "cont")] + (REDUCED if note else cv + extra))
             gg = used.groupby("anemia_cat").agg(ev=(oc, "sum"), py=("py", "sum"), w=("i", "nunique"))
             for lv in LEVELS + ["Per grade (trend)"]:
-                row = {"Outcome": olab, "Model": mlab, "Level": lv, "EPV": round(float(epv), 1),
+                row = {"Outcome": olab, "Model": mlab, "Level": lv, "EPV": round(float(epv), 1), "Note": note,
                        "Women": int(f.i.nunique()), "Person-years (level)": round(float(gg.py.get(lv, np.nan)), 1) if lv in gg.index else np.nan,
                        "Events (level)": int(gg.ev.get(lv, 0)) if lv in gg.index else np.nan,
                        "Rate /1,000 PY": round(1000 * gg.ev.get(lv, 0) / gg.py.get(lv, np.nan), 2) if lv in gg.index else np.nan}
@@ -256,10 +273,14 @@ def run(d):
                              [Term("cum_anemic_y", "cont"), EXPO["anemia_cat"]] + cv + ext_a),
                             ("Years anemic so far (categories), 2a", [cc] + cv + ext_a)]:
             r, used, epv = pois(f, oc, terms)
+            note = ""
+            if epv < 10:
+                r, used, epv = pois(f, oc, [t for t in terms if t.var in ("cum_anemic_y", "anemia_cat", "cum_cat")] + REDUCED)
+                note = "EPV<10: reduced covariate set"
             if "categories" in mlab:
                 gg = used.groupby("cum_cat").agg(ev=(oc, "sum"), py=("py", "sum"))
                 for lv in ["0", ">0–1 y", ">1 y"]:
-                    row = {"Outcome": olab, "Model": mlab, "Term": f"Years anemic so far: {lv}", "EPV": round(float(epv), 1),
+                    row = {"Outcome": olab, "Model": mlab, "Term": f"Years anemic so far: {lv}", "EPV": round(float(epv), 1), "Note": note,
                            "Events (level)": int(gg.ev.get(lv, 0)), "Person-years (level)": round(float(gg.py.get(lv, 0)), 1)}
                     if lv == "0":
                         row["RR (95% CI)"] = "1.00 (reference)"
@@ -269,7 +290,7 @@ def run(d):
                     cum.append(row)
             else:
                 q = rr(r, "cum_anemic_y")
-                cum.append({"Outcome": olab, "Model": mlab, "Term": "Per additional year anemic", "EPV": round(float(epv), 1),
+                cum.append({"Outcome": olab, "Model": mlab, "Term": "Per additional year anemic", "EPV": round(float(epv), 1), "Note": note,
                             "RR (95% CI)": q["txt"], "RR": q["RR"], "CI low": q["lo"], "CI high": q["hi"], "p": q["p"]})
                 if "current grade" in mlab:
                     for lv in GRADES:
@@ -328,7 +349,7 @@ def run(d):
         lt = Term("lm_grp", "cat", ref=LM_LEVELS[0], levels=LM_LEVELS, label="Anemia status at landmark")
         for oc, olab in [("ev_any", "Stroke or TIA"), ("ev_isch", "Ischemic stroke")]:
             cv = cov_for(b, oc, ["lm_grp"], f"lm{win}{oc}")
-            r, used, epv = pois(b, oc, [lt] + cv + ext_a)
+            r, used, epv, note = pois_stable(b, oc, [lt], cv, ext_a, f"Landmark {win} d {olab}")
             gg = used.groupby("lm_grp").agg(ev=(oc, "sum"), py=("py", "sum"), w=("mrn", "size"))
             # persistent vs resolved contrast
             bp, br_ = r.params[f"lm_grp={LM_LEVELS[3]}"], r.params[f"lm_grp={LM_LEVELS[2]}"]
@@ -339,7 +360,8 @@ def run(d):
             for lv in LM_LEVELS:
                 row = {"Landmark (months)": round(win / 30.4), "Outcome": olab, "Group": lv, "Women": int(gg.w.get(lv, 0)),
                        "Events": int(gg.ev.get(lv, 0)), "Person-years": round(float(gg.py.get(lv, 0)), 1),
-                       "Rate /1,000 PY": round(1000 * gg.ev.get(lv, 0) / gg.py.get(lv, np.nan), 2), "EPV": round(float(epv), 1)}
+                       "Rate /1,000 PY": round(1000 * gg.ev.get(lv, 0) / gg.py.get(lv, np.nan), 2), "EPV": round(float(epv), 1),
+                       "Note": note}
                 if lv == LM_LEVELS[0]:
                     row["Adjusted RR (95% CI)"] = "1.00 (reference)"
                 elif gg.ev.get(lv, 0) < 5:

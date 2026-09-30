@@ -214,22 +214,19 @@ def build():
       f"{sc(_tnh['Adjusted RR (95% CI)'])}) and macrocytic anaemia (OR {sc(_pmac['Adjusted OR (95% CI)'])}; "
       f"{int(_pmac['Strokes'])} strokes), and weaker for the iron-deficiency pattern (OR "
       f"{sc(_pid['Adjusted OR (95% CI)'])}). With anaemia updated at every haemoglobin measurement "
-      f"({_tuc['py']:,.0f} person-years; {_tuc['ev']} strokes or TIAs), the rate ratio was "
-      f"{sc(tur(TU2A, 'Moderate (8–9.9)')['RR (95% CI)'])} for moderate and "
-      f"{sc(tur(TU2A, 'Severe (<8)')['RR (95% CI)'])} for severe anaemia, and was unchanged after adjustment for the "
-      f"number of blood tests. Anaemia that persisted 1 year after baseline was associated with stroke (rate ratio "
-      f"{sc(lmr(LM_PER)['Adjusted RR (95% CI)'])}), whereas resolved anaemia was not "
-      f"({sc(lmr(LM_RES)['Adjusted RR (95% CI)'])}).")
+      f"({_tuc['py']:,.0f} person-years; {_tuc['ev']} strokes or TIAs), the rate ratio for moderate anaemia was "
+      f"{sc(tur(TU2A, 'Moderate (8–9.9)')['RR (95% CI)'])}; it was {_dir(tur(TUT, 'Moderate (8–9.9)')['CI low'], tur(TUT, 'Moderate (8–9.9)')['CI high'], 'attenuated but persisted', 'reversed', 'attenuated and imprecise') if tur(TUT, 'Moderate (8–9.9)')['RR'] < tur(TU2A, 'Moderate (8–9.9)')['RR'] else 'unchanged'} after "
+      f"adjustment for the frequency of blood testing ({sc(tur(TUT, 'Moderate (8–9.9)')['RR (95% CI)'])}) and was "
+      f"{sc(tur(TUL, 'Moderate (8–9.9)')['RR (95% CI)'])} when exposure was lagged by 30 days. One year after "
+      f"baseline, the rate ratio was {sc(lmr(LM_PER)['Adjusted RR (95% CI)'])} for persistent and "
+      f"{sc(lmr(LM_RES)['Adjusted RR (95% CI)'])} for resolved anaemia.")
     P("**Conclusions.** In women with benign uterine disease, moderate and, less precisely, severe anaemia were "
       "associated with a higher risk of stroke, particularly ischaemic stroke. Anaemia may mark underlying illness as "
       "well as vascular risk. Haemoglobin measured at gynaecological diagnosis could help identify women for vascular "
       "risk assessment.")
     checks.append(("Abstract: moderate & severe ORs exclude 1", gmod["lo"] > 1 and gsev["lo"] > 1))
-    checks.append(("Abstract: time-updated moderate & severe RR exclude 1; tests-adjusted moderate RR within 10% of 2a",
-                   tur(TU2A, "Moderate (8–9.9)")["CI low"] > 1 and tur(TU2A, "Severe (<8)")["CI low"] > 1 and
-                   abs(tur(TUT, "Moderate (8–9.9)")["RR"] / tur(TU2A, "Moderate (8–9.9)")["RR"] - 1) < 0.10))
-    checks.append(("Abstract: persistent anaemia RR excludes 1; resolved CI includes 1",
-                   lmr(LM_PER)["CI low"] > 1 and lmr(LM_RES)["CI low"] < 1 < lmr(LM_RES)["CI high"]))
+    checks.append(("Abstract: time-updated moderate RR excludes 1", tur(TU2A, "Moderate (8–9.9)")["CI low"] > 1))
+    checks.append(("Abstract/Discussion: persistent RR > resolved RR", lmr(LM_PER)["RR"] > lmr(LM_RES)["RR"]))
     checks.append(("Abstract: TTE moderate RR excludes 1", tte_mod["CI low"] > 1))
     checks.append(("Abstract: per-g/dL OR and RR below 13 g/dL exclude 1",
                    pg("Cross", "Any stroke", "Below")["lo"] > 1 and pg("After", "Any stroke", "Below")["lo"] > 1))
@@ -468,7 +465,13 @@ def build():
       f"{tur(TU2A, 'Moderate (8–9.9)', 'Ischemic stroke')['RR (95% CI)']}. Each additional year spent anaemic was "
       f"associated with a rate ratio of "
       f"{R['p2l_cum'][(R['p2l_cum'].Outcome == 'Stroke or TIA') & (R['p2l_cum'].Model == 'Years anemic so far (per year), 2a')].iloc[0]['RR (95% CI)']} "
-      f"(eTable 15).")
+      f"({R['p2l_cum'][(R['p2l_cum'].Outcome == 'Stroke or TIA') & (R['p2l_cum'].Term == 'Years anemic so far: >0–1 y')].iloc[0]['RR (95% CI)']} "
+      f"for up to 1 year and "
+      f"{R['p2l_cum'][(R['p2l_cum'].Outcome == 'Stroke or TIA') & (R['p2l_cum'].Term == 'Years anemic so far: >1 y')].iloc[0]['RR (95% CI)']} "
+      f"for more than 1 year anaemic vs none), and cumulative time added little once the current grade was in the "
+      f"model ({R['p2l_cum'][(R['p2l_cum'].Outcome == 'Stroke or TIA') & (R['p2l_cum'].Model == 'Years anemic so far (per year) + current grade, 2a') & (R['p2l_cum'].Term == 'Per additional year anemic')].iloc[0]['RR (95% CI)']} per year; eTable 15).")
+    checks.append(("Results: cumulative per-year RR with current grade has CI including 1 ('added little')",
+                   R["p2l_cum"][(R["p2l_cum"].Outcome == "Stroke or TIA") & (R["p2l_cum"].Model == "Years anemic so far (per year) + current grade, 2a") & (R["p2l_cum"].Term == "Per additional year anemic")].iloc[0]["CI low"] < 1))
     P(f"In the 12-month landmark analysis ({R['p2l_lm365_n']['n']:,} women; {R['p2l_lm365_n']['ev']} strokes or "
       f"TIAs), compared with women not anaemic at baseline, the adjusted rate ratio was "
       f"{lmr(LM_PER)['Adjusted RR (95% CI)']} for anaemia that persisted at the last measurement within 1 year "
@@ -485,7 +488,12 @@ def build():
       f"{hcr('Any stroke', '2a + Hb tests in 2 y before index', 'Per grade (trend)')['OR (95% CI)']} (eTable 17).")
     checks.append(("Results: time-updated per-grade RR and moderate ischaemic RR exclude 1",
                    tur(TU2A, "Per grade (trend)")["CI low"] > 1 and tur(TU2A, "Moderate (8–9.9)", "Ischemic stroke")["CI low"] > 1))
-    checks.append(("Results: 30-day lag moderate RR excludes 1", tur(TUL, "Moderate (8–9.9)")["CI low"] > 1))
+    checks.append(("Results/Discussion: 30-day lag moderate RR attenuated (below 2a RR)",
+                   tur(TUL, "Moderate (8–9.9)")["RR"] < tur(TU2A, "Moderate (8–9.9)")["RR"]))
+    checks.append(("Discussion: tests-adjusted moderate RR attenuated but CI excludes 1",
+                   tur(TUT, "Moderate (8–9.9)")["RR"] < tur(TU2A, "Moderate (8–9.9)")["RR"] and tur(TUT, "Moderate (8–9.9)")["CI low"] > 1))
+    checks.append(("Discussion: persistent vs resolved difference imprecise (P ≥ 0.05)",
+                   lmr("Persistent vs resolved")["p"] >= 0.05))
     checks.append(("Results: persistence higher with worse grade (mild < moderate < severe still anaemic at 12 mo)",
                    per("Mild (10–11.9)", 12)["Still anemic % (of those with repeat)"] < per("Moderate (8–9.9)", 12)["Still anemic % (of those with repeat)"]
                    < per("Severe (<8)", 12)["Still anemic % (of those with repeat)"]))
@@ -611,13 +619,17 @@ def build():
       "assessment of its cause and of their vascular risk factors. Whether correcting anaemia changes stroke risk "
       "cannot be answered by these data. Our exploratory treatment analysis was limited by confounding by indication "
       "and by incomplete capture of outpatient oral iron.")
-    P(f"Repeated haemoglobin measurements strengthened these findings. When anaemia was updated at every "
-      f"measurement, so that exposure always preceded the outcome, the associations were of similar size to the "
-      f"cross-sectional estimates and were not explained by how often women were tested. Anaemia that persisted for "
-      f"a year was associated with stroke, whereas anaemia that had resolved was not, and risk rose with the time "
-      f"spent anaemic. These patterns are consistent with anaemia, or the condition that sustains it, acting over "
-      f"time rather than being a marker of the stroke admission, although resolution may itself identify women whose "
-      f"underlying cause was benign and treatable.")
+    _lagtxt = ("attenuated and no longer statistically significant" if tur(TUL, "Moderate (8–9.9)")["CI low"] < 1
+               else "attenuated but still present")
+    P(f"Repeated haemoglobin measurements gave a more nuanced picture. When anaemia was updated at every "
+      f"measurement, so that exposure always preceded the outcome, the association was at least as strong as in the "
+      f"cross-sectional analysis. Adjusting for how often women were tested attenuated it by about a fifth but did not "
+      f"remove it, so surveillance explains part of the association. When exposure was lagged by 30 days, so that a "
+      f"haemoglobin drawn shortly before the stroke could not define it, the estimate was {_lagtxt}, and cumulative "
+      f"time spent anaemic added little beyond the current grade. Haemoglobin measured in the weeks before a stroke, "
+      f"which may reflect acute illness or bleeding, therefore contributes to the association; its persistence in the "
+      f"lagged and landmark analyses is of a smaller size than the cross-sectional estimates suggest. Anaemia that "
+      f"persisted at one year showed a higher rate than anaemia that had resolved, but the difference was imprecise.")
     H2("Strengths and limitations")
     P("Strengths include the size of the cohort, a pre-specified analysis plan, and linkage to dated diagnosis, "
       "medication, encounter and death data. These allowed several complementary approaches to temporality and "
@@ -632,7 +644,8 @@ def build():
       f"available only as free-text descriptions. Severe anaemia before stroke was uncommon, which limited precision. "
       f"Encounter counts were not available; the frequency of blood tests was used as a proxy for contact with the "
       f"health system, and adjusting for it did not change the associations, but it captures testing rather than "
-      f"visits. Finally, although we adjusted for many conditions, residual "
+      f"visits. The landmark and lagged analyses had few events in the anaemic groups, so their estimates are "
+      f"imprecise. Finally, although we adjusted for many conditions, residual "
       f"confounding by general ill health, inflammation or socioeconomic factors is possible.")
     H2("Conclusions")
     P("Among women with benign uterine disease, moderate anaemia is associated with a higher risk of subsequent "

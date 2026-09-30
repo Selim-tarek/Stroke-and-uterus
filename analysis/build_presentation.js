@@ -93,7 +93,7 @@ function footer(slide, text) {
       valign: "middle", margin: 0, isTextBox: true });
   });
   const x2 = 7.0;
-  s.addText("Anemia grade (WHO)", { x: x2, y: 1.95, w: 5.7, h: 0.45, fontFace: HF, fontSize: 20, bold: true,
+  s.addText("Anemia grade (WHO <12; CTCAE bands)", { x: x2, y: 1.95, w: 5.7, h: 0.45, fontFace: HF, fontSize: 20, bold: true,
     color: C.dark, margin: 0, isTextBox: true });
   const rows = [["Grade", "Hb (g/dL)", "Women"], ["None", "≥12", "25,377"], ["Mild", "10–11.9", "5,293"],
     ["Moderate", "8–9.9", "1,476"], ["Severe", "<8", "537"]];
@@ -102,11 +102,11 @@ function footer(slide, text) {
     { x: x2, y: 2.5, w: 5.7, colW: [2.1, 1.8, 1.8], rowH: 0.42, fontFace: BF, fontSize: 14,
       border: { type: "solid", color: C.line, pt: 0.5 } });
   s.addText([
-    { text: "Outcome: ", options: { bold: true } }, { text: "stroke or TIA (1,538 women; 1,189 ischemic)", options: { breakLine: true } },
-    { text: "Adjusted for: ", options: { bold: true } }, { text: "age, race, BMI, blood pressure, diabetes, cholesterol, smoking, migraine, thrombophilia, hormones, bleeding, diagnosis group" },
+    { text: "Outcome: ", options: { bold: true } }, { text: "any stroke (ischemic, hemorrhagic, venous) or TIA: 1,538 women; 1,189 ischemic", options: { breakLine: true } },
+    { text: "Adjusted for: ", options: { bold: true } }, { text: "age, race, BMI, blood pressure, diabetes, cholesterol, smoking, migraine, thrombophilia, hormonal therapy" },
   ], { x: x2, y: 4.85, w: 5.7, h: 1.6, fontFace: BF, fontSize: 14, color: C.ink, margin: 0, valign: "top",
     paraSpaceAfter: 6, isTextBox: true });
-  s.addNotes("52,827 records, 39,807 eligible. 32,683 had a hemoglobin test and 7,306 of them were anemic. Grades follow WHO cut-offs. 1,538 women had a stroke or TIA. Every model adjusts for the standard vascular risk factors plus migraine, hormones and bleeding.");
+  s.addNotes("52,827 records, 39,807 eligible. 32,683 had a hemoglobin test and 7,306 of them were anemic. Anemia is defined by the WHO cut-off of 12 g/dL; severity bands follow CTCAE. Stroke includes ischemic stroke 1,189, TIA 198, intracerebral hemorrhage 57, subarachnoid hemorrhage 40, venous thrombosis 13 and unknown type 41. Uterine bleeding and pathology type are not adjusted for because they sit on the pathway to anemia; adding them changes nothing. 1,538 women had a stroke or TIA. Every model adjusts for the standard vascular risk factors plus migraine, hormones and bleeding.");
 }
 
 // 4. Headline numbers ------------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ function footer(slide, text) {
     s.addText(t, { x: x + 0.3, y: 3.7, w: 3.2, h: 1.1, fontFace: BF, fontSize: 17, color: C.ink, align: "center",
       valign: "top", margin: 0, isTextBox: true });
   });
-  s.addText("Compared with Hb ≥12 g/dL, after adjusting for vascular risk factors. Moderate OR 1.77 (95% CI 1.41–2.21); severe OR 2.04 (1.40–2.97); 31,472 women, 1,460 strokes.",
+  s.addText("Compared with Hb ≥12 g/dL, after adjusting for vascular risk factors. Moderate OR 1.77 (95% CI 1.41–2.21); severe OR 2.01 (1.39–2.91); 31,472 women, 1,460 strokes.",
     { x: M, y: 5.5, w: W - 2 * M, h: 0.7, fontFace: BF, fontSize: 14, color: C.muted, margin: 0, isTextBox: true });
   s.addNotes("The headline: one in five women was anemic. Moderate anemia went with about 1.8 times the odds of stroke and severe anemia about 2 times, after adjusting for the usual risk factors.");
 }
@@ -133,7 +133,7 @@ function footer(slide, text) {
   const s = pres.addSlide();
   title(s, "Lower hemoglobin, higher risk", "Adjusted odds ratio for stroke, by anemia grade");
   s.addChart(pres.charts.BAR, [{ name: "Adjusted OR", labels: ["None (≥12)", "Mild (10–11.9)", "Moderate (8–9.9)", "Severe (<8)"],
-    values: [1.0, 1.19, 1.77, 2.04] }], {
+    values: [1.0, 1.20, 1.77, 2.01] }], {
     x: M, y: 1.8, w: 7.4, h: 4.9, barDir: "col", chartColors: ["C9A3A9", "B5646F", C.crimson, "5E1220"],
     showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "0.00", dataLabelFontSize: 14,
     dataLabelColor: C.ink, catAxisLabelColor: C.muted, valAxisLabelColor: C.muted, catAxisLabelFontSize: 13,
@@ -146,16 +146,16 @@ function footer(slide, text) {
   card(s, x2, 1.9, 4.3, 4.7);
   s.addText([
     { text: "95% confidence intervals", options: { bold: true, breakLine: true } },
-    { text: "Mild 1.19 (1.03–1.38)", options: { breakLine: true } },
+    { text: "Mild 1.20 (1.03–1.38)", options: { breakLine: true } },
     { text: "Moderate 1.77 (1.41–2.21)", options: { breakLine: true } },
-    { text: "Severe 2.04 (1.40–2.97)", options: { breakLine: true } },
+    { text: "Severe 2.01 (1.39–2.91)", options: { breakLine: true } },
     { text: " ", options: { breakLine: true } },
-    { text: "Each step down in grade: ", options: { bold: true } }, { text: "+28% (OR 1.28, 1.18–1.38; P<0.001)", options: { breakLine: true } },
+    { text: "Each step down in grade: ", options: { bold: true } }, { text: "+27% (OR 1.27, 1.18–1.38; P<0.001)", options: { breakLine: true } },
     { text: " ", options: { breakLine: true } },
-    { text: "Ischemic stroke only: ", options: { bold: true } }, { text: "+33% per grade" },
+    { text: "Ischemic stroke only: ", options: { bold: true } }, { text: "+32% per grade" },
   ], { x: x2 + 0.35, y: 2.15, w: 3.7, h: 4.3, fontFace: BF, fontSize: 15, color: C.ink, margin: 0, valign: "top",
     paraSpaceAfter: 4, isTextBox: true });
-  s.addNotes("A clear staircase: risk rises with each anemia grade. Mild 1.19, moderate 1.77, severe 2.04. Each step adds about 28 percent, and the pattern is slightly stronger for ischemic stroke. A dose-response like this is one of the strongest signs that an association is real.");
+  s.addNotes("A clear staircase: risk rises with each anemia grade. Mild 1.20, moderate 1.77, severe 2.01. Each step adds about 27 percent, and the pattern is slightly stronger for ischemic stroke. A dose-response like this is one of the strongest signs that an association is real.");
 }
 
 // 6. Hb curve ---------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ function footer(slide, text) {
   const iw = 8.3, ih = iw / 1.92;
   s.addImage({ path: FIG + "fig14_p2_hb_curves.png", x: M, y: 1.9, w: iw, h: ih });
   const x2 = M + iw + 0.35, w2 = W - M - x2;
-  const pts = [["13 g/dL", "1.00"], ["11 g/dL", "1.19"], ["9 g/dL", "1.50"], ["8 g/dL", "1.68"]];
+  const pts = [["13 g/dL", "1.00"], ["11 g/dL", "1.19"], ["9 g/dL", "1.49"], ["8 g/dL", "1.68"]];
   s.addText("Odds of stroke vs 13 g/dL", { x: x2, y: 1.95, w: w2, h: 0.4, fontFace: HF, fontSize: 15, bold: true,
     color: C.dark, margin: 0, isTextBox: true });
   pts.forEach(([a, b], i) => {
@@ -176,7 +176,7 @@ function footer(slide, text) {
     s.addText(b + "×", { x: x2 + 1.8, y, w: w2 - 2.0, h: 0.6, fontFace: HF, fontSize: 20, bold: true,
       color: i === 3 ? C.light : C.crimson, align: "right", valign: "middle", margin: 0, isTextBox: true });
   });
-  s.addText("Below 13 g/dL, each 1 g/dL lower Hb: about +11% odds, +10% stroke rate. Above 13: flat.",
+  s.addText("Below 13 g/dL, each 1 g/dL lower Hb: about +11% odds, +9% stroke rate. Above 13: flat.",
     { x: x2, y: 5.45, w: w2, h: 1.2, fontFace: BF, fontSize: 14, color: C.ink, margin: 0, valign: "top", isTextBox: true });
   footer(s, "Restricted cubic spline, 4 knots; adjusted for covariates and conditions documented before the Hb. (A) cross-sectional odds; (B) rate after the Hb test.");
   s.addNotes("Treating hemoglobin as continuous: above 13 the risk is flat. Below 13 it rises steadily, about 10 percent for every gram lower. At 8 grams the odds are about 1.7 times those at 13. Panel B shows the same shape when we follow women forward from the blood test.");
@@ -201,7 +201,7 @@ function footer(slide, text) {
     { x: x2 + 0.3, y: 2.5, w: w2 - 0.4, h: 0.9, fontFace: HF, fontSize: 32, bold: true, margin: 0, isTextBox: true });
   s.addText("no anemia vs moderate anemia", { x: x2 + 0.3, y: 3.4, w: w2 - 0.6, h: 0.4, fontFace: BF, fontSize: 14, color: C.ink, margin: 0, isTextBox: true });
   s.addText([
-    { text: "Adjusted rate ratio, moderate anemia: ", options: { bold: true } }, { text: "1.60 (1.10–2.33)", options: { breakLine: true } },
+    { text: "Adjusted rate ratio, moderate anemia: ", options: { bold: true } }, { text: "1.57 (1.09–2.28)", options: { breakLine: true } },
     { text: " ", options: { breakLine: true } },
     { text: "Severe anemia had only 9 strokes, so its rate is imprecise, and these women more often died of other causes first." },
   ], { x: x2, y: 4.35, w: w2, h: 2.3, fontFace: BF, fontSize: 14, color: C.ink, margin: 0, valign: "top", isTextBox: true });
@@ -213,12 +213,12 @@ function footer(slide, text) {
   const s = pres.addSlide();
   title(s, "Does it survive the obvious objections?", "Moderate anemia vs no anemia, odds ratio (95% CI)");
   const tests = [
-    ["“The stroke caused the anemia”", "Hb measured ≥30 days before the stroke", "1.83 (1.24–2.71)"],
-    ["", "Followed forward from the Hb test (rate ratio)", "1.60 (1.10–2.33)"],
+    ["“The stroke caused the anemia”", "Hb measured ≥30 days before the stroke", "1.84 (1.25–2.70)"],
+    ["", "Followed forward from the Hb test (rate ratio)", "1.57 (1.09–2.28)"],
     ["“It's kidney disease, sickle cell…”", "Adjusted for anemia-causing conditions", "1.49 (1.18–1.89)"],
-    ["", "Those women excluded entirely", "1.46 (1.06–2.00)"],
-    ["“They were already very ill”", "Cancer, heart failure, kidney, liver disease excluded", "1.64 (1.23–2.19)"],
-    ["“Sicker women get tested more”", "Adjusted for number of blood tests", "1.38 (1.09–1.74)"],
+    ["", "Those women excluded entirely", "1.46 (1.07–1.99)"],
+    ["“They were already very ill”", "Cancer, heart failure, kidney, liver disease excluded", "1.63 (1.23–2.16)"],
+    ["“Sicker women get tested more”", "Adjusted for number of blood tests", "1.38 (1.09–1.75)"],
   ];
   const y0 = 1.9, rh = 0.66;
   tests.forEach(([q, t, v], i) => {
@@ -243,7 +243,7 @@ function footer(slide, text) {
   s.addImage({ path: FIG + "fig18_p2_longitudinal.png", x: M, y: 1.85, w: iw, h: ih });
   const x2 = M + iw + 0.35, w2 = W - M - x2;
   const pts = [
-    ["Updated at every test", "Moderate: 1.85× the stroke rate (1.28–2.67)"],
+    ["Updated at every test", "Moderate: 1.86× the stroke rate (1.29–2.69)"],
     ["Anemia often persists", "Of those retested, 65% (moderate) and 71% (severe) still anemic a year later"],
     ["Persistent vs resolved", "Persistent 1.45× (1.02–2.06); resolved 1.09× (no clear excess)"],
   ];
@@ -255,9 +255,9 @@ function footer(slide, text) {
   });
   card(s, M, 6.1, W - 2 * M, 0.85, C.tint);
   s.addText([{ text: "Honest caveat: ", options: { bold: true, color: C.crimson } },
-    { text: "when the hemoglobin from the 30 days before a stroke is excluded, the estimate falls to 1.28 (0.84–1.96). Part of the signal comes from illness just before the stroke." }],
+    { text: "when the hemoglobin from the 30 days before a stroke is excluded, the estimate falls to 1.30 (0.85–1.98). Part of the signal comes from illness just before the stroke." }],
     { x: M + 0.3, y: 6.1, w: W - 2 * M - 0.6, h: 0.85, fontFace: BF, fontSize: 14, color: C.ink, valign: "middle", margin: 0, isTextBox: true });
-  s.addNotes("Most women had several blood tests, so we could track anemia over time. When anemia is updated at every test, moderate anemia still carries about 1.85 times the stroke rate. Most anemia persists. Anemia that persisted at one year carried more risk than anemia that resolved. The caveat: if we ignore hemoglobin from the month before a stroke, the estimate drops to 1.28 and is no longer significant, so part of the signal reflects illness just before the event. The true long-term effect is probably smaller than the headline figure.");
+  s.addNotes("Most women had several blood tests, so we could track anemia over time. When anemia is updated at every test, moderate anemia still carries about 1.85 times the stroke rate. Most anemia persists. Anemia that persisted at one year carried more risk than anemia that resolved. The caveat: if we ignore hemoglobin from the month before a stroke, the estimate drops to 1.30 and is no longer significant, so part of the signal reflects illness just before the event. The true long-term effect is probably smaller than the headline figure.");
 }
 
 // 10. Type of anemia --------------------------------------------------------------------------------------
@@ -267,8 +267,8 @@ function footer(slide, text) {
   const iw = 7.6, ih = iw / 1.863;
   s.addImage({ path: FIG + "fig15_p2_anaemia_pattern.png", x: M, y: 1.85, w: iw, h: ih });
   const x2 = M + iw + 0.4, w2 = W - M - x2;
-  const rows = [["Pattern", "OR (95% CI)"], ["Iron-deficiency pattern", "1.17 (0.93–1.48)"], ["Normal cells, normal RDW", "1.30 (1.09–1.55)"],
-    ["Normal cells, high RDW", "1.73 (1.40–2.14)"], ["Large cells (19 strokes)", "3.01 (1.74–5.23)"]];
+  const rows = [["Pattern", "OR (95% CI)"], ["Iron-deficiency pattern", "1.16 (0.92–1.46)"], ["Normal cells, normal RDW", "1.31 (1.10–1.56)"],
+    ["Normal cells, high RDW", "1.74 (1.41–2.15)"], ["Large cells (19 strokes)", "3.16 (1.81–5.52)"]];
   s.addTable(rows.map((r, i) => r.map((v, j) => ({ text: v, options: { bold: i === 0 || (i >= 3 && j === 1), color: i === 0 ? C.light : (i >= 3 && j === 1 ? C.crimson : C.ink),
     fill: { color: i === 0 ? C.crimson : (i % 2 ? "FFFFFF" : C.tint) } } }))),
     { x: x2, y: 1.95, w: w2, colW: [w2 * 0.56, w2 * 0.44], rowH: 0.5, fontFace: BF, fontSize: 13, border: { type: "solid", color: C.line, pt: 0.5 } });

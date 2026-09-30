@@ -190,7 +190,7 @@ def run(d):
     frames = {}
     for key, cap, lag in [("primary", CAP, 0), ("lag30", CAP, 30), ("cap1y", 365, 0), ("nocap", 10 ** 6, 0)]:
         f, n_no, n_gap = split_intervals(x, h, cap=cap, lag=lag)
-        f = f.join(x.drop(columns=[c for c in ["ev_any", "ev_isch", "anemia_cat", "anemia"] if c in x.columns]),
+        f = f.join(x.drop(columns=[c for c in ["ev_any", "ev_isch", "anemia_cat", "anemia", "end", "idx", "sd"] if c in x.columns]),
                    on="i")
         frames[key] = (f, n_no, n_gap)
     f0, n_no, n_gap = frames["primary"]

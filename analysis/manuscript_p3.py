@@ -44,6 +44,10 @@ def build():
     def msx(model, g):
         return ms[(ms.Model == model) & (ms["Group vs fibroids only"] == g)].iloc[0]
 
+    def P_(t):
+        t = str(t)
+        return f"P{t}" if t.startswith("<") else f"P={t}"
+
     def sc(txt, first=False):
         mm = re.match(r"\s*([\d.]+) \(([\d.]+–[\d.]+)\)", str(txt))
         return f"{mm.group(1)}; {'95% CI ' if first else ''}{mm.group(2)}" if mm else str(txt)
@@ -189,12 +193,12 @@ def build():
       f"{pv(mig, multi)['Age-standardised % (95% CI)']}% with more than one condition (Figure 1). Compared with "
       f"fibroids only, the adjusted OR for migraine was {orx(mig, aden)} for adenomyosis only, {orx(mig, endo)} for "
       f"endometriosis only and {orx(mig, multi)} for more than one condition (all Benjamini–Hochberg-adjusted "
-      f"P{m(mig, endo)['M2 p (BH-adjusted, all contrasts) (text)']}; Table 2).")
+      f"{P_(m(mig, endo)['M2 p (BH-adjusted, all contrasts) (text)'])}; Table 2).")
     hb = "M2 + hormonal therapy + uterine bleeding"
     P(f"The associations were present in women aged 18–39 years (adenomyosis only "
       f"{sx(mig, '18–39', aden)['OR (95% CI)']}; endometriosis only {sx(mig, '18–39', endo)['OR (95% CI)']}) and "
       f"40–60 years ({sx(mig, '40–60', aden)['OR (95% CI)']}; {sx(mig, '40–60', endo)['OR (95% CI)']}), although "
-      f"they were somewhat weaker at older ages (interaction P{em.loc[mig, 'p BH (text)']}; Figure 4). Further "
+      f"they were somewhat weaker at older ages (interaction {P_(em.loc[mig, 'p BH (text)'])}; Figure 4). Further "
       f"adjustment for hormonal therapy and uterine bleeding gave ORs of {msx(hb, aden)['OR (95% CI)']}, "
       f"{msx(hb, endo)['OR (95% CI)']} and {msx(hb, multi)['OR (95% CI)']}. Among women without hormonal therapy "
       f"the ORs were {msx('M2, women without hormonal therapy', aden)['OR (95% CI)']}, "

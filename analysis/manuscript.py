@@ -170,8 +170,8 @@ def build():
         B.append({"t": "pagebreak"})
 
     # ------------------------------------------------------------------ title page
-    B.append({"t": "title", "text": "Anaemia severity and stroke in women with benign uterine disease: "
-                                    "a retrospective cohort study"})
+    B.append({"t": "title", "text": "Beyond heavy periods: anaemia as a marker of stroke risk in women with uterine "
+                                    "fibroids, adenomyosis and endometriosis — a retrospective cohort study"})
     P("Running title: Anaemia and stroke in benign uterine disease")
     P("Authors: [Author names, degrees, affiliations]")
     P("Corresponding author: [name, address, email]")
@@ -191,11 +191,11 @@ def build():
         """'1.77 (1.41–2.21)' -> '1.77; 95% CI 1.41–2.21' (first) or '1.77; 1.41–2.21'."""
         m = _re.match(r"\s*([\d.]+) \(([\d.]+–[\d.]+)\)", str(txt))
         return f"{m.group(1)}; {'95% CI ' if first else ''}{m.group(2)}" if m else str(txt)
-    P("**Background.** Anaemia is common in women with uterine fibroids, adenomyosis and endometriosis, mainly because "
+    P("**Background.** Anaemia is common in women with uterine fibroids, adenomyosis and endometriosis, primarily because "
       "of heavy menstrual bleeding. Whether anaemia is associated with stroke in this population is not well "
       "characterised.")
     P(f"**Methods.** We studied {n_el:,} women aged 18–60 years diagnosed with benign uterine disease between {iy0} "
-      f"and {iy1} at Mayo Clinic, using electronic health records. Anaemia was defined as haemoglobin (Hb) <12 g/dL "
+      f"and {iy1} at Mayo Clinic. Anaemia was defined as haemoglobin (Hb) <12 g/dL "
       f"(World Health Organization) and graded as mild (10.0–11.9), moderate (8.0–9.9) or severe (<8.0 g/dL); women "
       f"with Hb ≥12 g/dL were the reference. The outcome was any stroke (ischaemic, intracerebral or subarachnoid "
       f"haemorrhage, or cerebral venous thrombosis) or transient ischaemic attack (TIA); ischaemic stroke was analysed "
@@ -224,9 +224,9 @@ def build():
       f"baseline, the rate ratio was {lmr(LM_PER)['Adjusted RR (95% CI)']} for persistent and "
       f"{lmr(LM_RES)['Adjusted RR (95% CI)']} for resolved anaemia.")
     P("**Conclusions.** In women with benign uterine disease, moderate and, less precisely, severe anaemia were "
-      "associated with a higher risk of stroke, particularly ischaemic stroke. Anaemia may mark underlying illness as "
-      "well as vascular risk. Haemoglobin measured at gynaecological diagnosis could help identify women for vascular "
-      "risk assessment.")
+      "associated with a higher risk of stroke, particularly ischaemic stroke. Anaemia may reflect underlying illness and "
+      "increased vascular risk. Haemoglobin measured at the time of gynaecologic diagnosis may help identify women who "
+      "could benefit from further stroke risk assessment.")
     checks.append(("Abstract: moderate & severe ORs exclude 1", gmod["lo"] > 1 and gsev["lo"] > 1))
     checks.append(("Abstract: time-updated moderate RR excludes 1", tur(TU2A, "Moderate (8–9.9)")["CI low"] > 1))
     checks.append(("Abstract/Discussion: persistent RR > resolved RR", lmr(LM_PER)["RR"] > lmr(LM_RES)["RR"]))

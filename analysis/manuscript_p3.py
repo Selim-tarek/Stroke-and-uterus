@@ -59,7 +59,7 @@ def build():
         return f"{mm.group(1)}; {'95% CI ' if first else ''}{mm.group(2)}" if mm else str(txt)
 
     def pstd(o, g):
-        return pv(o, g)["Age-standardised % (95% CI)"].split(" ")[0] + "%"
+        return f"{float(pv(o, g)['Age-standardised % (95% CI)'].split(' ')[0]):.1f}%"
 
     n_mig = int(T["P3_Table1"].set_index("Characteristic").loc["Migraine (any)", "Overall"].split(" ")[0]
                 .replace(",", ""))
@@ -148,6 +148,46 @@ def build():
                    all(msx("M2 + hormonal therapy + uterine bleeding", g)["CI low"] > 1 for g in [aden, endo, multi])))
     checks.append(("Abstract: adenomyosis dyslipidemia and thrombophilia > 1",
                    m("Dyslipidaemia", aden)["CI low"] > 1 and m("Thrombophilia", aden)["CI low"] > 1))
+    # AAN-format abstract (five headings, ≤300 words in the body, no institution name) for the submission file
+    _q_endo = q4("Stroke or TIA", "M2 + cardiometabolic", endo)
+    _q_aden = q4("Stroke or TIA", "M2 + cardiometabolic", aden)
+    aan = [
+        ("OBJECTIVE", "To compare migraine, vascular risk factors and stroke across uterine fibroids, adenomyosis and "
+                      "endometriosis."),
+        ("BACKGROUND", "Endometriosis has been linked to migraine and cardiovascular disease, but vascular risk "
+                       "profiles have rarely been compared across benign uterine conditions within one population."),
+        ("DESIGN/METHODS", f"We studied {n:,} women aged 18–60 years diagnosed with benign uterine disease between "
+                           f"{iy0} and {iy1} at one academic center, grouped as fibroids only (reference), adenomyosis "
+                           f"only, endometriosis only or more than one condition. Ten vascular risk factors, including "
+                           f"migraine, were compared by logistic regression adjusted for age, race and BMI, with "
+                           f"Benjamini–Hochberg correction; prevalences were age-standardized. Stroke (ischemic, "
+                           f"hemorrhagic or cerebral venous thrombosis) or TIA after diagnosis was compared by Poisson "
+                           f"regression."),
+        ("RESULTS", f"Age-standardized migraine prevalence was {pstd(mig, 'Fibroids only')} with fibroids only "
+                    f"(n={gn['Fibroids only']:,}), {pstd(mig, aden)} with adenomyosis only (n={gn[aden]:,}) and "
+                    f"{pstd(mig, endo)} with endometriosis only (n={gn[endo]:,}); adjusted ORs versus fibroids were "
+                    f"{orx(mig, aden).replace(' (', ' (95% CI ', 1)} and {orx(mig, endo)}, consistent across age groups and after "
+                    f"adjustment for hormonal therapy and uterine bleeding. Endometriosis only was associated with lower "
+                    f"odds of hypertension (OR {sc(orx('Hypertension', endo))}), diabetes "
+                    f"({sc(orx('Diabetes', endo))}) and coronary artery disease "
+                    f"({sc(orx('Coronary artery disease', endo))}), mainly before age 40 (hypertension OR "
+                    f"{sc(sx('Hypertension', '18–39', endo)['OR (95% CI)'])} at 18–39 vs "
+                    f"{sc(sx('Hypertension', '40–60', endo)['OR (95% CI)'])} at 40–60 years). Adenomyosis only was "
+                    f"associated with more dyslipidemia ({sc(orx('Dyslipidaemia', aden))}) and thrombophilia "
+                    f"({sc(orx('Thrombophilia', aden))}). During {pc['py']:,.0f} person-years ({pc['ev']} strokes or TIAs), "
+                    f"stroke rates did not differ between endometriosis and fibroids (rate ratio "
+                    f"{sc(_q_endo['RR (95% CI)'])}). The higher rate with adenomyosis ({sc(_q_aden['RR (95% CI)'])}; "
+                    f"{int(_q_aden['Events in group'])} events) was not significant for ischemic stroke, and women with "
+                    f"TIA more often had migraine than those with ischemic stroke "
+                    f"({pmig.loc['TIA', 'Migraine %']:.0f}% vs {pmig.loc['Ischemic stroke', 'Migraine %']:.0f}%)."),
+        ("CONCLUSIONS", "Adenomyosis and endometriosis carried a higher migraine burden than fibroids, whereas young "
+                        "women with endometriosis had fewer cardiometabolic risk factors. Stroke rates after diagnosis "
+                        "were similar across conditions; excess TIA diagnoses in adenomyosis may partly reflect "
+                        "migraine."),
+    ]
+    _w = sum(len(t.split()) for _, t in aan)
+    RESULTS["aan_p3"], RESULTS["aan_p3_words"] = aan, _w
+    checks.append((f"AAN abstract body ≤300 words (now {_w})", _w <= 300))
     BR()
 
     # ------------------------------------------------------------------ introduction
@@ -457,12 +497,11 @@ def build():
 
 def short_version(B):
     out = [b for b in B if b["t"] == "title"]
-    i = next(k for k, b in enumerate(B) if b["t"] == "h1" and b["text"] == "Abstract")
-    out.append(B[i])
-    for b in B[i + 1:]:
-        if b["t"] in ("h1", "pagebreak"):
-            break
-        out.append(b)
+    out.append({"t": "note", "text": f"AAN 2027 abstract format: body {RESULTS['aan_p3_words']} words (limit 300, "
+                                     "headings excluded). Author names and affiliations are entered in the "
+                                     "submission system."})
+    out.append({"t": "h1", "text": "Abstract"})
+    out += [{"t": "p", "text": f"**{h}:** {t}"} for h, t in RESULTS["aan_p3"]]
     out += [{"t": "pagebreak"}, {"t": "h1", "text": "Tables"}]
     out += [b for b in B if b["t"] == "table" and re.match(r"Table [123]\.", b["title"])]
     out += [{"t": "pagebreak"}, {"t": "h1", "text": "Figures"}]
@@ -481,4 +520,4 @@ def _write(B, stem):
 def run():
     B = _us(build())
     _write(B, "migraine_vascular_manuscript")
-    _write(short_version(B), "migraine_vascular_abstract_tables_figures")
+    _write(_us(short_version(B)), "migraine_vascular_abstract_tables_figures")

@@ -52,6 +52,9 @@ from .paper2 import COV, EXPO, cov_for
 from .utils import (RESULTS, Term, add_table, fit_logit, fmt_or, fmt_p, get_or, log, register_fit, wald)
 
 GRADES = ["Mild (10–11.9)", "Moderate (8–9.9)", "Severe (<8)"]
+# conditions documented before the Hb (adjustment 2a); shared with the longitudinal module
+PRE_VARS = ["cad", "haemoglobinopathy_any", "ckd", "liver_any", "alcohol_disorder", "gi_bleed_recent",
+                "malabsorption", "ibd", "hiv", "pregnancy_recent"]
 HEREDITARY = ["sickle_disease", "sickle_trait", "thal_minor", "thal_other", "other_haemoglobinopathy"]
 CHRONIC = ["ckd", "ckd_esrd", "cirrhosis", "chronic_liver", "alcohol_disorder", "malabsorption", "ibd", "menopause"]
 ANAEMIA_CODED = ["anaemia_iron", "anaemia_b12_folate", "anaemia_nutritional", "anaemia_blood_loss_acute",
@@ -218,8 +221,7 @@ def run(elig):
              "1. Temporality")
 
     # 2. extended adjustment
-    pre_vars = ["cad", "haemoglobinopathy_any", "ckd", "liver_any", "alcohol_disorder", "gi_bleed_recent",
-                "malabsorption", "ibd", "hiv", "pregnancy_recent"]
+    pre_vars = PRE_VARS
     post_vars = ["chf", "afib", "vte_history", "malignancy_ever", "anticoag"]
     ext_a = [Term(v, "bin", label=LABELS.get(v, v)) for v in pre_vars]
     ext_b = ext_a + [Term(v, "bin", label=LABELS.get(v, v)) for v in post_vars]

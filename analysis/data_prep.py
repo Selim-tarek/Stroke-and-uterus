@@ -242,6 +242,7 @@ def run():
     from . import labs
     if labs._files():
         long, audit = labs.load()
+        RESULTS["_lab_long"] = long  # reused by the longitudinal anaemia module
         wv, wg = labs.nearest_to_hb(df, long)
         add_table("LAB_cleaning", audit.pivot_table(index=["File", "analyte"], columns="reason", values="rows",
                                                     aggfunc="sum", fill_value=0).reset_index(),

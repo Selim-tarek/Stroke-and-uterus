@@ -571,7 +571,7 @@ def fig_p4_incidence():
         a1.errorbar(pos, r.Rate, yerr=[r.Rate - r["Rate low"], r["Rate high"] - r.Rate], fmt="none", ecolor=INK,
                     capsize=2.5, lw=0.8)
     a1.set_xticks(x)
-    a1.set_xticklabels(["Fibroids\nonly", "Adenomyosis\nonly", "Endometriosis\nonly", ">1\ncondition"], fontsize=8)
+    a1.set_xticklabels(["Fibroids\nonly", "Adeno-\nmyosis\nonly", "Endo-\nmetriosis\nonly", ">1\ncondition"], fontsize=7.5)
     a1.set_ylabel("Events per 1,000 person-years (95% CI)")
     a1.grid(axis="y", color=GRID, lw=0.5)
     a1.set_axisbelow(True)
@@ -605,6 +605,101 @@ def fig_p4_incidence():
     fig.legend(h, l, frameon=False, loc="lower center", ncol=2, fontsize=8, bbox_to_anchor=(0.5, -0.03))
     fig.tight_layout(rect=(0, 0.05, 1, 1))
     return save(fig, "fig17_p4_incidence")
+
+
+def fig_p2_longitudinal():
+    """(A) persistence of anemia after baseline by grade; (B) time-updated and landmark rate ratios."""
+    pers, tu, lm = RESULTS["p2l_pers"], RESULTS["p2l_tu"], RESULTS["p2l_lm"]
+    grades = ["Mild (10–11.9)", "Moderate (8–9.9)", "Severe (<8)"]
+    wins = [6, 12, 24]
+    ramp = ["#8fb6ea", "#4f8fdd", "#1d5fb0"]
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(8.2, 4.2), gridspec_kw={"width_ratios": [0.85, 1.35]})
+    x = np.arange(len(grades))
+    w = 0.26
+    for j, win in enumerate(wins):
+        v = [pers[(pers["Baseline grade"] == g) & (pers["Window (months)"] == win)].iloc[0] for g in grades]
+        y = [r["Still anemic % (of those with repeat)"] for r in v]
+        a1.bar(x + (j - 1) * w, y, width=w, color=ramp[j], label=f"Within {win} months", edgecolor="white", lw=1)
+        for k, r in enumerate(v):
+            a1.text(x[k] + (j - 1) * w, y[k] + 1.5, f"{y[k]:.0f}%", ha="center", va="bottom", fontsize=6.5, color=INK)
+    a1.set_xticks(x)
+    a1.set_xticklabels(["Mild\n(10–11.9)", "Moderate\n(8–9.9)", "Severe\n(<8)"], fontsize=8)
+    a1.set_xlabel("Baseline anemia grade (Hb, g/dL)")
+    a1.set_ylabel("Still anemic (Hb <12) at last value, %")
+    a1.set_ylim(0, 100)
+    a1.grid(axis="y", color=GRID, lw=0.5)
+    a1.set_axisbelow(True)
+    a1.legend(frameon=False, fontsize=7, loc="upper left")
+    a1.set_title("A  Persistence of anemia after baseline", fontsize=9, loc="left", color=INK)
+
+    def tu_row(model, lv, oc="Stroke or TIA"):
+        r = tu[(tu.Model == model) & (tu.Level == lv) & (tu.Outcome == oc)]
+        return r.iloc[0] if len(r) else None
+
+    def lm_row(grp, win=12, oc="Stroke or TIA"):
+        r = lm[(lm["Landmark (months)"] == win) & (lm.Group == grp) & (lm.Outcome == oc)]
+        return r.iloc[0] if len(r) else None
+    rows = [("Time-updated (2a)", None, True),
+            ("Mild", tu_row("Time-updated + pre-Hb conditions (2a)", "Mild (10–11.9)"), False),
+            ("Moderate", tu_row("Time-updated + pre-Hb conditions (2a)", "Moderate (8–9.9)"), False),
+            ("Severe", tu_row("Time-updated + pre-Hb conditions (2a)", "Severe (<8)"), False),
+            ("Per grade", tu_row("Time-updated + pre-Hb conditions (2a)", "Per grade (trend)"), False),
+            ("Moderate, + Hb tests in previous year", tu_row("Time-updated + 2a + Hb tests in previous year", "Moderate (8–9.9)"), False),
+            ("Moderate, 30-day lag", tu_row("Time-updated + 2a, 30-day lag", "Moderate (8–9.9)"), False),
+            ("Landmark at 12 months (2a)", None, True),
+            ("New anemia vs not anemic", lm_row("Not anemic at baseline, Hb <12 within window (new anemia)"), False),
+            ("Resolved vs not anemic", lm_row("Anemic at baseline, resolved (last Hb ≥12)"), False),
+            ("Persistent vs not anemic", lm_row("Anemic at baseline, persistent (last Hb <12)"), False),
+            ("Persistent vs resolved", lm_row("Persistent vs resolved"), False)]
+    n = len(rows)
+    for i, (lab, r, hdr) in enumerate(rows):
+        y = n - i
+        if hdr:
+            a2.text(0.30, y, lab, fontsize=8, fontweight="bold", va="center", color=INK, clip_on=False)
+            continue
+        a2.text(0.32, y, lab, fontsize=7.5, va="center", color=MUTED, clip_on=False)
+        if r is None or pd.isna(r.get("RR", np.nan)):
+            a2.text(1.0, y, "  not estimated", va="center", fontsize=6.5, color=MUTED)
+            continue
+        a2.plot([r["CI low"], r["CI high"]], [y, y], color=SERIES[0], lw=1.8, solid_capstyle="round")
+        a2.plot([r["RR"]], [y], "o", color=SERIES[0], ms=5, mec="white", mew=0.8)
+        a2.text(4.6, y, f"{r['RR']:.2f} ({r['CI low']:.2f}–{r['CI high']:.2f})", va="center", fontsize=7, color=INK)
+    a2.axvline(1, color=MUTED, lw=0.8, ls="--")
+    a2.set_xscale("log")
+    a2.set_xlim(0.3, 9)
+    a2.set_xticks([0.5, 1, 2, 4])
+    a2.get_xaxis().set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
+    a2.get_xaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
+    a2.set_yticks([])
+    a2.set_ylim(0.4, n + 0.6)
+    a2.spines["left"].set_visible(False)
+    a2.grid(axis="x", color=GRID, lw=0.5)
+    a2.set_xlabel("Adjusted rate ratio for stroke or TIA (95% CI, log scale)")
+    a2.set_title("B  Repeated-measure analyses", fontsize=9, loc="left", color=INK)
+    fig.tight_layout()
+    return save(fig, "fig18_p2_longitudinal")
+
+
+def fig_p2_trajectory():
+    """Mean Hb after the baseline value by baseline anemia grade."""
+    tr, bm = RESULTS["p2l_traj"], RESULTS["p2l_traj_base"].set_index("anemia_cat")
+    bins = ["0–3", "4–6", "7–12", "13–24", "25–36"]
+    xs = [0, 1.5, 5, 9.5, 18.5, 30.5]
+    fig, ax = plt.subplots(figsize=(5.6, 3.8))
+    cols = ["#c9dcf4", "#8fb6ea", "#4f8fdd", "#1d5fb0"]
+    for g, col in zip(["None (Hb ≥12)", "Mild (10–11.9)", "Moderate (8–9.9)", "Severe (<8)"], cols):
+        t = tr[tr["Baseline grade"] == g].set_index("Months after baseline")
+        y = [bm.loc[g, "mean"]] + [t.loc[b, "Mean Hb"] if b in t.index else np.nan for b in bins]
+        se = [0] + [t.loc[b, "se"] if b in t.index else np.nan for b in bins]
+        ax.errorbar(xs, y, yerr=[1.96 * v for v in se], color=col if g != "None (Hb ≥12)" else MUTED, lw=1.8,
+                    marker="o", ms=4, capsize=2, label=g)
+    ax.axhline(12, color=MUTED, lw=0.8, ls="--")
+    ax.set_xlabel("Months after the baseline hemoglobin (bin midpoints)")
+    ax.set_ylabel("Mean hemoglobin, g/dL (95% CI)")
+    ax.grid(axis="y", color=GRID, lw=0.5)
+    ax.legend(frameon=False, fontsize=7.5, title="Baseline grade", title_fontsize=7.5)
+    ax.set_title("Hemoglobin after baseline by baseline anemia grade", fontsize=9, loc="left", color=INK)
+    return save(fig, "fig19_p2_hb_trajectory")
 
 
 def fig_p2_flow():
@@ -650,6 +745,8 @@ def run():
     out["p3_age"] = fig_p3_migraine_age()
     out["p3_age_strata"] = fig_p3_age_strata()
     out["p4_incidence"] = fig_p4_incidence()
+    out["p2_longitudinal"] = fig_p2_longitudinal()
+    out["p2_trajectory"] = fig_p2_trajectory()
     out["p2x"] = fig_p2x()
     out["p2_flow"] = fig_p2_flow()
     out["p2_per_hb"] = fig_p2_per_hb()

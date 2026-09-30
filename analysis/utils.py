@@ -620,7 +620,7 @@ _US_RULES = [
     (r"\b([Cc])entre", r"\1enter"), (r"\b([Ff])ibre", r"\1iber"), (r"([Tt])umour", r"\1umor"),
     (r"([Cc])olour", r"\1olor"), (r"([Bb])ehaviour", r"\1ehavior"), (r"([Ff])avour", r"\1avor"),
     (r"([Mm])odell(ed|ing)", r"\1odel\2"), (r"([Ll])abell(ed|ing)", r"\1abel\2"),
-    (r"([Aa])nalys(e|ed|es|ing)\b", r"\1nalyz\2"),
+    (r"([Aa])nalys(e|ed|ing)\b", r"\1nalyz\2"),  # "analyses" (noun) is the same in US spelling
     (r"\b(characteri|standardi|categori|summari|recogni|minimi|maximi|organi|randomi|hospitali|utili|priori|"
      r"stabili|generali|normali|optimi|visuali|emphasi|dichotomi|categori|harmoni|finali|real|stratifi)s(e|ed|es|ing|ation|ations)\b",
      r"\1z\2"),

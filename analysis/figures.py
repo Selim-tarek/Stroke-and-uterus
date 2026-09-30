@@ -613,7 +613,7 @@ def fig_p2_longitudinal():
     grades = ["Mild (10–11.9)", "Moderate (8–9.9)", "Severe (<8)"]
     wins = [6, 12, 24]
     ramp = ["#8fb6ea", "#4f8fdd", "#1d5fb0"]
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(8.2, 4.2), gridspec_kw={"width_ratios": [0.85, 1.35]})
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(8.6, 4.2), gridspec_kw={"width_ratios": [0.8, 1.5]})
     x = np.arange(len(grades))
     w = 0.26
     for j, win in enumerate(wins):
@@ -652,25 +652,32 @@ def fig_p2_longitudinal():
             ("Persistent vs not anemic", lm_row("Anemic at baseline, persistent (last Hb <12)"), False),
             ("Persistent vs resolved", lm_row("Persistent vs resolved"), False)]
     n = len(rows)
+    ticks, tlabs = [], []
     for i, (lab, r, hdr) in enumerate(rows):
         y = n - i
+        ticks.append(y)
+        tlabs.append(lab)
         if hdr:
-            a2.text(0.30, y, lab, fontsize=8, fontweight="bold", va="center", color=INK, clip_on=False)
             continue
-        a2.text(0.32, y, lab, fontsize=7.5, va="center", color=MUTED, clip_on=False)
         if r is None or pd.isna(r.get("RR", np.nan)):
             a2.text(1.0, y, "  not estimated", va="center", fontsize=6.5, color=MUTED)
             continue
         a2.plot([r["CI low"], r["CI high"]], [y, y], color=SERIES[0], lw=1.8, solid_capstyle="round")
         a2.plot([r["RR"]], [y], "o", color=SERIES[0], ms=5, mec="white", mew=0.8)
-        a2.text(4.6, y, f"{r['RR']:.2f} ({r['CI low']:.2f}–{r['CI high']:.2f})", va="center", fontsize=7, color=INK)
+        a2.text(4.4, y, f"{r['RR']:.2f} ({r['CI low']:.2f}–{r['CI high']:.2f})", va="center", fontsize=7, color=INK)
     a2.axvline(1, color=MUTED, lw=0.8, ls="--")
     a2.set_xscale("log")
-    a2.set_xlim(0.3, 9)
+    a2.set_xlim(0.45, 9)
     a2.set_xticks([0.5, 1, 2, 4])
     a2.get_xaxis().set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
     a2.get_xaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
-    a2.set_yticks([])
+    a2.set_yticks(ticks)
+    a2.set_yticklabels(tlabs, fontsize=7.5)
+    for t, (lab, r, hdr) in zip(a2.get_yticklabels(), rows):
+        if hdr:
+            t.set_fontweight("bold")
+            t.set_color(INK)
+    a2.tick_params(axis="y", length=0)
     a2.set_ylim(0.4, n + 0.6)
     a2.spines["left"].set_visible(False)
     a2.grid(axis="x", color=GRID, lw=0.5)

@@ -12,6 +12,15 @@ from . import (data_prep, excel_out, figures, manuscript, manuscript_p3, master_
 from .utils import OUT_DIR, RESULTS, log
 
 
+def save_state():
+    """Cache all registries so documents and figures can be rebuilt without refitting (python -m analysis.rebuild)."""
+    import pickle
+    from . import utils
+    state = {k: getattr(utils, k) for k in ["RESULTS", "TABLES", "TABLE_NOTES", "LOG", "DIAG", "LINEARITY"]}
+    with open(OUT_DIR / "_state.pkl", "wb") as fh:
+        pickle.dump(state, fh)
+
+
 def main():
     t0 = time.time()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -25,6 +34,7 @@ def main():
     surgery.run(df)
     figures.run()
     xlsx = excel_out.write()
+    save_state()
     log("Run", f"Workbook written: {xlsx.name}; figures: {sum(len(v) for v in RESULTS['figures'].values())} files; "
                f"elapsed {time.time() - t0:.0f} s")
     report.run()

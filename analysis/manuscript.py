@@ -70,7 +70,7 @@ def build():
     def hcr(outcome, model, lv):
         return _hc[(_hc.Outcome == outcome) & (_hc.Model == model) & (_hc.Level == lv)].iloc[0]
 
-    def per(gr, win):
+    def pers_row(gr, win):
         return _pers[(_pers["Baseline grade"] == gr) & (_pers["Window (months)"] == win)].iloc[0]
     TU2A = "Time-updated + pre-Hb conditions (2a)"
     TUT = "Time-updated + 2a + Hb tests in previous year"
@@ -448,12 +448,12 @@ def build():
       f"haemoglobin results (median {_meas['Measurements per woman, median (IQR)']} per woman; "
       f"{_meas['Women with ≥5 measurements']:,} had five or more), spanning a median of "
       f"{_meas['Span of measurements, years, median (IQR)']} years (eTable 14). Among women anaemic at baseline, a "
-      f"repeat haemoglobin within 12 months was available for {per('Mild (10–11.9)', 12)['Repeat Hb %']:.0f}% with "
-      f"mild, {per('Moderate (8–9.9)', 12)['Repeat Hb %']:.0f}% with moderate and "
-      f"{per('Severe (<8)', 12)['Repeat Hb %']:.0f}% with severe anaemia; the last value was still <12 g/dL in "
-      f"{per('Mild (10–11.9)', 12)['Still anemic % (of those with repeat)']:.0f}%, "
-      f"{per('Moderate (8–9.9)', 12)['Still anemic % (of those with repeat)']:.0f}% and "
-      f"{per('Severe (<8)', 12)['Still anemic % (of those with repeat)']:.0f}% respectively (Figure 7A, eFigure 4).")
+      f"repeat haemoglobin within 12 months was available for {pers_row('Mild (10–11.9)', 12)['Repeat Hb %']:.0f}% with "
+      f"mild, {pers_row('Moderate (8–9.9)', 12)['Repeat Hb %']:.0f}% with moderate and "
+      f"{pers_row('Severe (<8)', 12)['Repeat Hb %']:.0f}% with severe anaemia; the last value was still <12 g/dL in "
+      f"{pers_row('Mild (10–11.9)', 12)['Still anemic % (of those with repeat)']:.0f}%, "
+      f"{pers_row('Moderate (8–9.9)', 12)['Still anemic % (of those with repeat)']:.0f}% and "
+      f"{pers_row('Severe (<8)', 12)['Still anemic % (of those with repeat)']:.0f}% respectively (Figure 7A, eFigure 4).")
     P(f"In the time-updated analysis ({_tuc['n']:,} women; {_tuc['py']:,.0f} person-years; {_tuc['ev']} strokes or "
       f"TIAs, {_tuc['ev_isch']} ischaemic; median {_tuc['median_intervals']:.0f} exposure intervals per woman), the "
       f"adjusted rate ratio for current anaemia was {tur(TU2A, 'Mild (10–11.9)')['RR (95% CI)']} for mild, "
@@ -495,8 +495,8 @@ def build():
     checks.append(("Discussion: persistent vs resolved difference imprecise (P ≥ 0.05)",
                    lmr("Persistent vs resolved")["p"] >= 0.05))
     checks.append(("Results: persistence higher with worse grade (mild < moderate < severe still anaemic at 12 mo)",
-                   per("Mild (10–11.9)", 12)["Still anemic % (of those with repeat)"] < per("Moderate (8–9.9)", 12)["Still anemic % (of those with repeat)"]
-                   < per("Severe (<8)", 12)["Still anemic % (of those with repeat)"]))
+                   pers_row("Mild (10–11.9)", 12)["Still anemic % (of those with repeat)"] < pers_row("Moderate (8–9.9)", 12)["Still anemic % (of those with repeat)"]
+                   < pers_row("Severe (<8)", 12)["Still anemic % (of those with repeat)"]))
     checks.append(("Results: tests-before-index 6+ OR > 1; moderate OR still > 1 after tests adjustment",
                    hcr("Any stroke", "2a + Hb tests in 2 y before index", "Hb tests before index: 6+ vs 0")["CI low"] > 1
                    and hcr("Any stroke", "2a + Hb tests in 2 y before index", "Moderate (8–9.9)")["CI low"] > 1))

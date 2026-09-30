@@ -228,6 +228,45 @@ def build():
       "increased vascular risk. Haemoglobin measured at the time of gynaecologic diagnosis may help identify women who "
       "could benefit from further stroke risk assessment.")
     checks.append(("Abstract: moderate & severe ORs exclude 1", gmod["lo"] > 1 and gsev["lo"] > 1))
+    # AAN-format abstract (five headings, ≤300 words in the body, no institution name) for the submission file
+    _t2a = tur(TU2A, "Moderate (8–9.9)")
+    aan = [
+        ("OBJECTIVE", "To assess whether anaemia is associated with stroke in women with benign uterine disease."),
+        ("BACKGROUND", "Anaemia is common in women with uterine fibroids, adenomyosis and endometriosis, primarily "
+                       "because of heavy menstrual bleeding. Whether it is associated with stroke in this population is "
+                       "not well characterized."),
+        ("DESIGN/METHODS", f"We studied {n_el:,} women aged 18–60 years diagnosed with benign uterine disease between "
+                           f"{iy0} and {iy1} at one academic center. Anaemia was defined as haemoglobin (Hb) <12 g/dL "
+                           f"(WHO) and graded as mild (10.0–11.9), moderate (8.0–9.9) or severe (<8.0 g/dL). The "
+                           f"outcome was any stroke (ischaemic, haemorrhagic or cerebral venous thrombosis) or TIA; "
+                           f"ischaemic stroke was analysed separately. Logistic models adjusted for age, race, BMI, "
+                           f"hypertension, diabetes, dyslipidaemia, smoking, migraine, thrombophilia and hormonal "
+                           f"therapy. Stroke rates after Hb measurement were estimated by Poisson regression, including "
+                           f"time-updated anaemia from repeated measurements."),
+        ("RESULTS", f"Of {n_hb:,} women with an Hb value, {n_anaemic:,} ({pct(n_anaemic, n_hb)}) were anaemic. Versus "
+                    f"Hb ≥12 g/dL, adjusted odds of stroke were higher with moderate (OR {sc(gmod['txt'], True)}) and "
+                    f"severe anaemia (OR {sc(gsev['txt'])}), with an OR of {tr['stroke_any']['txt']} per grade; similar "
+                    f"for ischaemic stroke (per grade OR {sc(tr['y_isch']['txt'])}). Below 13 g/dL, each 1 g/dL lower Hb "
+                    f"had an OR of {pg('Cross', 'Any stroke', 'Below')['Estimate (95% CI)']}. During follow-up of "
+                    f"{tc['n']:,} women ({tc['ev']} strokes), moderate anaemia was associated with a higher stroke rate "
+                    f"(rate ratio {sc(tte_mod['Adjusted + pre-Hb conditions (2a) RR'])}). With time-updated anaemia, "
+                    f"the rate ratio was {_t2a['RR (95% CI)']}, and {tur(TUT, 'Moderate (8–9.9)')['RR (95% CI)']} "
+                    f"after adjusting for testing frequency. Associations persisted after excluding women with "
+                    f"haemoglobinopathies or other anaemia-causing conditions."),
+        ("CONCLUSIONS", "In women with benign uterine disease, moderate and, less precisely, severe anaemia were "
+                        "associated with a higher risk of stroke, particularly ischaemic stroke. Anaemia may reflect "
+                        "underlying illness and increased vascular risk. Haemoglobin measured at the time of "
+                        "gynaecologic diagnosis may help identify women who could benefit from further stroke risk "
+                        "assessment."),
+    ]
+    _aan_words = sum(len(t.split()) for _, t in aan)
+    RESULTS["aan_abstract"] = aan
+    RESULTS["aan_words"] = _aan_words
+    checks.append((f"AAN abstract body ≤300 words (now {_aan_words})", _aan_words <= 300))
+    checks.append(("AAN abstract: time-updated and testing-adjusted moderate RR exclude 1; exclusion ORs > 1",
+                   _t2a["CI low"] > 1 and tur(TUT, "Moderate (8–9.9)")["CI low"] > 1
+                   and X.loc["Excluding haemoglobinopathies: Any stroke", "Moderate lo"] > 1
+                   and X.loc["Excluding all anaemia-causing conditions: Any stroke", "Moderate lo"] > 1))
     checks.append(("Abstract: time-updated moderate RR excludes 1", tur(TU2A, "Moderate (8–9.9)")["CI low"] > 1))
     checks.append(("Abstract/Discussion: persistent RR > resolved RR", lmr(LM_PER)["RR"] > lmr(LM_RES)["RR"]))
     checks.append(("Abstract: TTE moderate RR excludes 1", tte_mod["CI low"] > 1))
@@ -887,19 +926,19 @@ def to_markdown(B):
 
 
 FOCUS_FIGS = ["fig7_p2_anaemia_gradient.png", "fig14_p2_hb_curves.png", "fig13_p2_per_hb.png",
-              "fig11_p2_extended.png", "fig15_p2_anaemia_pattern.png"]
+              "fig11_p2_extended.png", "fig18_p2_longitudinal.png", "fig15_p2_anaemia_pattern.png"]
 
 
 def short_version(B):
     """Title + abstract + Tables 1-3 + four key figures (no flow diagram), figures renumbered 1-4."""
     import re
     out = [b for b in B if b["t"] == "title"]
-    i = next(k for k, b in enumerate(B) if b["t"] == "h1" and b["text"] == "Abstract")
-    out.append(B[i])
-    for b in B[i + 1:]:
-        if b["t"] in ("h1", "pagebreak"):
-            break
-        out.append(b)
+    out.append({"t": "note", "text": f"AAN 2027 abstract format: body {RESULTS['aan_words']} words (limit 300, "
+                                     "headings excluded). Author names and affiliations are entered in the "
+                                     "submission system."})
+    out.append({"t": "h1", "text": "Abstract"})
+    for head, text in RESULTS["aan_abstract"]:
+        out.append({"t": "p", "text": f"**{head}:** {text}"})
     out.append({"t": "pagebreak"})
     out.append({"t": "h1", "text": "Tables"})
     tabs = [b for b in B if b["t"] == "table" and re.match(r"Table [123]\.", b["title"])]
@@ -937,7 +976,7 @@ def run():
     log("Manuscript", f"docx build: {'ok' if r.returncode == 0 else r.stderr[-500:]}")
     if r.returncode != 0:
         print(r.stderr)
-    S = short_version(B)
+    S = _us(short_version(B))
     (OUT_DIR / "anaemia_abstract_tables_figures.json").write_text(json.dumps(S, ensure_ascii=False), encoding="utf-8")
     (OUT_DIR / "anaemia_abstract_tables_figures.md").write_text(to_markdown(S), encoding="utf-8")
     r = subprocess.run(["node", "analysis/build_docx.js", str(OUT_DIR / "anaemia_abstract_tables_figures.json"),

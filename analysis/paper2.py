@@ -27,6 +27,11 @@ COV = [
     Term("migraine_any", "bin", label="Migraine (any type)"),
     Term("thrombophilia", "bin", label="Thrombophilia"),
     Term("hormonal_type_cat", "cat", ref="None", label="Hormonal therapy type"),
+]
+# Uterine bleeding and diagnosis group lie on the pathway from the uterine condition to anaemia, so adjusting for
+# them can remove part of the effect of interest (reviewer comment, 2026-09-30). They are no longer in the primary
+# model; the original model that included them is kept as a sensitivity analysis (UTERINE_TERMS).
+UTERINE_TERMS = [
     Term("uterine_bleeding", "bin", label="Heavy/abnormal uterine bleeding"),
     Term("dxgrp", "cat", ref="Fibroids only",
          levels=["Fibroids only", "Adenomyosis only", "Endometriosis only", ">1 condition"],
@@ -106,9 +111,8 @@ def run(elig):
         return cov_for(d if data is None else data, o, extra, tag)
 
     # Pre-specified fallback when an adjusted model has EPV < 10: reduced
-    # covariate set (age, race, BMI, HTN, DM, dyslipidaemia, smoking,
-    # uterine bleeding, uterine dx group).
-    REDUCED = ["age_index", "race4", "bmi", "htn", "dm", "dyslipidemia", "smoking3", "uterine_bleeding", "dxgrp"]
+    # covariate set (age, race, BMI, HTN, DM, dyslipidaemia, smoking).
+    REDUCED = ["age_index", "race4", "bmi", "htn", "dm", "dyslipidemia", "smoking3"]
 
     # -------------------------------------------------- descriptive (crude prevalence by exposure)
     desc = []

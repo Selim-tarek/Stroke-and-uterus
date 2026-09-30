@@ -234,6 +234,11 @@ def run(elig):
     for o, lab in [("stroke_any", "Any stroke"), ("y_isch", "Ischaemic stroke"), ("y_incident", "Incident stroke")]:
         fit_pair(d, o, base_terms(o) + ext_b, f"2b Over-adjustment check (+ undated/post-stroke): {lab}",
                  "2. Extended adjustment")
+    # original primary model (with uterine bleeding and diagnosis group) as a sensitivity analysis
+    from .paper2 import UTERINE_TERMS
+    for o, lab in [("stroke_any", "Any stroke"), ("y_isch", "Ischaemic stroke")]:
+        fit_pair(d, o, base_terms(o) + UTERINE_TERMS, f"+ uterine bleeding and diagnosis group: {lab}",
+                 "2. Extended adjustment")
     # temporality + extended together (strictest defensible)
     for o, lab in [("stroke_any", "Any stroke"), ("y_isch", "Ischaemic stroke")]:
         dd = d.copy()

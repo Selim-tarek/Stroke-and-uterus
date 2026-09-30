@@ -78,6 +78,7 @@ def build():
     LM_NEW = "Not anemic at baseline, Hb <12 within window (new anemia)"
     LM_RES = "Anemic at baseline, resolved (last Hb ≥12)"
     LM_PER = "Anemic at baseline, persistent (last Hb <12)"
+    _ty = R["p4_type"].set_index("Group").loc["All"]
     _pa0 = R["p2x_pattern"]
     _pt0 = R["p2x_pattern_tte"]
 
@@ -194,10 +195,12 @@ def build():
       "of heavy menstrual bleeding. Whether anaemia is associated with stroke in this population is not well "
       "characterised.")
     P(f"**Methods.** We studied {n_el:,} women aged 18–60 years diagnosed with benign uterine disease between {iy0} "
-      f"and {iy1} at Mayo Clinic, using electronic health records. Haemoglobin (Hb) closest to diagnosis was graded by "
-      f"World Health Organization thresholds. Associations with stroke (including transient ischaemic attack) and "
-      f"ischaemic stroke were estimated by logistic regression adjusted for vascular risk factors, migraine, hormonal "
-      f"therapy, uterine bleeding and diagnosis group. Stroke rates after the Hb measurement were estimated by Poisson "
+      f"and {iy1} at Mayo Clinic, using electronic health records. Anaemia was defined as haemoglobin (Hb) <12 g/dL "
+      f"(World Health Organization) and graded as mild (10.0–11.9), moderate (8.0–9.9) or severe (<8.0 g/dL); women "
+      f"with Hb ≥12 g/dL were the reference. The outcome was any stroke (ischaemic, intracerebral or subarachnoid "
+      f"haemorrhage, or cerebral venous thrombosis) or transient ischaemic attack (TIA); ischaemic stroke was analysed "
+      f"separately. Associations were estimated by logistic regression adjusted for age, race, BMI, hypertension, "
+      f"diabetes, dyslipidaemia, smoking, migraine, thrombophilia and hormonal therapy. Stroke rates after the Hb measurement were estimated by Poisson "
       f"regression, with further adjustment for conditions that cause anaemia. Repeated haemoglobin measurements were "
       f"used to model anaemia as a time-updated exposure and to compare persistent with resolved anaemia.")
     P(f"**Results.** Of {n_hb:,} women with an Hb value, {n_anaemic:,} ({pct(n_anaemic, n_hb)}) were anaemic. "
@@ -267,24 +270,33 @@ def build():
       f"(Figure 1). The study was approved by [institutional review board, approval number] with a waiver of informed "
       f"consent. It is reported according to the STROBE guideline.")
     H2("Exposure")
-    P("The exposure was the Hb value closest to the index date within ±3 years. Anaemia was graded using World Health "
-      "Organization thresholds for non-pregnant women: none (≥12 g/dL), mild (10–11.9 g/dL), moderate (8–9.9 g/dL) "
-      "and severe (<8 g/dL). Mean corpuscular volume (MCV), taken from the dated laboratory result nearest to the Hb "
+    P("The exposure was the Hb value closest to the index date within ±3 years. Anaemia was defined by the World "
+      "Health Organization threshold for non-pregnant women (Hb <12 g/dL), so women with Hb ≥12 g/dL formed the "
+      "reference group. Severity was graded following the Common Terminology Criteria for Adverse Events (CTCAE) "
+      "as mild (10.0–11.9 g/dL), moderate (8.0–9.9 g/dL) and severe (<8.0 g/dL); these bands differ from the WHO "
+      "severity bands (mild 11.0–11.9, moderate 8.0–10.9 g/dL). Mean corpuscular volume (MCV), taken from the dated laboratory result nearest to the Hb "
       "measurement (within 30 days), classified anaemia as microcytic (<80 fL), normocytic (80–100 fL) or macrocytic "
       "(>100 fL). Laboratory anaemia patterns combined MCV with red-cell distribution width (RDW-CV, high >14.5%) "
       "from the same record: microcytic with high RDW (iron-deficiency pattern), microcytic with normal RDW "
       "(thalassaemia-trait pattern), normocytic with normal or high RDW, and macrocytic. Platelet count (<150, 150–400, >400 ×10³/µL) and ferritin "
       "(iron deficiency, <30 ng/mL) were secondary exposures.")
     H2("Outcomes")
-    P("The primary outcome was stroke or TIA, identified from diagnosis and problem-list codes at any date, supplemented "
-      "by adjudicated brain-imaging reports. Secondary outcomes were ischaemic stroke (compared with women without "
+    P(f"The primary outcome was any stroke or TIA, identified from diagnosis and problem-list codes at any date, "
+      f"supplemented by adjudicated brain-imaging reports. It comprised ischaemic stroke, TIA, intracerebral "
+      f"haemorrhage, subarachnoid haemorrhage, cerebral venous thrombosis and stroke of unknown type "
+      f"({_ty['Ischemic stroke'].split(' ')[0]}, {_ty['TIA'].split(' ')[0]}, {_ty['Intracerebral hemorrhage'].split(' ')[0]}, "
+      f"{_ty['Subarachnoid hemorrhage'].split(' ')[0]}, {_ty['Cerebral venous thrombosis'].split(' ')[0]} and "
+      f"{_ty['Unknown type'].split(' ')[0]} women, respectively). "
+      f"Secondary outcomes were ischaemic stroke (compared with women without "
       "stroke), individual stroke subtypes, and incident stroke (dated after the index date). Code-based exclusions "
       "(unruptured aneurysm, carotid stenosis without infarction, migraine aura without infarction, chronic "
       "small-vessel change and similar) are detailed in the Supplement.")
     H2("Covariates")
     P("Pre-specified covariates were age, race, body mass index (BMI), hypertension, diabetes, dyslipidaemia, smoking "
-      "(never, ever, unknown), migraine, thrombophilia, hormonal therapy type, heavy or abnormal uterine bleeding and "
-      "uterine diagnosis group. Additional conditions were identified from dated diagnosis extracts: haemoglobinopathies "
+      "(never, ever, unknown), migraine, thrombophilia and hormonal therapy type. Heavy or abnormal uterine bleeding and "
+      "uterine diagnosis group were not included in the primary model because they lie on the pathway from the "
+      "uterine condition to anaemia and could adjust away part of the association; a sensitivity analysis added them. "
+      "Additional conditions were identified from dated diagnosis extracts: haemoglobinopathies "
       "(sickle cell disease or trait, thalassaemia, other haemoglobinopathies and hereditary haemolytic anaemias, at "
       "any date), chronic kidney disease (including dialysis and transplantation), chronic liver disease, alcohol use "
       "disorder, malabsorption (coeliac disease, bariatric surgery), inflammatory bowel disease and HIV, each counted "
@@ -706,8 +718,7 @@ def build():
     TABLE("Table 2. Anaemia grade and stroke: cross-sectional odds ratios and rate ratios after the Hb measurement",
           pd.DataFrame(rows),
           f"OR: logistic regression with HC1 robust SEs, adjusted for age, race, BMI, hypertension, diabetes, "
-          f"dyslipidaemia, smoking, migraine, thrombophilia, hormonal therapy type, uterine bleeding and uterine "
-          f"diagnosis group (any stroke n = {fa.n:,}, {fa.events:,} events; ischaemic stroke vs no stroke n = "
+          f"dyslipidaemia, smoking, migraine, thrombophilia and hormonal therapy type (any stroke n = {fa.n:,}, {fa.events:,} events; ischaemic stroke vs no stroke n = "
           f"{fi.n:,}, {fi.events:,} events). RR: Poisson regression in the time-to-event cohort (n = {tc['n']:,}; "
           f"{tc['py']:,.0f} person-years; {tc['ev']} strokes), with the same covariates plus conditions documented "
           f"before the Hb (haemoglobinopathy, CKD, chronic liver disease, alcohol use disorder, GI bleeding, "
@@ -718,7 +729,8 @@ def build():
            "Hb ≥30 d before stroke: Any stroke", "Hb ≥30 d before stroke: Ischaemic stroke",
            "Excluding Hb within 30 d of stroke: Any stroke", "2a Pre-Hb conditions: Any stroke",
            "2a Pre-Hb conditions: Ischaemic stroke", "2b Over-adjustment check (+ undated/post-stroke): Any stroke",
-           "Hb ≥30 d before stroke + 2a: Any stroke", "Excluding haemoglobinopathies: Any stroke",
+           "Hb ≥30 d before stroke + 2a: Any stroke", "+ uterine bleeding and diagnosis group: Any stroke",
+           "Excluding haemoglobinopathies: Any stroke",
            "Excluding deaths within 1 y of Hb (+2a): Any stroke",
            "Excluding cancer, heart failure, CKD, liver disease, HIV (+2a): Any stroke",
            "Excluding all anaemia-causing conditions: Any stroke",

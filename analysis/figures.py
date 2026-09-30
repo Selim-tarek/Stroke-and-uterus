@@ -353,6 +353,7 @@ P2X_SHORT = {
     "Excluding Hb within 30 d of stroke: Any stroke": "Excluding Hb within 30 d of stroke",
     "Primary: Incident stroke": "Incident strokes only",
     "2a Pre-Hb conditions: Any stroke": "+ conditions documented before Hb (2a)",
+    "+ uterine bleeding and diagnosis group: Any stroke": "+ uterine bleeding and diagnosis group",
     "2b Over-adjustment check (+ undated/post-stroke): Any stroke": "+ undated / post-stroke factors (2b)",
     "Hb ≥30 d before stroke + 2a: Any stroke": "Hb before stroke + 2a",
     "Excluding haemoglobinopathies: Any stroke": "Excluding haemoglobinopathies",

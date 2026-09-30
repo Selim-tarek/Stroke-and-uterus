@@ -556,6 +556,57 @@ def fig_p3_age_strata():
     return save(fig, "fig16_p3_age_strata")
 
 
+def fig_p4_incidence():
+    """Stroke after diagnosis by uterine group: crude rates (A) and adjusted rate ratios vs fibroids only (B)."""
+    rt, md = RESULTS["p4_rates"], RESULTS["p4_models"]
+    groups = ["Fibroids only", "Adenomyosis only", "Endometriosis only", ">1 condition"]
+    outs = [("Stroke or TIA", SERIES[0]), ("Ischemic stroke", SERIES[1])]
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(7.8, 3.8), gridspec_kw={"width_ratios": [1, 1.2]})
+    w = 0.36
+    x = np.arange(len(groups))
+    for j, (oc, col) in enumerate(outs):
+        r = rt[rt.Outcome == oc].set_index("Group").loc[groups]
+        pos = x + (j - 0.5) * w
+        a1.bar(pos, r.Rate, width=w, color=col, label=oc, edgecolor="white", linewidth=1)
+        a1.errorbar(pos, r.Rate, yerr=[r.Rate - r["Rate low"], r["Rate high"] - r.Rate], fmt="none", ecolor=INK,
+                    capsize=2.5, lw=0.8)
+    a1.set_xticks(x)
+    a1.set_xticklabels(["Fibroids\nonly", "Adenomyosis\nonly", "Endometriosis\nonly", ">1\ncondition"], fontsize=8)
+    a1.set_ylabel("Events per 1,000 person-years (95% CI)")
+    a1.grid(axis="y", color=GRID, lw=0.5)
+    a1.set_axisbelow(True)
+    a1.set_title("A  Crude rate after diagnosis", fontsize=9, loc="left", color=INK)
+    rows = [("M2 + cardiometabolic", "Adjusted"), ("M3 + migraine", "+ migraine")]
+    ylab = []
+    yy = 0
+    for g in groups[1:][::-1]:
+        for mname, mlab in rows[::-1]:
+            yy += 1
+            ylab.append((yy, f"{g} · {mlab}"))
+            for j, (oc, col) in enumerate(outs):
+                r = md[(md.Outcome == oc) & (md.Model == mname) & (md["Group vs fibroids only"] == g)].iloc[0]
+                off = 0.15 - 0.3 * j
+                if pd.isna(r.get("RR", np.nan)):
+                    continue
+                a2.plot([r["CI low"], r["CI high"]], [yy + off] * 2, color=col, lw=1.8, solid_capstyle="round")
+                a2.plot([r["RR"]], [yy + off], "o", color=col, ms=5, mec="white", mew=0.8)
+        yy += 0.5
+    a2.axvline(1, color=MUTED, lw=0.8, ls="--")
+    a2.set_xscale("log")
+    a2.set_xticks([0.5, 1, 2, 3])
+    a2.get_xaxis().set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
+    a2.get_xaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
+    a2.set_yticks([y for y, _ in ylab])
+    a2.set_yticklabels([l for _, l in ylab], fontsize=7.5)
+    a2.grid(axis="x", color=GRID, lw=0.5)
+    a2.set_xlabel("Rate ratio vs fibroids only (log scale)")
+    a2.set_title("B  Adjusted rate ratio", fontsize=9, loc="left", color=INK)
+    h, l = a1.get_legend_handles_labels()
+    fig.legend(h, l, frameon=False, loc="lower center", ncol=2, fontsize=8, bbox_to_anchor=(0.5, -0.03))
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
+    return save(fig, "fig17_p4_incidence")
+
+
 def fig_p2_flow():
     """Participant flow for the anaemia manuscript."""
     f = RESULTS["flow"]
@@ -598,6 +649,7 @@ def run():
     out["p3_prev"] = fig_p3_migraine_prev()
     out["p3_age"] = fig_p3_migraine_age()
     out["p3_age_strata"] = fig_p3_age_strata()
+    out["p4_incidence"] = fig_p4_incidence()
     out["p2x"] = fig_p2x()
     out["p2_flow"] = fig_p2_flow()
     out["p2_per_hb"] = fig_p2_per_hb()

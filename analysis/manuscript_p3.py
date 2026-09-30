@@ -10,13 +10,13 @@ import subprocess
 import pandas as pd
 
 from .manuscript import _us, to_markdown
-from .utils import OUT_DIR, RESULTS, TABLES, log
+from .utils import OUT_DIR, RESULTS, TABLES, fmt_p, log
 
 GROUPS = ["Fibroids only", "Adenomyosis only", "Endometriosis only", ">1 condition"]
 CARDIO = ["Hypertension", "Diabetes", "Dyslipidaemia", "Obesity (BMI ≥30)", "Atrial fibrillation",
           "Coronary artery disease"]
 FIGS = [("fig9_p3_migraine_prevalence.png", 5.6), ("fig5_forest_paper3.png", 6.3), ("fig16_p3_age_strata.png", 6.5),
-        ("fig10_p3_migraine_by_age.png", 5.8)]
+        ("fig10_p3_migraine_by_age.png", 5.8), ("fig17_p4_incidence.png", 6.5)]
 
 
 def build():
@@ -48,6 +48,12 @@ def build():
         t = str(t)
         return f"P{t}" if t.startswith("<") else f"P={t}"
 
+    pc, pm = R["p4_cohort"], R["p4_models"]
+    pmig = R["p4_mig_event"].set_index("Event type")
+
+    def q4(oc, model, g):
+        return pm[(pm.Outcome == oc) & (pm.Model == model) & (pm["Group vs fibroids only"] == g)].iloc[0]
+
     def sc(txt, first=False):
         mm = re.match(r"\s*([\d.]+) \(([\d.]+–[\d.]+)\)", str(txt))
         return f"{mm.group(1)}; {'95% CI ' if first else ''}{mm.group(2)}" if mm else str(txt)
@@ -75,12 +81,12 @@ def build():
     BR = lambda: B.append({"t": "pagebreak"})  # noqa: E731
 
     # ------------------------------------------------------------------ title page
-    B.append({"t": "title", "text": "Migraine and cardiometabolic risk profiles in women with uterine fibroids, "
-                                    "adenomyosis and endometriosis: a cross-sectional study"})
+    B.append({"t": "title", "text": "Migraine, cardiometabolic risk profiles and stroke in women with uterine "
+                                    "fibroids, adenomyosis and endometriosis"})
     P("Running title: Migraine and vascular risk in benign uterine disease")
     P("Authors: [Author names, degrees, affiliations]")
     P("Corresponding author: [name, address, email]")
-    P("Word count (main text): [to be completed]; Tables: 3; Figures: 4; Supplementary material: eTables 1–5")
+    P("Word count (main text): [to be completed]; Tables: 3; Figures: 5; Supplementary material: eTables 1–7")
     P("Keywords: migraine; endometriosis; adenomyosis; uterine fibroids; hypertension; cardiovascular risk; women")
     B.append({"t": "note", "text": "DRAFT generated from the analysis pipeline (python -m analysis.run_all). All numbers "
                                    "are produced by code in the same run. [ref] marks statements that need a citation."})
@@ -96,7 +102,8 @@ def build():
       f"{iy1} at Mayo Clinic, grouped as fibroids only, adenomyosis only, endometriosis only or more than one "
       f"condition. Ten vascular risk factors, including migraine, were compared with fibroids only by logistic "
       f"regression adjusted for age, race and body mass index, with Benjamini–Hochberg correction for 30 comparisons. "
-      f"Prevalences were directly age-standardized.")
+      f"Prevalences were directly age-standardized. Stroke or transient ischemic attack (TIA) after diagnosis was "
+      f"compared by Poisson regression.")
     P(f"**Results.** The cohort included {gn['Fibroids only']:,} women with fibroids only, {gn[aden]:,} with "
       f"adenomyosis only, {gn[endo]:,} with endometriosis only and {gn[multi]:,} with more than one condition. "
       f"Age-standardized migraine prevalence was {pstd(mig, 'Fibroids only')} with fibroids only, "
@@ -109,11 +116,25 @@ def build():
       f"These differences were concentrated in women aged 18–39 years (hypertension OR "
       f"{sc(sx('Hypertension', '18–39', endo)['OR (95% CI)'])}) and were close to null at 40–60 years (OR "
       f"{sc(sx('Hypertension', '40–60', endo)['OR (95% CI)'])}). Adenomyosis only was associated with more "
-      f"dyslipidemia (OR {sc(orx('Dyslipidaemia', aden))}) and thrombophilia (OR {sc(orx('Thrombophilia', aden))}).")
+      f"dyslipidemia (OR {sc(orx('Dyslipidaemia', aden))}) and thrombophilia (OR {sc(orx('Thrombophilia', aden))}). "
+      f"During {pc['py']:,.0f} person-years of follow-up ({pc['ev']} strokes or TIAs), adjusted stroke rates did not "
+      f"differ between endometriosis and fibroids (rate ratio {sc(q4('Stroke or TIA', 'M2 + cardiometabolic', endo)['RR (95% CI)'])}). "
+      f"The higher rate with adenomyosis (rate ratio {sc(q4('Stroke or TIA', 'M2 + cardiometabolic', aden)['RR (95% CI)'])}; "
+      f"{int(q4('Stroke or TIA', 'M2 + cardiometabolic', aden)['Events in group'])} events) was not significant for "
+      f"ischemic stroke, and women with TIA more often had migraine than women with ischemic stroke "
+      f"({pmig.loc['TIA', 'Migraine %']:.0f}% vs {pmig.loc['Ischemic stroke', 'Migraine %']:.0f}%).")
     P("**Conclusions.** Women with adenomyosis or endometriosis had a higher migraine burden than women with fibroids, "
       "whereas cardiometabolic risk factors were less common in young women with endometriosis. Vascular risk "
       "assessment in benign uterine disease may need to account for migraine as well as conventional risk factors, "
-      "particularly in adenomyosis and endometriosis.")
+      "particularly in adenomyosis and endometriosis. Stroke rates after diagnosis were similar across conditions; "
+      "the excess of TIA diagnoses in adenomyosis may partly reflect migraine.")
+    checks.append(("Abstract: endometriosis stroke RR CI includes 1; adenomyosis RR > 1; adenomyosis ischemic CI includes 1; "
+                   "TIA migraine % > ischemic, P<0.05",
+                   q4("Stroke or TIA", "M2 + cardiometabolic", endo)["CI low"] < 1 < q4("Stroke or TIA", "M2 + cardiometabolic", endo)["CI high"]
+                   and q4("Stroke or TIA", "M2 + cardiometabolic", aden)["CI low"] > 1
+                   and q4("Ischemic stroke", "M2 + cardiometabolic", aden)["CI low"] < 1
+                   and pmig.loc["TIA", "Migraine %"] > pmig.loc["Ischemic stroke", "Migraine %"]
+                   and R["p4_mig_event_p"] < 0.05))
     checks.append(("Abstract: migraine ORs exclude 1 in all three groups",
                    all(m(mig, g)["CI low"] > 1 for g in [aden, endo, multi])))
     checks.append(("Abstract: endometriosis lower HTN/DM/dyslipidemia/CAD",
@@ -172,7 +193,17 @@ def build():
       f"(n = {R['p3_excl_prior_n']:,}), because a stroke may prompt risk-factor testing. For migraine, models were "
       f"further adjusted for hormonal therapy and heavy or abnormal uterine bleeding, and repeated in women without "
       f"hormonal therapy and in women without heavy bleeding, because both are linked to the uterine conditions and "
-      f"to headache. Analyses used Python (pandas, statsmodels).")
+      f"to headache.")
+    H2("Stroke after diagnosis")
+    P(f"Women without a stroke or TIA before or at the index date were followed from the index date to the first of "
+      f"stroke or TIA, death or last recorded encounter. Women with an undatable stroke (n = {pc['n_unknown']:,}) or "
+      f"no follow-up time (n = {pc['n_zero']:,}) were excluded. Crude rates were calculated with exact Poisson "
+      f"confidence intervals. Rate ratios versus fibroids only were estimated by Poisson regression with a log "
+      f"person-time offset and robust standard errors, adjusted for age and race, then additionally for BMI, "
+      f"hypertension, diabetes, dyslipidemia, smoking, atrial fibrillation and coronary artery disease (primary), then "
+      f"for migraine, and finally for hormonal therapy and uterine bleeding. Outcomes were stroke or TIA (primary), "
+      f"ischemic stroke, and stroke excluding TIA. Because migraine can mimic TIA, migraine prevalence was compared "
+      f"between women with TIA and with ischemic stroke. Analyses used Python (pandas, statsmodels).")
 
     # ------------------------------------------------------------------ results
     H1("Results")
@@ -254,6 +285,39 @@ def build():
     changed = [r for _, r in inc.iterrows()]
     P(f"Excluding the {R['p3_excl_prior_n']:,} women with a stroke before or at the index date gave similar "
       f"estimates (eTable 5).")
+    H2("Stroke after diagnosis")
+    rt = R["p4_rates"]
+
+    def rate(oc, g):
+        return rt[(rt.Outcome == oc) & (rt.Group == g)].iloc[0]
+    M2n, M3n = "M2 + cardiometabolic", "M3 + migraine"
+    P(f"{pc['n']:,} women were followed for {pc['py']:,.0f} person-years (median {pc['fu_median']:.1f} years), with "
+      f"{pc['ev']} strokes or TIAs ({pc['ev_isch']} ischemic strokes). Crude rates per 1,000 person-years were "
+      f"{rate('Stroke or TIA', 'Fibroids only')['Rate /1,000 PY (95% CI)']} with fibroids only, "
+      f"{rate('Stroke or TIA', aden)['Rate /1,000 PY (95% CI)']} with adenomyosis only, "
+      f"{rate('Stroke or TIA', endo)['Rate /1,000 PY (95% CI)']} with endometriosis only and "
+      f"{rate('Stroke or TIA', multi)['Rate /1,000 PY (95% CI)']} with more than one condition (Figure 5). After "
+      f"adjustment for age, race and cardiometabolic factors, the rate ratio versus fibroids only was "
+      f"{q4('Stroke or TIA', M2n, endo)['RR (95% CI)']} for endometriosis only, "
+      f"{q4('Stroke or TIA', M2n, aden)['RR (95% CI)']} for adenomyosis only "
+      f"({int(q4('Stroke or TIA', M2n, aden)['Events in group'])} events) and "
+      f"{q4('Stroke or TIA', M2n, multi)['RR (95% CI)']} for more than one condition. Further adjustment for migraine "
+      f"gave {q4('Stroke or TIA', M3n, endo)['RR (95% CI)']}, {q4('Stroke or TIA', M3n, aden)['RR (95% CI)']} and "
+      f"{q4('Stroke or TIA', M3n, multi)['RR (95% CI)']}. For ischemic stroke the adjusted rate ratios were "
+      f"{q4('Ischemic stroke', M2n, endo)['RR (95% CI)']}, {q4('Ischemic stroke', M2n, aden)['RR (95% CI)']} and "
+      f"{q4('Ischemic stroke', M2n, multi)['RR (95% CI)']}, and for stroke excluding TIA "
+      f"{q4('Stroke excluding TIA', M2n, endo)['RR (95% CI)']}, {q4('Stroke excluding TIA', M2n, aden)['RR (95% CI)']} "
+      f"and {q4('Stroke excluding TIA', M2n, multi)['RR (95% CI)']} (eTable 6).")
+    ty = R["p4_type"].set_index("Group")
+    P(f"TIA accounted for {ty.loc[aden, 'TIA']} of all strokes or TIAs in women with adenomyosis only and "
+      f"{ty.loc[endo, 'TIA']} with endometriosis only, compared with {ty.loc['Fibroids only', 'TIA']} with fibroids "
+      f"only. Migraine was recorded in {pmig.loc['TIA', 'Migraine %']:.1f}% of women with TIA and "
+      f"{pmig.loc['Ischemic stroke', 'Migraine %']:.1f}% of women with ischemic stroke "
+      f"({P_(fmt_p(R['p4_mig_event_p']))}; eTable 7).")
+    checks.append(("Results: >1 condition stroke/TIA RR > 1 at M2 and CI includes 1 after migraine",
+                   q4("Stroke or TIA", M2n, multi)["CI low"] > 1 and q4("Stroke or TIA", M3n, multi)["CI low"] < 1))
+    checks.append(("Results: adenomyosis stroke/TIA CI includes 1 after migraine",
+                   q4("Stroke or TIA", M3n, aden)["CI low"] < 1))
 
     # ------------------------------------------------------------------ discussion
     H1("Discussion")
@@ -274,6 +338,14 @@ def build():
       "these differences may not persist. Prospective studies linking endometriosis with later cardiovascular "
       "disease [ref] should therefore be interpreted alongside the migraine burden, which is itself associated with "
       "stroke in women [ref].")
+    P("Despite these different risk-factor profiles, stroke rates after diagnosis did not differ between "
+      "endometriosis and fibroids once age and cardiometabolic factors were accounted for. The lower crude rate with "
+      "endometriosis reflected younger age. The higher rate of stroke or TIA with adenomyosis was based on few events, "
+      "was not significant for ischemic stroke, and was attenuated after adjustment for migraine. TIA made up a larger "
+      "share of events in adenomyosis and endometriosis, and women with TIA more often had migraine than women with "
+      "ischemic stroke. Migraine with aura is a recognized TIA mimic [ref], so some TIA diagnoses in these women may "
+      "represent migraine rather than cerebral ischemia. Studies of stroke in endometriosis and adenomyosis that "
+      "include TIA should consider this source of misclassification.")
     H2("Strengths and limitations")
     P("Strengths include the large cohort, comparison between conditions within one health system, age "
       "standardization, pre-specified models and correction for multiple comparisons.")
@@ -282,11 +354,15 @@ def build():
       f"not adjudicated. Smoking status was unknown for most women (known for {R['p3_smoking_known']:,}), and BMI was "
       f"missing for some. Migraine may be under-recorded, and ascertainment may differ between conditions because of "
       f"different care pathways. The groups were defined by recorded diagnoses, and some women with fibroids may have "
-      f"undiagnosed endometriosis or adenomyosis. The results come from a single tertiary center.")
+      f"undiagnosed endometriosis or adenomyosis. Follow-up for stroke was short (median {pc['fu_median']:.1f} "
+      f"years), events in the adenomyosis group were few, and TIA diagnoses were not adjudicated. Migraine was recorded at "
+      f"any time, so its order relative to stroke is not established. The results come from a single tertiary center.")
     H2("Conclusions")
     P("Among women with benign uterine disease, adenomyosis and endometriosis were associated with more migraine and, "
       "in younger women with endometriosis, with fewer cardiometabolic risk factors than fibroids. Migraine should be "
-      "considered alongside conventional risk factors when assessing vascular risk in these women.")
+      "considered alongside conventional risk factors when assessing vascular risk in these women. Stroke rates after "
+      "diagnosis were similar across conditions, and TIA diagnoses in women with migraine should be interpreted "
+      "with care.")
     H2("Acknowledgements, funding, disclosures")
     P("[To be completed by the authors.]")
     BR()
@@ -335,6 +411,9 @@ def build():
         "Figure 3. Adjusted odds ratios by age group (18–39 vs 40–60 years). (A) Endometriosis only and (B) adenomyosis "
         "only, each vs fibroids only.",
         "Figure 4. Adjusted odds ratios for migraine vs fibroids only, overall and by age group.",
+        "Figure 5. Stroke or TIA and ischemic stroke after diagnosis by uterine diagnosis group. (A) Crude rates per "
+        "1,000 person-years (exact 95% CI). (B) Rate ratios vs fibroids only, adjusted for age, race and cardiometabolic "
+        "factors, and additionally for migraine.",
     ]
     for (fn, w), cap in zip(FIGS, caps):
         FIG(fn, cap, w)
@@ -357,6 +436,13 @@ def build():
         ("eTable 5. Excluding women with stroke before or at the index date",
          inc[["Outcome", "Group vs fibroids only", "Primary M2 OR", "Excluding stroke before/at index", "N", "Events"]],
          ""),
+        ("eTable 6. Stroke after diagnosis: rate ratios vs fibroids only by model and outcome",
+         pm[["Outcome", "Model", "Group vs fibroids only", "Events in group", "RR (95% CI)", "p (text)", "N", "Events"]]
+         .rename(columns={"p (text)": "P"}),
+         "M1: age, race. M2: + BMI, hypertension, diabetes, dyslipidemia, smoking, atrial fibrillation, coronary artery "
+         "disease. M3: + migraine. M4: + hormonal therapy, heavy/abnormal bleeding."),
+        ("eTable 7. Stroke type by group, and migraine among women with TIA vs ischemic stroke",
+         pd.concat([R["p4_type"], R["p4_mig_event"].rename(columns={"Event type": "Group"})], ignore_index=True), ""),
     ]
     for title, df, note in sup:
         TABLE(title, df.fillna(""), note, font=7)

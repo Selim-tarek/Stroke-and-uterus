@@ -210,4 +210,18 @@ def run(elig):
     add_table("P4_field_completeness", pd.DataFrame(comp), "Completeness of stroke detail fields among strokes/TIA in "
                                                            "eligible women (unknown codes counted as missing).")
     RESULTS["p4_comp"] = pd.DataFrame(comp)
+    # migraine among TIA vs ischemic stroke (possible migraine mimics)
+    mt = []
+    for k, lab in [(1, "Ischemic stroke"), (4, "TIA"), (None, "Other/unknown type")]:
+        x = s[s.stroke_type == k] if k is not None else s[~s.stroke_type.isin([1, 4])]
+        mt.append({"Event type": lab, "Events": len(x), "With migraine": int(x.migraine_any.sum()),
+                   "Migraine %": round(100 * x.migraine_any.mean(), 1)})
+    a_, b_ = s[s.stroke_type == 4].migraine_any, s[s.stroke_type == 1].migraine_any
+    tab = [[int(a_.sum()), int(len(a_) - a_.sum())], [int(b_.sum()), int(len(b_) - b_.sum())]]
+    p_mt = float(stats.chi2_contingency(tab)[1])
+    mt = pd.DataFrame(mt)
+    add_table("P4_migraine_by_event", mt, f"Migraine among women with TIA vs ischemic stroke (all strokes/TIA in "
+                                          f"eligible women); chi-square P = {fmt_p(p_mt)} (TIA vs ischemic).")
+    RESULTS["p4_mig_event"] = mt
+    RESULTS["p4_mig_event_p"] = p_mt
     return f

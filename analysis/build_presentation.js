@@ -45,7 +45,7 @@ function footer(slide, text) {
   s.addShape(pres.shapes.OVAL, { x: 10.9, y: 3.9, w: 3.2, h: 3.2, fill: { color: C.crimson, transparency: 60 }, line: { color: C.crimson, transparency: 60 } });
   s.addText("Beyond heavy periods", { x: M, y: 1.7, w: 9, h: 0.6, fontFace: BF, fontSize: 20, color: "E8B9C0",
     italic: true, margin: 0, isTextBox: true });
-  s.addText("Anemia and stroke risk in women with fibroids, adenomyosis and endometriosis",
+  s.addText("Anemia as a marker of stroke risk in women with uterine fibroids, adenomyosis and endometriosis",
     { x: M, y: 2.35, w: 9.4, h: 2.3, fontFace: HF, fontSize: 34, bold: true, color: C.light, margin: 0,
       valign: "top", isTextBox: true });
   s.addText("39,807 women · Mayo Clinic electronic health records · 2018–2026",
@@ -301,9 +301,9 @@ function footer(slide, text) {
   const s = pres.addSlide();
   s.background = { color: C.dark };
   s.addText("Take-home messages", { x: M, y: 0.6, w: W - 2 * M, h: 0.8, fontFace: HF, fontSize: 36, bold: true, color: C.light, margin: 0, isTextBox: true });
-  const msgs = [["Moderate or severe anemia", "is linked to roughly 1.5–2 times the risk of stroke in women with benign uterine disease."],
+  const msgs = [["Moderate or severe anemia", "is linked to roughly 1.5–2 times the risk of stroke, and may reflect underlying illness and increased vascular risk."],
     ["The risk rises steadily", "below a hemoglobin of 13 g/dL, independent of standard vascular risk factors."],
-    ["Hemoglobin is already measured", "at gynecological diagnosis: a free flag to prompt vascular risk assessment."]];
+    ["Hemoglobin measured at gynecologic diagnosis", "may help identify women who could benefit from further stroke risk assessment."]];
   msgs.forEach(([h, t], i) => {
     const y = 1.8 + i * 1.5;
     s.addShape(pres.shapes.OVAL, { x: M, y, w: 0.75, h: 0.75, fill: { color: C.crimson }, line: { color: C.crimson } });

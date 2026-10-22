@@ -110,3 +110,46 @@ evalue <- function(rr, lo = NA, hi = NA) {          # VanderWeele & Ding, ratio 
 }
 
 bh <- function(p) p.adjust(p, method = "BH")
+
+# ---- descriptive table: n (%) of known values, median (IQR); missing shown separately ----------
+VAR_LABELS <- c(age_index = "Age at index, years", race4 = "Race", bmi = "BMI, kg/m²", smoking3 = "Smoking",
+  htn = "Hypertension", dm = "Diabetes", dyslipidemia = "Dyslipidemia", cad = "Coronary artery disease (before index)",
+  migraine_any = "Migraine (any)", hormonal_type_cat = "Hormonal therapy type", dxgrp = "Uterine diagnosis group",
+  uterine_bleeding = "Heavy/abnormal uterine bleeding", thrombophilia = "Thrombophilia (undated)",
+  afib = "Atrial fibrillation (undated)", chf = "Heart failure (undated)", vte_history = "VTE (undated)",
+  haemoglobinopathy = "Hemoglobinopathy (any date)", ckd_pre = "CKD (before index)", liver_pre = "Chronic liver disease (before index)",
+  alcohol_pre = "Alcohol use disorder (before index)", ibd_pre = "IBD (before index)", hiv_pre = "HIV (before index)",
+  malabs_pre = "Malabsorption (before index)", gibleed_1y = "GI bleeding (year before index)", preg_1y = "Pregnancy (year before index)",
+  anaemia_cause_any = "Any anemia-causing condition", hb = "Baseline Hb, g/dL", mcv_lab = "MCV, fL", rdw_lab = "RDW-CV, %",
+  plt_lab = "Platelets, ×10³/µL", hb_tests_2y = "Hb tests in 2 y before index", py = "Follow-up, years",
+  ev_stroke = "Incident stroke (excl. TIA)", ev_any = "Incident stroke or TIA", died = "Death without stroke")
+describe <- function(d, group, vars) {
+  lv <- levels(factor(d[[group]]))
+  rows <- list()
+  for (v in vars) {
+    x <- d[[v]]; lab <- if (!is.na(VAR_LABELS[v])) VAR_LABELS[v] else v
+    pfun <- function() tryCatch(if (is.numeric(x) && uniqueN(x, na.rm = TRUE) > 2)
+      kruskal.test(x ~ factor(d[[group]]))$p.value else chisq.test(table(x, d[[group]]))$p.value, error = function(e) NA)
+    if (is.numeric(x) && uniqueN(x, na.rm = TRUE) > 2) {
+      cells <- c(All = sprintf("%s (%s–%s)", f2(median(x, na.rm = TRUE), 1), f2(quantile(x, .25, na.rm = TRUE), 1), f2(quantile(x, .75, na.rm = TRUE), 1)),
+                 sapply(lv, function(g) { y <- x[d[[group]] == g]; sprintf("%s (%s–%s)", f2(median(y, na.rm = TRUE), 1), f2(quantile(y, .25, na.rm = TRUE), 1), f2(quantile(y, .75, na.rm = TRUE), 1)) }))
+      rows[[length(rows) + 1]] <- data.table(Characteristic = lab, Level = "median (IQR)", t(cells), P = fp(pfun()))
+    } else {
+      levs <- if (is.factor(x)) levels(x) else if (uniqueN(x, na.rm = TRUE) <= 2) 1 else sort(unique(na.omit(x)))
+      p <- fp(pfun())
+      for (L in levs) {
+        cells <- c(All = n_pct(sum(x == L, na.rm = TRUE), sum(!is.na(x))),
+                   sapply(lv, function(g) { y <- x[d[[group]] == g]; n_pct(sum(y == L, na.rm = TRUE), sum(!is.na(y))) }))
+        rows[[length(rows) + 1]] <- data.table(Characteristic = lab, Level = if (identical(levs, 1)) "yes" else as.character(L), t(cells), P = p)
+        p <- ""
+      }
+    }
+    if (any(is.na(x))) {
+      cells <- c(All = n_pct(sum(is.na(x)), length(x)), sapply(lv, function(g) { y <- x[d[[group]] == g]; n_pct(sum(is.na(y)), length(y)) }))
+      rows[[length(rows) + 1]] <- data.table(Characteristic = lab, Level = "missing", t(cells), P = "")
+    }
+  }
+  out <- rbindlist(rows, use.names = FALSE)
+  setnames(out, c("Characteristic", "Level", "All", lv, "P"))
+  out
+}

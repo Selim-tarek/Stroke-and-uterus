@@ -11,3 +11,6 @@
 - **Comorbid** — 1,097,501 distinct diagnosis rows; 25 flags; ICD codes unmatched to any rule are not counted 
 - **Follow-up** — last contact earlier than stroke date for 0 eligible women; deaths recorded 297 
 - **Cohort** — incident cohort 24,872 women, 82184 person-years; strokes (excl. TIA) 342, stroke/TIA 427; deaths without stroke 162; after-index strokes lost because event on/after follow-up end check: 0 
+- **Selection** — stroke rate per 1,000 PY: tested 4.16, untested 2.94; adjusted RR untested vs tested 0.85 (0.69–1.07) 
+- **Reproduction** — NOT reproduced (>10%): 3; close (≤10%): 4; no reported value (R check only): 11; reproduced (≤2%): 73 
+- **Reproduction** — NOT reproduced (>10%): 3; close (≤10%): 4; no reported value (R check only): 11; reproduced (≤2%): 73 

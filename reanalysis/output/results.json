@@ -69,5 +69,81 @@
       "deaths_no_stroke": 162
     },
     "median_followup_years": 2.83641341546886
+  },
+  "selection": {
+    "rates": [
+      {
+        "tested": "Baseline Hb",
+        "women": 24872,
+        "strokes": 342,
+        "py": 82183.9972621492,
+        "rate": 4.1613940839248,
+        "lo": 3.73199368140765,
+        "hi": 4.62665151601421
+      },
+      {
+        "tested": "No baseline Hb",
+        "women": 13455,
+        "strokes": 109,
+        "py": 37129.5030800821,
+        "rate": 2.93567085357715,
+        "lo": 2.41049124068918,
+        "hi": 3.54129279063716
+      }
+    ],
+    "adj_rr_untested": [
+      {
+        "est": 0.854850563404999,
+        "lo": 0.685037034166871,
+        "hi": 1.06675909375118,
+        "p": 0.165136243006103
+      }
+    ]
+  },
+  "missing_incident": {
+    "hb": 0,
+    "age_index": 0,
+    "race4": 0,
+    "bmi": 880,
+    "smoking3": 0,
+    "htn": 0,
+    "dm": 0,
+    "dyslipidemia": 0,
+    "cad": 0,
+    "migraine_any": 0,
+    "hormonal_type_cat": 1,
+    "dxgrp": 0,
+    "uterine_bleeding": 0,
+    "thrombophilia": 0,
+    "afib": 0,
+    "chf": 0,
+    "vte_history": 0,
+    "mcv_lab": 649,
+    "rdw_lab": 853,
+    "plt_lab": 687,
+    "ferritin": 13418
+  },
+  "repro_tte_cohort": {
+    "women": 31400,
+    "py": 100308.845995893,
+    "events": 458,
+    "excluded_stroke_before_start": 64
+  },
+  "repro_tu_cohort": {
+    "women": 31924,
+    "py": 89573.3908281999,
+    "events": 465,
+    "intervals": 175919
+  },
+  "reproduction_status": {
+    "NOT reproduced (>10%)": 3,
+    "close (<e2><89><a4>10%)": 4,
+    "no reported value (R check only)": 11,
+    "reproduced (<e2><89><a4>2%)": 73
+  },
+  "tu_sameday_diag": {
+    "woman_days_multiple_cbc": 140793,
+    "grade_differs_within_day": 11326,
+    "grade_differs_involving_severe": 5946
   }
 }

@@ -1,0 +1,84 @@
+
+==== R/01_import.R ====
+[1] TRUE
+Import: stroke_analysis_master.csv: 52,827 rows x 72 columns
+Dictionary: 70 variables documented (MRN and DOB omitted)
+R/01_import.R finished in 7 s
+
+==== R/02_labs.R ====
+           used  (Mb) gc trigger  (Mb) max used  (Mb)
+Ncells  2307975 123.3    4765114 254.5  3512281 187.6
+Vcells 15213033 116.1   51220608 390.8 51132371 390.2
+Labs: Lab Tests 6: 449,746 of 449,746 distinct rows also in Lab Tests 7 -> file 6 not used
+           used  (Mb) gc trigger  (Mb) max used  (Mb)
+Ncells  2314322 123.6    4765114 254.5  4199055 224.3
+Vcells 23853336 182.0   71463751 545.3 89278073 681.2
+Labs: Eligible women with Codebook hgb: 32,683; Eligible women with re-derived Hb (Codebook rule): 32,879; Both present: 32,683; Same date: 32,492; Same date and value within 0.05 g/dL: 31,842; Codebook hgb present, no re-derived value:      0; Re-derived value present, Codebook hgb blank:    196; Anemia (<12) classification agrees (both present): 32,588
+R/02_labs.R finished in 73 s
+
+==== R/03_comorbid.R ====
+Comorbid: 1,097,501 distinct diagnosis rows; 25 flags; ICD codes unmatched to any rule are not counted
+R/03_comorbid.R finished in 62 s
+
+==== R/04_cohort.R ====
+Follow-up: last contact earlier than stroke date for 0 eligible women; deaths recorded 297
+Cohort: incident cohort 24,872 women, 82184 person-years; strokes (excl. TIA) 342, stroke/TIA 427; deaths without stroke 162; after-index strokes lost because event on/after follow-up end check: 0
+R/04_cohort.R finished in 15 s
+
+==== R/05_missing.R ====
+Selection: stroke rate per 1,000 PY: tested 4.16, untested 2.94; adjusted RR untested vs tested 0.85 (0.69–1.07)
+R/05_missing.R finished in 7 s
+
+==== R/06_reproduce.R ====
+Reproduction: close (≤10%): 4; no reported value (R check only): 11; NOT reproduced (>10%): 3; reproduced (≤2%): 73
+           used  (Mb) gc trigger   (Mb)  max used   (Mb)
+Ncells  2406508 128.6    4518800  241.4   4518800  241.4
+Vcells 45485730 347.1  140165758 1069.4 175207166 1336.8
+R/06_reproduce.R finished in 125 s
+
+==== R/07_primary.R ====
+Primary: hormonal levels merged into Other/multiple: GnRH agonist/antagonist, Combined OC
+Warning messages:
+1: In chisq.test(table(x, d[[group]])) :
+  Chi-squared approximation may be incorrect
+2: In chisq.test(table(x, d[[group]])) :
+  Chi-squared approximation may be incorrect
+3: In chisq.test(table(x, d[[group]])) :
+  Chi-squared approximation may be incorrect
+4: In chisq.test(table(x, d[[group]])) :
+  Chi-squared approximation may be incorrect
+5: In chisq.test(table(x, d[[group]])) :
+  Chi-squared approximation may be incorrect
+Warning message:
+In `[.data.table`(ic, , `:=`(status, factor(fifelse(ev_stroke ==  :
+  Invalid .internal.selfref detected and fixed by taking a (shallow) copy of the data.table so that := can add this new column by reference. At an earlier point, this data.table has been copied by R (or was created manually using structure() or similar). Avoid names<- and attr<- which in R currently (and oddly) may copy the whole data.table. Use set* syntax instead to avoid copying: ?set, ?setnames and ?setattr. If this message doesn't help, please report your use case to the data.table issue tracker so the root cause can be fixed or this message improved.
+Warning message:
+Number of logged events: 100 
+Primary: N 24,871, strokes 342; moderate RR 1.49 (0.96–2.31); severe 1.64 (0.79–3.40); per grade 1.26 (1.09–1.45)
+R/07_primary.R finished in 154 s
+
+==== R/08_secondary.R ====
+Warning message:
+Number of logged events: 100 
+R/08_secondary.R finished in 101 s
+
+==== R/09_timeupdated.R ====
+Time-updated: cohort 38,326 women, 119305 PY, 451 strokes; split preserves person-time and events
+Warning message:
+Number of logged events: 100 
+R/09_timeupdated.R finished in 1366 s
+
+==== R/10_sensitivity.R ====
+R/10_sensitivity.R finished in 147 s
+
+==== R/11_tables_figures.R ====
+There were 12 warnings (use warnings() to see them)
+There were 23 warnings (use warnings() to see them)
+There were 27 warnings (use warnings() to see them)
+There were 50 or more warnings (use warnings() to see the first 50)
+Outputs: 27 tables -> reanalysis_tables.xlsx / .docx; figures 1-3 + S1
+R/11_tables_figures.R finished in 47 s
+
+real	35m3.495s
+user	79m35.563s
+sys	14m48.498s

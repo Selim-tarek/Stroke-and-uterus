@@ -1,0 +1,8 @@
+Time-updated: cohort 38,326 women, 119305 PY, 451 strokes; split preserves person-time and events
+Warning message:
+Number of logged events: 100 
+Terminated
+
+real	33m33.978s
+user	31m7.539s
+sys	2m16.289s

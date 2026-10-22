@@ -1,6 +1,7 @@
 # Shared setup: paths, packages, logging, helpers.
 # Run every script from the reanalysis/ directory (run_all.R does this).
 
+invisible(Sys.setlocale("LC_ALL", "C.UTF-8"))   # labels contain en-dashes and \u2265
 suppressPackageStartupMessages({
   library(data.table)
   library(readxl)

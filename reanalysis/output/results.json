@@ -1,0 +1,73 @@
+{
+  "import": {
+    "rows": 52827,
+    "eligible": 39807,
+    "eligible_rederived_agree": 52827
+  },
+  "lab6_in_lab7": {
+    "rows_in_7": 449746,
+    "rows_6": 449746
+  },
+  "hb_validation": {
+    "Eligible women with Codebook hgb": 32683,
+    "Eligible women with re-derived Hb (Codebook rule)": 32879,
+    "Both present": 32683,
+    "Same date": 32492,
+    "Same date and value within 0.05 g/dL": 31842,
+    "Codebook hgb present, no re-derived value": 0,
+    "Re-derived value present, Codebook hgb blank": 196,
+    "Anemia (<12) classification agrees (both present)": 32588
+  },
+  "outcome_audit": {
+    "eligible_strokes": 1538,
+    "by_type": {
+      "Cerebral venous thrombosis": 13,
+      "Intracerebral hemorrhage": 57,
+      "Ischemic stroke": 1189,
+      "Stroke, unknown type": 41,
+      "Subarachnoid hemorrhage": 40,
+      "TIA": 198
+    },
+    "by_timing": {
+      "After index": 550,
+      "Before index": 691,
+      "Blank (undated)": 189,
+      "Same encounter": 95,
+      "Unknown (code 9)": 13
+    },
+    "multiple_types": 98,
+    "dated": 1336,
+    "undated": 202,
+    "after_index_acute_code": 527,
+    "after_index_no_acute_code": 23
+  },
+  "cohort": {
+    "flow": {
+      "Records in stroke_analysis_master.csv": 52827,
+      "Excluded: gynecologic or other active malignancy (<c2><b1>6 months of index)": 7316,
+      "Excluded: age >60 at index": 5473,
+      "Excluded: age <18 at index": 230,
+      "Excluded: age not derivable": 1,
+      "Eligible women": 39807,
+      "Excluded: stroke/TIA before index or at the index encounter": 786,
+      "Excluded: stroke/TIA with unknown timing (undated)": 202,
+      "Free of recorded stroke/TIA at index": 38819,
+      "Excluded: no laboratory CBC Hb in the 3 years before or on the index date": 13720,
+      "Excluded: no follow-up time after the index date": 227,
+      "Incident-stroke cohort (revised primary analysis)": 24872
+    },
+    "person_years": 82183.9972621492,
+    "events": {
+      "stroke": 342,
+      "stroke_or_tia": 427,
+      "ischemic": 298,
+      "tia": 85,
+      "ich": 24,
+      "sah": 11,
+      "cvt": 2,
+      "unknown": 7,
+      "deaths_no_stroke": 162
+    },
+    "median_followup_years": 2.83641341546886
+  }
+}

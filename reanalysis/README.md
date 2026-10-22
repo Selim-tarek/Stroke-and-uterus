@@ -36,6 +36,8 @@ Rscript run_all.R          # about 30-40 min; seed 20261022
 | `R/09_timeupdated.R` | Time-updated exposure, lags, testing frequency, landmark |
 | `R/10_sensitivity.R` | Sensitivity analyses S2–S11 |
 | `R/11_tables_figures.R` | Figures 1–3, S1; `reanalysis_tables.xlsx` / `.docx` |
+| `R/12_manuscript.R` | Revised manuscript (`output/manuscript/`), every number read from the outputs |
+| `output/reports/` | Deliverables A+G (executive audit, decision), B (cohort and data quality), C (statistical report) |
 | `output/tables/*.csv` | Every table, machine-generated |
 | `output/figures/` | PNG (300 dpi) and PDF |
 | `output/results.json` | Machine-readable key results |

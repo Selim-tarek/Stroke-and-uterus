@@ -15,3 +15,5 @@
 - **Outputs** — 27 tables -> reanalysis_tables.xlsx / .docx; figures 1-3 + S1 
 - **Outputs** — 27 tables -> reanalysis_tables.xlsx / .docx; figures 1-3 + S1 
 - **Outputs** — 27 tables -> reanalysis_tables.xlsx / .docx; figures 1-3 + S1 
+- **Manuscript** — revised manuscript written (4650 words in md; pandoc status 0) 
+- **Manuscript** — revised manuscript written (4651 words in md; pandoc status 0) 

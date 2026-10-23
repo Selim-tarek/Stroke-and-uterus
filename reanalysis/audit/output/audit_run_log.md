@@ -84,3 +84,7 @@
 ## A10 Subgroup performance and fairness — `audit/R/A10_subgroups.R` (2026-10-23 19:20)
 - table `A10a_subgroup_performance` (24 rows)
 - table `A10b_differential_measurement` (4 rows)
+
+## A11 Multiple-imputation sensitivity analysis — `audit/R/A11_multiple_imputation.R` (2026-10-23 19:20)
+- mice logged events: na_haz
+- table `A11a_mi_vs_complete_case` (9 rows)

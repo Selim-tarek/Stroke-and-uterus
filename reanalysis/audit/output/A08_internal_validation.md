@@ -35,3 +35,65 @@ How often each candidate received non-zero points across 200 bootstrap resamples
 | estrogen | 91.5 | TRUE |
 | hb_def | 100.0 | TRUE |
 
+### A08c_model_comparison_dev
+
+Paired bootstrap (500 resamples) differences in apparent C; difference in optimism-corrected C from A08a. LR for nine vs fourteen tests the five dropped predictors jointly.
+
+| comparison | delta_apparent_c_95ci | delta_optimism_corrected_c | likelihood_ratio |
+|---|---|---|---|
+| nine-item − fourteen | -0.0012 (-0.0068 to 0.0040) | 0.0046 | χ² 2.1, df 5, P 0.839 |
+| nine-item − conventional | 0.0566 (0.0295 to 0.0812) | 0.0610 | not nested |
+| conventional + MED-HACK items − conventional | 0.0580 (0.0328 to 0.0811) | 0.0589 | χ² 65.9, df 4, P <0.001 |
+
+### A08d_calibration_dev
+
+Calibration of the published nine-item calculator in the development data (apparent; shrinkage applied). The 3-year risk uses the nine-item baseline hazard at 3 years.
+
+| measure | value |
+|---|---|
+| O/E, expected counts, 5 y (95% CI) | 1.02 (0.91–1.14) |
+| O/E, expected counts, 3 y | 1.02 (0.90–1.16) |
+| O/E, KM risk / mean predicted, 5 y | 1.07 (0.94–1.20) |
+| O/E, KM risk / mean predicted, 3 y | 1.05 (0.92–1.18) |
+| calibration slope on cloglog(predicted 5-y risk) | 1.03 (0.91–1.15) |
+| ICI, 5 y (mean /observed − predicted/, percentage points) | 0.157 |
+| E50 / E90, 5 y (percentage points) | 0.150 / 0.271 |
+| ICI, 3 y | 0.118 |
+
+### A08e_calibration_risk_bands
+
+Calibration within the calculator's interpretation bands (5-year, development, apparent)
+
+| calculator_band | women | strokes | mean_predicted_pct | observed_km_pct |
+|---|---|---|---|---|
+| <1% (below average) | 7,580 | 39 | 0.89 | 0.72 (0.46–0.99) |
+| 1–2.5% (around average) | 13,032 | 157 | 1.60 | 1.66 (1.36–1.95) |
+| 2.5–5% (elevated) | 2,472 | 81 | 3.54 | 4.17 (3.18–5.16) |
+| 5–10% (high) | 699 | 35 | 6.74 | 6.95 (4.44–9.38) |
+| ≥10% (high, beyond p99 when >9.8%) | 223 | 33 | 17.03 | 16.22 (10.26–21.77) |
+
+### A08f_brier
+
+IPCW Brier score at 5 years (apparent) and index of prediction accuracy (IPA = 1 − Brier/Brier of the Kaplan-Meier null model)
+
+| model | brier_5y | null_brier_5y | ipa_5y |
+|---|---|---|---|
+| nine_item_calculator | 0.01913 | 0.01952 | 2.02% |
+| points_table | 0.01917 | 0.01952 | 1.82% |
+| fourteen | 0.01912 | 0.01952 | 2.04% |
+| conventional | 0.01919 | 0.01952 | 1.70% |
+
+### A08g_decision_curve_dev
+
+Net benefit at 5 years (development, apparent; deaths censored). Last column: nine-item net benefit minus the better of treat-all and treat-none, with 200-bootstrap 95% CI. Net benefit 0.001 = 1 additional true-positive per 1,000 women at no extra false positives.
+
+| threshold_pct | treat_all | nine_item | points_table | fourteen | pct_flagged_nine_item | nine_item_minus_best_default_95ci |
+|---|---|---|---|---|---|---|
+| 1 | 0.01002 | 0.01061 | 0.00994 | 0.01042 | 68.4 | 0.00056 (-0.00041 to 0.00137) |
+| 1.5 | 0.00499 | 0.00773 | 0.00751 | 0.00762 | 45.2 | 0.00273 (0.00126 to 0.00387) |
+| 2 | -0.00008 | 0.00603 | 0.00548 | 0.00592 | 26.0 | 0.00558 (0.00411 to 0.00676) |
+| 3 | -0.01039 | 0.00345 | 0.00319 | 0.00363 | 11.3 | 0.00348 (0.00232 to 0.00451) |
+| 5 | -0.03166 | 0.00171 | 0.00132 | 0.00188 | 3.8 | 0.00173 (0.00088 to 0.00273) |
+| 7.5 | -0.05955 | 0.00118 | 0.00087 | 0.00115 | 1.8 | 0.00123 (0.00053 to 0.00202) |
+| 10 | -0.08898 | 0.00064 | 0.00055 | 0.00064 | 0.9 | 0.00066 (0.00007 to 0.00122) |
+

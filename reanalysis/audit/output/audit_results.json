@@ -840,15 +840,15 @@
       {
         "item": "Age 18–34",
         "midpoint": 30,
-        "raw": -0,
-        "points": -0,
+        "raw": 0,
+        "points": 0,
         "half_point_boundary": ""
       },
       {
         "item": "Age 35–44",
         "midpoint": 40,
         "raw": -0.281,
-        "points": -0,
+        "points": 0,
         "half_point_boundary": ""
       },
       {
@@ -896,29 +896,29 @@
       {
         "item": "BMI <25",
         "midpoint": 22,
-        "raw": -0,
-        "points": -0,
+        "raw": 0,
+        "points": 0,
         "half_point_boundary": ""
       },
       {
         "item": "BMI 25–29.9",
         "midpoint": 27.5,
         "raw": -0.091,
-        "points": -0,
+        "points": 0,
         "half_point_boundary": ""
       },
       {
         "item": "BMI 30–34.9",
         "midpoint": 32.5,
         "raw": -0.174,
-        "points": -0,
+        "points": 0,
         "half_point_boundary": ""
       },
       {
         "item": "BMI ≥35",
         "midpoint": 39,
         "raw": -0.281,
-        "points": -0,
+        "points": 0,
         "half_point_boundary": ""
       },
       {
@@ -972,7 +972,7 @@
       {
         "item": "endo",
         "raw": -0.036,
-        "points": -0,
+        "points": 0,
         "half_point_boundary": ""
       },
       {
@@ -1128,6 +1128,164 @@
         "km_observed": "100.00 ( NA– NA)",
         "r6_women": 3,
         "r6_risk": 43.51
+      }
+    ]
+  },
+  "A08": {
+    "bootstrap": [
+      {
+        "model": "nine_item",
+        "apparent_c": "0.705 (0.674–0.737)",
+        "mean_optimism": "0.0046 (MC SE 0.0011)",
+        "optimism_corrected_c": "0.701",
+        "mean_bootstrap_slope": "0.980 (MC SE 0.004)"
+      },
+      {
+        "model": "fourteen",
+        "apparent_c": "0.706 (0.675–0.738)",
+        "mean_optimism": "0.0103 (MC SE 0.0011)",
+        "optimism_corrected_c": "0.696",
+        "mean_bootstrap_slope": "0.962 (MC SE 0.003)"
+      },
+      {
+        "model": "conventional",
+        "apparent_c": "0.648 (0.613–0.684)",
+        "mean_optimism": "0.0084 (MC SE 0.0012)",
+        "optimism_corrected_c": "0.640",
+        "mean_bootstrap_slope": "0.978 (MC SE 0.004)"
+      },
+      {
+        "model": "conventional_plus_medhack",
+        "apparent_c": "0.707 (0.676–0.738)",
+        "mean_optimism": "0.0080 (MC SE 0.0011)",
+        "optimism_corrected_c": "0.699",
+        "mean_bootstrap_slope": "0.969 (MC SE 0.003)"
+      },
+      {
+        "model": "full MED-HACK process (14-predictor fit → points → drop zero-point items → refit), apparent C of the published nine-item model",
+        "apparent_c": "0.705 (0.674–0.737)",
+        "mean_optimism": "0.0085 (MC SE 0.0011)",
+        "optimism_corrected_c": "0.697",
+        "mean_bootstrap_slope": "0.968 (MC SE 0.003)"
+      }
+    ],
+    "comparison": [
+      {
+        "comparison": "nine-item − fourteen",
+        "delta_apparent_c_95ci": "-0.0012 (-0.0068 to 0.0040)",
+        "delta_optimism_corrected_c": "0.0046",
+        "likelihood_ratio": "χ² 2.1, df 5, P 0.839"
+      },
+      {
+        "comparison": "nine-item − conventional",
+        "delta_apparent_c_95ci": "0.0566 (0.0295 to 0.0812)",
+        "delta_optimism_corrected_c": "0.0610",
+        "likelihood_ratio": "not nested"
+      },
+      {
+        "comparison": "conventional + MED-HACK items − conventional",
+        "delta_apparent_c_95ci": "0.0580 (0.0328 to 0.0811)",
+        "delta_optimism_corrected_c": "0.0589",
+        "likelihood_ratio": "χ² 65.9, df 4, P <0.001"
+      }
+    ],
+    "calibration": [
+      {
+        "measure": "O/E, expected counts, 5 y (95% CI)",
+        "value": "1.02 (0.91–1.14)"
+      },
+      {
+        "measure": "O/E, expected counts, 3 y",
+        "value": "1.02 (0.90–1.16)"
+      },
+      {
+        "measure": "O/E, KM risk / mean predicted, 5 y",
+        "value": "1.07 (0.94–1.20)"
+      },
+      {
+        "measure": "O/E, KM risk / mean predicted, 3 y",
+        "value": "1.05 (0.92–1.18)"
+      },
+      {
+        "measure": "calibration slope on cloglog(predicted 5-y risk)",
+        "value": "1.03 (0.91–1.15)"
+      },
+      {
+        "measure": "ICI, 5 y (mean |observed − predicted|, percentage points)",
+        "value": "0.157"
+      },
+      {
+        "measure": "E50 / E90, 5 y (percentage points)",
+        "value": "0.150 / 0.271"
+      },
+      {
+        "measure": "ICI, 3 y",
+        "value": "0.118"
+      }
+    ],
+    "dca": [
+      {
+        "threshold_pct": 1,
+        "treat_all": 0.01002,
+        "nine_item": 0.01061,
+        "points_table": 0.00994,
+        "fourteen": 0.01042,
+        "pct_flagged_nine_item": "68.4",
+        "nine_item_minus_best_default_95ci": "0.00056 (-0.00041 to 0.00137)"
+      },
+      {
+        "threshold_pct": 1.5,
+        "treat_all": 0.00499,
+        "nine_item": 0.00773,
+        "points_table": 0.00751,
+        "fourteen": 0.00762,
+        "pct_flagged_nine_item": "45.2",
+        "nine_item_minus_best_default_95ci": "0.00273 (0.00126 to 0.00387)"
+      },
+      {
+        "threshold_pct": 2,
+        "treat_all": -8e-05,
+        "nine_item": 0.00603,
+        "points_table": 0.00548,
+        "fourteen": 0.00592,
+        "pct_flagged_nine_item": "26.0",
+        "nine_item_minus_best_default_95ci": "0.00558 (0.00411 to 0.00676)"
+      },
+      {
+        "threshold_pct": 3,
+        "treat_all": -0.01039,
+        "nine_item": 0.00345,
+        "points_table": 0.00319,
+        "fourteen": 0.00363,
+        "pct_flagged_nine_item": "11.3",
+        "nine_item_minus_best_default_95ci": "0.00348 (0.00232 to 0.00451)"
+      },
+      {
+        "threshold_pct": 5,
+        "treat_all": -0.03166,
+        "nine_item": 0.00171,
+        "points_table": 0.00132,
+        "fourteen": 0.00188,
+        "pct_flagged_nine_item": "3.8",
+        "nine_item_minus_best_default_95ci": "0.00173 (0.00088 to 0.00273)"
+      },
+      {
+        "threshold_pct": 7.5,
+        "treat_all": -0.05955,
+        "nine_item": 0.00118,
+        "points_table": 0.00087,
+        "fourteen": 0.00115,
+        "pct_flagged_nine_item": "1.8",
+        "nine_item_minus_best_default_95ci": "0.00123 (0.00053 to 0.00202)"
+      },
+      {
+        "threshold_pct": 10,
+        "treat_all": -0.08898,
+        "nine_item": 0.00064,
+        "points_table": 0.00055,
+        "fourteen": 0.00064,
+        "pct_flagged_nine_item": "0.9",
+        "nine_item_minus_best_default_95ci": "0.00066 (0.00007 to 0.00122)"
       }
     ]
   }

@@ -1,0 +1,508 @@
+{
+  "P01": {
+    "integrity": [
+      {
+        "item": "women",
+        "value": 24006
+      },
+      {
+        "item": "strokes",
+        "value": 345
+      },
+      {
+        "item": "max |beta − spec|",
+        "value": 3.55e-11
+      },
+      {
+        "item": "S0(5) − spec",
+        "value": -3.47e-12
+      }
+    ]
+  },
+  "P02": {
+    "flow": [
+      {
+        "step": "anchored cohort with CBC Hb, age >= 18",
+        "n": 24886,
+        "strokes": 347
+      },
+      {
+        "step": "excluded: anchor moved earlier by a procedure (index-dated covariates postdate the anchor)",
+        "n": 336,
+        "strokes": 8
+      },
+      {
+        "step": "baseline cohort",
+        "n": 24550,
+        "strokes": 339
+      },
+      {
+        "step": "  of which in the published development sample (BMI recorded)",
+        "n": 23670,
+        "strokes": 337
+      }
+    ],
+    "reconstructed": [
+      {
+        "predictor": "hemoglobinopathy",
+        "as_coded": 262,
+        "baseline_valid": 197,
+        "reclassified_to_0": 65,
+        "strokes_among_reclassified": 6
+      },
+      {
+        "predictor": "smoking (ever)",
+        "as_coded": 4776,
+        "baseline_valid": 3046,
+        "reclassified_to_0": 1730,
+        "strokes_among_reclassified": 50
+      }
+    ],
+    "utilization": [
+      {
+        "predictor": "migraine_any",
+        "dated_at_or_before_anchor": false,
+        "or_baseline_cbc_doubling": "1.38 (1.34–1.42)",
+        "or_post_anchor_cbc_rate_doubling_adj_baseline": "1.20 (1.16–1.24)"
+      },
+      {
+        "predictor": "dm",
+        "dated_at_or_before_anchor": false,
+        "or_baseline_cbc_doubling": "1.42 (1.37–1.46)",
+        "or_post_anchor_cbc_rate_doubling_adj_baseline": "1.38 (1.33–1.43)"
+      },
+      {
+        "predictor": "estrogen",
+        "dated_at_or_before_anchor": false,
+        "or_baseline_cbc_doubling": "1.48 (1.34–1.62)",
+        "or_post_anchor_cbc_rate_doubling_adj_baseline": "1.83 (1.66–2.03)"
+      },
+      {
+        "predictor": "haemoglobinopathy",
+        "dated_at_or_before_anchor": false,
+        "or_baseline_cbc_doubling": "1.50 (1.35–1.67)",
+        "or_post_anchor_cbc_rate_doubling_adj_baseline": "1.51 (1.34–1.70)"
+      },
+      {
+        "predictor": "hbp_pre",
+        "dated_at_or_before_anchor": true,
+        "or_baseline_cbc_doubling": "1.52 (1.35–1.71)",
+        "or_post_anchor_cbc_rate_doubling_adj_baseline": "1.36 (1.18–1.57)"
+      },
+      {
+        "predictor": "htn",
+        "dated_at_or_before_anchor": true,
+        "or_baseline_cbc_doubling": "1.42 (1.38–1.47)",
+        "or_post_anchor_cbc_rate_doubling_adj_baseline": "1.47 (1.41–1.53)"
+      },
+      {
+        "predictor": "cad",
+        "dated_at_or_before_anchor": true,
+        "or_baseline_cbc_doubling": "1.54 (1.41–1.69)",
+        "or_post_anchor_cbc_rate_doubling_adj_baseline": "1.78 (1.61–1.97)"
+      },
+      {
+        "predictor": "ckd_pre",
+        "dated_at_or_before_anchor": true,
+        "or_baseline_cbc_doubling": "2.22 (2.08–2.36)",
+        "or_post_anchor_cbc_rate_doubling_adj_baseline": "1.86 (1.72–2.01)"
+      },
+      {
+        "predictor": "dyslipidemia",
+        "dated_at_or_before_anchor": true,
+        "or_baseline_cbc_doubling": "1.47 (1.43–1.52)",
+        "or_post_anchor_cbc_rate_doubling_adj_baseline": "1.09 (1.06–1.13)"
+      }
+    ]
+  },
+  "P03": {
+    "counts": [
+      {
+        "definition": "O1 any coded stroke excl. TIA (published definition)",
+        "events": 339,
+        "events_within_3y": 246,
+        "km_1y_pct": "0.62",
+        "km_3y_pct": "1.33 (1.16–1.49)"
+      },
+      {
+        "definition": "O2 acute-coded stroke (no imaging-only, no history/sequela-only) — PRIMARY",
+        "events": 322,
+        "events_within_3y": 235,
+        "km_1y_pct": "0.59",
+        "km_3y_pct": "1.27 (1.10–1.44)"
+      },
+      {
+        "definition": "O3 O2 occurring > 30 days after the anchor",
+        "events": 281,
+        "events_within_3y": 194,
+        "km_1y_pct": "0.42",
+        "km_3y_pct": "1.10 (0.94–1.26)"
+      },
+      {
+        "definition": "O4 O2, ischemic",
+        "events": 285,
+        "events_within_3y": 207,
+        "km_1y_pct": "0.53",
+        "km_3y_pct": "1.12 (0.96–1.27)"
+      },
+      {
+        "definition": "O5 O2, ICH or SAH",
+        "events": 35,
+        "events_within_3y": 26,
+        "km_1y_pct": "0.06",
+        "km_3y_pct": "0.14 (0.09–0.20)"
+      },
+      {
+        "definition": "O6 O2 with dated imaging or NIHSS flowsheet within ±30 days (corroborated)",
+        "events": 89,
+        "events_within_3y": 60,
+        "km_1y_pct": "0.11",
+        "km_3y_pct": "0.36 (0.26–0.45)"
+      }
+    ]
+  },
+  "P04": {
+    "risk_sets": [
+      {
+        "group": "all",
+        "horizon_years": 1,
+        "at_risk": 19184,
+        "pct_at_risk": "78.1",
+        "events_by_h": 134,
+        "censored_before_h": 5232,
+        "deaths_before_h": 58,
+        "km_risk_pct": "0.59 (0.49–0.69)"
+      },
+      {
+        "group": "all",
+        "horizon_years": 2,
+        "at_risk": 15013,
+        "pct_at_risk": "61.2",
+        "events_by_h": 185,
+        "censored_before_h": 9352,
+        "deaths_before_h": 81,
+        "km_risk_pct": "0.89 (0.76–1.02)"
+      },
+      {
+        "group": "all",
+        "horizon_years": 3,
+        "at_risk": 11724,
+        "pct_at_risk": "47.8",
+        "events_by_h": 235,
+        "censored_before_h": 12591,
+        "deaths_before_h": 101,
+        "km_risk_pct": "1.27 (1.10–1.44)"
+      },
+      {
+        "group": "all",
+        "horizon_years": 4,
+        "at_risk": 8906,
+        "pct_at_risk": "36.3",
+        "events_by_h": 258,
+        "censored_before_h": 15386,
+        "deaths_before_h": 117,
+        "km_risk_pct": "1.49 (1.30–1.68)"
+      },
+      {
+        "group": "all",
+        "horizon_years": 5,
+        "at_risk": 6538,
+        "pct_at_risk": "26.6",
+        "events_by_h": 287,
+        "censored_before_h": 17725,
+        "deaths_before_h": 131,
+        "km_risk_pct": "1.86 (1.63–2.09)"
+      },
+      {
+        "group": "anchor < 2023",
+        "horizon_years": 1,
+        "at_risk": 10916,
+        "pct_at_risk": "95.8",
+        "events_by_h": 61,
+        "censored_before_h": 418,
+        "deaths_before_h": 31,
+        "km_risk_pct": "0.54 (0.41–0.68)"
+      },
+      {
+        "group": "anchor < 2023",
+        "horizon_years": 2,
+        "at_risk": 10624,
+        "pct_at_risk": "93.2",
+        "events_by_h": 81,
+        "censored_before_h": 690,
+        "deaths_before_h": 45,
+        "km_risk_pct": "0.73 (0.57–0.89)"
+      },
+      {
+        "group": "anchor < 2023",
+        "horizon_years": 3,
+        "at_risk": 10279,
+        "pct_at_risk": "90.2",
+        "events_by_h": 118,
+        "censored_before_h": 998,
+        "deaths_before_h": 57,
+        "km_risk_pct": "1.08 (0.89–1.27)"
+      },
+      {
+        "group": "anchor < 2023",
+        "horizon_years": 4,
+        "at_risk": 8906,
+        "pct_at_risk": "78.2",
+        "events_by_h": 141,
+        "censored_before_h": 2348,
+        "deaths_before_h": 72,
+        "km_risk_pct": "1.31 (1.09–1.52)"
+      },
+      {
+        "group": "anchor < 2023",
+        "horizon_years": 5,
+        "at_risk": 6538,
+        "pct_at_risk": "57.4",
+        "events_by_h": 170,
+        "censored_before_h": 4687,
+        "deaths_before_h": 86,
+        "km_risk_pct": "1.68 (1.43–1.94)"
+      },
+      {
+        "group": "anchor ≥ 2023",
+        "horizon_years": 1,
+        "at_risk": 8268,
+        "pct_at_risk": "62.9",
+        "events_by_h": 73,
+        "censored_before_h": 4814,
+        "deaths_before_h": 27,
+        "km_risk_pct": "0.64 (0.49–0.79)"
+      },
+      {
+        "group": "anchor ≥ 2023",
+        "horizon_years": 2,
+        "at_risk": 4389,
+        "pct_at_risk": "33.4",
+        "events_by_h": 104,
+        "censored_before_h": 8662,
+        "deaths_before_h": 36,
+        "km_risk_pct": "1.16 (0.92–1.39)"
+      },
+      {
+        "group": "anchor ≥ 2023",
+        "horizon_years": 3,
+        "at_risk": 1445,
+        "pct_at_risk": "11.0",
+        "events_by_h": 117,
+        "censored_before_h": 11593,
+        "deaths_before_h": 44,
+        "km_risk_pct": "1.62 (1.27–1.97)"
+      },
+      {
+        "group": "anchor ≥ 2023",
+        "horizon_years": 4,
+        "at_risk": 0,
+        "pct_at_risk": "0.0",
+        "events_by_h": 117,
+        "censored_before_h": 13038,
+        "deaths_before_h": 45,
+        "km_risk_pct": "1.62 (1.27–1.97)"
+      },
+      {
+        "group": "anchor ≥ 2023",
+        "horizon_years": 5,
+        "at_risk": 0,
+        "pct_at_risk": "0.0",
+        "events_by_h": 117,
+        "censored_before_h": 13038,
+        "deaths_before_h": 45,
+        "km_risk_pct": "1.62 (1.27–1.97)"
+      }
+    ],
+    "pattern_mixture": [
+      {
+        "horizon_years": 1,
+        "delta_1": "0.592",
+        "delta_1.5": "0.597",
+        "delta_2": "0.602",
+        "delta_3": "0.612"
+      },
+      {
+        "horizon_years": 3,
+        "delta_1": "1.270",
+        "delta_1.5": "1.291",
+        "delta_2": "1.313",
+        "delta_3": "1.356"
+      },
+      {
+        "horizon_years": 5,
+        "delta_1": "1.860",
+        "delta_1.5": "1.904",
+        "delta_2": "1.947",
+        "delta_3": "2.033"
+      }
+    ]
+  },
+  "P06": {
+    "primary": [
+      {
+        "model": "C1_conventional_baseline",
+        "c3": "0.617 (0.554–0.680)",
+        "slope": "0.86 (0.63–1.09)",
+        "oe3_expected_counts": "1.45 (1.20–1.74)",
+        "ici3_pp": "0.560",
+        "ipa3": "0.51%"
+      },
+      {
+        "model": "C2_current_nine_as_coded",
+        "c3": "0.711 (0.662–0.760)",
+        "slope": "0.95 (0.77–1.13)",
+        "oe3_expected_counts": "1.49 (1.23–1.79)",
+        "ici3_pp": "0.593",
+        "ipa3": "1.11%"
+      },
+      {
+        "model": "C3_baseline_only",
+        "c3": "0.644 (0.585–0.703)",
+        "slope": "0.85 (0.63–1.06)",
+        "oe3_expected_counts": "1.45 (1.20–1.74)",
+        "ici3_pp": "0.574",
+        "ipa3": "0.40%"
+      },
+      {
+        "model": "C4_reduced_baseline",
+        "c3": "0.663 (0.608–0.718)",
+        "slope": "0.88 (0.66–1.09)",
+        "oe3_expected_counts": "1.45 (1.20–1.74)",
+        "ici3_pp": "0.606",
+        "ipa3": "0.48%"
+      }
+    ],
+    "three_way": [
+      {
+        "model": "C3_baseline_only",
+        "oe_1y_update_set_2023_24": "0.98 (0.67–1.38)",
+        "evaluation_2025_events_1y": 41,
+        "evaluation_c_1y": "0.574 (0.471–0.677)",
+        "evaluation_oe_1y_original": "1.51 (1.08–2.04)",
+        "evaluation_oe_1y_after_baseline_update": "1.54 (1.10–2.09)"
+      },
+      {
+        "model": "C2_current_nine_as_coded",
+        "oe_1y_update_set_2023_24": "1.00 (0.68–1.41)",
+        "evaluation_2025_events_1y": 41,
+        "evaluation_c_1y": "0.685 (0.602–0.768)",
+        "evaluation_oe_1y_original": "1.57 (1.13–2.13)",
+        "evaluation_oe_1y_after_baseline_update": "1.57 (1.13–2.13)"
+      }
+    ],
+    "drift": [
+      {
+        "model": "C3_baseline_only",
+        "slope": "0.85",
+        "lr_slope": "χ² 2.06, P 0.151",
+        "lr_revision": "χ² 15.75 on 8 df, P 0.046",
+        "largest_hr_ratios": "cad 0.49; dyslipidemia 0.60; htn 1.47"
+      },
+      {
+        "model": "C2_current_nine_as_coded",
+        "slope": "0.95",
+        "lr_slope": "χ² 0.28, P 0.598",
+        "lr_revision": "χ² 24.00 on 9 df, P 0.004",
+        "largest_hr_ratios": "cad 0.52; haemoglobinopathy 1.85; dm 0.56"
+      }
+    ],
+    "o3": [
+      {
+        "model": "C3_baseline_only",
+        "events_dev": 186,
+        "events_val_3y": 95,
+        "c3": "0.622 (0.555–0.689)",
+        "oe3_expected_counts": "1.59 (1.29–1.94)"
+      },
+      {
+        "model": "C2_current_nine_as_coded",
+        "events_dev": 186,
+        "events_val_3y": 95,
+        "c3": "0.716 (0.659–0.774)",
+        "oe3_expected_counts": "1.63 (1.32–1.99)"
+      }
+    ]
+  },
+  "P07": {
+    "support": [
+      {
+        "measure": "possible combinations of the 7 yes/no items",
+        "value": "128"
+      },
+      {
+        "measure": "combinations observed at least once",
+        "value": "73"
+      },
+      {
+        "measure": "combinations with ≥ 20 women",
+        "value": "33"
+      },
+      {
+        "measure": "combinations with ≥ 5 strokes",
+        "value": "13"
+      },
+      {
+        "measure": "women in combinations with < 20 women",
+        "value": "198 (0.8%)"
+      },
+      {
+        "measure": "published points range in the calculator",
+        "value": "0–19"
+      },
+      {
+        "measure": "highest points observed",
+        "value": "13"
+      },
+      {
+        "measure": "women with ≥ 10 points (strokes)",
+        "value": "91 (12)"
+      },
+      {
+        "measure": "exact 5-y risk, 1st / 50th / 99th percentile (%)",
+        "value": "0.75 / 1.24 / 9.78"
+      },
+      {
+        "measure": "women with exact 5-y risk > 10%",
+        "value": "223 (33 strokes)"
+      }
+    ],
+    "age": [
+      {
+        "age_band": "18–29",
+        "women": 3179,
+        "strokes_3y": 43,
+        "km_3y_pct": "1.95 (1.35–2.55)",
+        "age_point": "+1"
+      },
+      {
+        "age_band": "30–34",
+        "women": 2899,
+        "strokes_3y": 21,
+        "km_3y_pct": "1.05 (0.59–1.51)",
+        "age_point": "+1"
+      },
+      {
+        "age_band": "35–44",
+        "women": 8614,
+        "strokes_3y": 76,
+        "km_3y_pct": "1.09 (0.84–1.34)",
+        "age_point": "+1"
+      },
+      {
+        "age_band": "45–54",
+        "women": 7375,
+        "strokes_3y": 91,
+        "km_3y_pct": "1.59 (1.26–1.92)",
+        "age_point": "0"
+      },
+      {
+        "age_band": "55–60",
+        "women": 1939,
+        "strokes_3y": 16,
+        "km_3y_pct": "0.99 (0.49–1.48)",
+        "age_point": "0"
+      }
+    ]
+  }
+}

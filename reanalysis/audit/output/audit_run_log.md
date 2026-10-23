@@ -76,3 +76,11 @@
 - table `A09c_rates_by_time_since_anchor` (8 rows)
 - table `A09d_oe_by_anchor_year` (3 rows)
 - table `A09e_temporal_model_comparison` (5 rows)
+- table `A09f_temporal_delta_c` (4 rows)
+- table `A09g_temporal_calibration_bands` (5 rows)
+- table `A09h_updating_closed_test` (15 rows)
+- table `A09i_temporal_decision_curve` (6 rows)
+
+## A10 Subgroup performance and fairness — `audit/R/A10_subgroups.R` (2026-10-23 19:20)
+- table `A10a_subgroup_performance` (24 rows)
+- table `A10b_differential_measurement` (4 rows)

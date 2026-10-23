@@ -1288,5 +1288,465 @@
         "nine_item_minus_best_default_95ci": "0.00066 (0.00007 to 0.00122)"
       }
     ]
+  },
+  "A09": {
+    "temporal": [
+      {
+        "measure": "development (anchor < 2023): women / strokes",
+        "value": "11,396 / 226"
+      },
+      {
+        "measure": "validation (anchor ≥ 2023): women / strokes",
+        "value": "12,610 / 119"
+      },
+      {
+        "measure": "validation: maximum follow-up, years",
+        "value": "3.72"
+      },
+      {
+        "measure": "validation: women followed ≥ 3 years",
+        "value": "1,439"
+      },
+      {
+        "measure": "validation: strokes within 3 years",
+        "value": "119"
+      },
+      {
+        "measure": "C at 3 years (95% CI)",
+        "value": "0.695 (0.644–0.746)"
+      },
+      {
+        "measure": "calibration slope at 3 years (95% CI)",
+        "value": "0.90 (0.72–1.09)"
+      },
+      {
+        "measure": "O/E 3-year, KM / mean predicted (R/16 method) (95% CI)",
+        "value": "1.56 (1.23–1.89)"
+      },
+      {
+        "measure": "O/E 3-year, expected counts (95% CI)",
+        "value": "1.44 (1.19–1.73)"
+      },
+      {
+        "measure": "mean predicted 3-year risk, %",
+        "value": "1.063"
+      },
+      {
+        "measure": "observed KM 3-year risk, % (95% CI)",
+        "value": "1.66 (1.30–2.01)"
+      }
+    ],
+    "independence": [
+      {
+        "item": "predictor set chosen using data that include the validation years",
+        "finding": "yes — the nine predictors were fixed after fitting the 14-predictor model on all 24,006 women (R/15, R/16)"
+      },
+      {
+        "item": "points (and therefore which predictors carry points) derived on the full sample",
+        "finding": "yes (R/15_risk_model.R:237–252)"
+      },
+      {
+        "item": "shrinkage factor estimated on the full sample",
+        "finding": "yes; R/16 temporal predictions are unshrunk"
+      },
+      {
+        "item": "temporal model in R/16 is a refit on <2023 data, not the published coefficients",
+        "finding": "yes — it validates the procedure, not the exact published equation"
+      },
+      {
+        "item": "full-process temporal validation: predictors selected on <2023 data only",
+        "finding": "htn, dm, cad, migraine_any, ckd_pre, haemoglobinopathy, estrogen, age, bmi5, hb_def"
+      },
+      {
+        "item": "  C at 3 years",
+        "finding": "0.676 (0.623–0.728)"
+      },
+      {
+        "item": "  calibration slope",
+        "finding": "0.84 (0.65–1.03)"
+      },
+      {
+        "item": "  O/E 3-year, expected counts",
+        "finding": "1.44 (1.20–1.73)"
+      }
+    ],
+    "updating": [
+      {
+        "step": "1. baseline only (calibration-in-the-large): O/E by expected counts",
+        "result": "1.44 (1.19–1.73)"
+      },
+      {
+        "step": "2. slope vs baseline-only: LR test (1 df)",
+        "result": "χ² 1.08, P 0.298; slope 0.90"
+      },
+      {
+        "step": "3. revision of all nine coefficients vs baseline-only: LR test (9 df)",
+        "result": "χ² 28.80, P <0.001"
+      },
+      {
+        "step": "3-year risk of the reference woman (age 41, Hb deficit 0.67, no binary risk factor): baseline-only update vs development",
+        "result": "0.827% vs 0.574% (baseline-only update = development cumulative baseline hazard × O/E)"
+      },
+      {
+        "step": "   O/E in validation women with no binary risk factor",
+        "result": "1.09 (0.70–1.63) (n = 6,391, 24 strokes)"
+      },
+      {
+        "step": "   O/E in validation women with ≥1 binary risk factor",
+        "result": "1.57 (1.27–1.92) (n = 6,219, 95 strokes)"
+      },
+      {
+        "step": "   revision: validation/development HR ratio, migraine_any",
+        "result": "1.80 (1.25–2.59)"
+      },
+      {
+        "step": "   revision: validation/development HR ratio, estrogen",
+        "result": "1.29 (0.47–3.54)"
+      },
+      {
+        "step": "   revision: validation/development HR ratio, dm",
+        "result": "0.55 (0.36–0.84)"
+      },
+      {
+        "step": "   revision: validation/development HR ratio, htn",
+        "result": "1.28 (0.86–1.90)"
+      },
+      {
+        "step": "   revision: validation/development HR ratio, haemoglobinopathy",
+        "result": "1.47 (0.66–3.24)"
+      },
+      {
+        "step": "   revision: validation/development HR ratio, hb_def",
+        "result": "0.97 (0.85–1.10)"
+      },
+      {
+        "step": "   revision: validation/development HR ratio, age",
+        "result": "1.02 (1.01–1.04)"
+      },
+      {
+        "step": "   revision: validation/development HR ratio, cad",
+        "result": "0.51 (0.24–1.11)"
+      },
+      {
+        "step": "   revision: validation/development HR ratio, ckd_pre",
+        "result": "1.18 (0.61–2.26)"
+      }
+    ]
+  },
+  "A10": {
+    "subgroups": [
+      {
+        "subgroup": "age at anchor",
+        "level": "18–34",
+        "dev_women": 6078,
+        "dev_strokes_5y": 80,
+        "dev_c_5y": "0.74 (0.68–0.79)",
+        "dev_oe_5y": "1.01 (0.80–1.26)",
+        "temporal_women": 3377,
+        "temporal_strokes_3y": 26,
+        "temporal_c_3y": "0.68 (0.59–0.77)",
+        "temporal_oe_3y": "1.00 (0.65–1.47)",
+        "note": ""
+      },
+      {
+        "subgroup": "age at anchor",
+        "level": "35–44",
+        "dev_women": 8614,
+        "dev_strokes_5y": 94,
+        "dev_c_5y": "0.68 (0.62–0.73)",
+        "dev_oe_5y": "0.89 (0.72–1.09)",
+        "temporal_women": 4463,
+        "temporal_strokes_3y": 40,
+        "temporal_c_3y": "0.68 (0.58–0.77)",
+        "temporal_oe_3y": "1.42 (1.01–1.93)",
+        "note": ""
+      },
+      {
+        "subgroup": "age at anchor",
+        "level": "45–60",
+        "dev_women": 9314,
+        "dev_strokes_5y": 132,
+        "dev_c_5y": "0.71 (0.67–0.76)",
+        "dev_oe_5y": "1.15 (0.96–1.37)",
+        "temporal_women": 4770,
+        "temporal_strokes_3y": 53,
+        "temporal_c_3y": "0.73 (0.67–0.80)",
+        "temporal_oe_3y": "1.87 (1.40–2.45)",
+        "note": ""
+      },
+      {
+        "subgroup": "uterine diagnosis",
+        "level": "Fibroids only",
+        "dev_women": 9019,
+        "dev_strokes_5y": 127,
+        "dev_c_5y": "0.73 (0.68–0.78)",
+        "dev_oe_5y": "1.07 (0.90–1.28)",
+        "temporal_women": 4605,
+        "temporal_strokes_3y": 44,
+        "temporal_c_3y": "0.70 (0.62–0.78)",
+        "temporal_oe_3y": "1.34 (0.97–1.80)",
+        "note": ""
+      },
+      {
+        "subgroup": "uterine diagnosis",
+        "level": "Adenomyosis only",
+        "dev_women": 1166,
+        "dev_strokes_5y": 11,
+        "dev_c_5y": "0.83 (0.73–0.93)",
+        "dev_oe_5y": "1.16 (0.58–2.07)",
+        "temporal_women": 1079,
+        "temporal_strokes_3y": 11,
+        "temporal_c_3y": "0.83 (0.74–0.92)",
+        "temporal_oe_3y": "1.62 (0.81–2.89)",
+        "note": "fewer than 20 events: imprecise (temporal)"
+      },
+      {
+        "subgroup": "uterine diagnosis",
+        "level": "Endometriosis only",
+        "dev_women": 6041,
+        "dev_strokes_5y": 67,
+        "dev_c_5y": "0.69 (0.63–0.76)",
+        "dev_oe_5y": "0.99 (0.77–1.26)",
+        "temporal_women": 3185,
+        "temporal_strokes_3y": 34,
+        "temporal_c_3y": "0.64 (0.54–0.74)",
+        "temporal_oe_3y": "1.85 (1.28–2.59)",
+        "note": ""
+      },
+      {
+        "subgroup": "uterine diagnosis",
+        "level": ">1 condition",
+        "dev_women": 7780,
+        "dev_strokes_5y": 101,
+        "dev_c_5y": "0.67 (0.61–0.73)",
+        "dev_oe_5y": "0.97 (0.79–1.18)",
+        "temporal_women": 3741,
+        "temporal_strokes_3y": 30,
+        "temporal_c_3y": "0.71 (0.60–0.82)",
+        "temporal_oe_3y": "1.22 (0.82–1.75)",
+        "note": ""
+      },
+      {
+        "subgroup": "fibroids",
+        "level": "any fibroids",
+        "dev_women": 15113,
+        "dev_strokes_5y": 207,
+        "dev_c_5y": "0.71 (0.67–0.75)",
+        "dev_oe_5y": "1.03 (0.90–1.18)",
+        "temporal_women": 7614,
+        "temporal_strokes_3y": 71,
+        "temporal_c_3y": "0.70 (0.64–0.77)",
+        "temporal_oe_3y": "1.34 (1.05–1.69)",
+        "note": ""
+      },
+      {
+        "subgroup": "fibroids",
+        "level": "no fibroids",
+        "dev_women": 8893,
+        "dev_strokes_5y": 99,
+        "dev_c_5y": "0.70 (0.65–0.75)",
+        "dev_oe_5y": "1.00 (0.81–1.22)",
+        "temporal_women": 4996,
+        "temporal_strokes_3y": 48,
+        "temporal_c_3y": "0.68 (0.60–0.76)",
+        "temporal_oe_3y": "1.62 (1.20–2.15)",
+        "note": ""
+      },
+      {
+        "subgroup": "hemoglobin, g/dL",
+        "level": "<10",
+        "dev_women": 1387,
+        "dev_strokes_5y": 29,
+        "dev_c_5y": "0.71 (0.61–0.81)",
+        "dev_oe_5y": "0.98 (0.66–1.41)",
+        "temporal_women": 678,
+        "temporal_strokes_3y": 10,
+        "temporal_c_3y": "0.72 (0.54–0.90)",
+        "temporal_oe_3y": "1.17 (0.56–2.15)",
+        "note": "(temporal)"
+      },
+      {
+        "subgroup": "hemoglobin, g/dL",
+        "level": "10–11.9",
+        "dev_women": 3885,
+        "dev_strokes_5y": 68,
+        "dev_c_5y": "0.70 (0.63–0.77)",
+        "dev_oe_5y": "1.12 (0.87–1.43)",
+        "temporal_women": 2009,
+        "temporal_strokes_3y": 27,
+        "temporal_c_3y": "0.68 (0.56–0.79)",
+        "temporal_oe_3y": "1.61 (1.06–2.34)",
+        "note": ""
+      },
+      {
+        "subgroup": "hemoglobin, g/dL",
+        "level": "≥12",
+        "dev_women": 18734,
+        "dev_strokes_5y": 209,
+        "dev_c_5y": "0.69 (0.65–0.73)",
+        "dev_oe_5y": "1.00 (0.87–1.14)",
+        "temporal_women": 9923,
+        "temporal_strokes_3y": 82,
+        "temporal_c_3y": "0.69 (0.63–0.75)",
+        "temporal_oe_3y": "1.43 (1.14–1.78)",
+        "note": ""
+      },
+      {
+        "subgroup": "hypertension",
+        "level": "0",
+        "dev_women": 19580,
+        "dev_strokes_5y": 176,
+        "dev_c_5y": "0.66 (0.61–0.70)",
+        "dev_oe_5y": "1.00 (0.86–1.16)",
+        "temporal_women": 10540,
+        "temporal_strokes_3y": 71,
+        "temporal_c_3y": "0.66 (0.59–0.73)",
+        "temporal_oe_3y": "1.39 (1.09–1.76)",
+        "note": ""
+      },
+      {
+        "subgroup": "hypertension",
+        "level": "1",
+        "dev_women": 4426,
+        "dev_strokes_5y": 130,
+        "dev_c_5y": "0.67 (0.62–0.72)",
+        "dev_oe_5y": "1.05 (0.88–1.25)",
+        "temporal_women": 2070,
+        "temporal_strokes_3y": 48,
+        "temporal_c_3y": "0.59 (0.50–0.67)",
+        "temporal_oe_3y": "1.52 (1.12–2.02)",
+        "note": ""
+      },
+      {
+        "subgroup": "diabetes",
+        "level": "0",
+        "dev_women": 18424,
+        "dev_strokes_5y": 187,
+        "dev_c_5y": "0.68 (0.64–0.72)",
+        "dev_oe_5y": "1.01 (0.87–1.17)",
+        "temporal_women": 10046,
+        "temporal_strokes_3y": 86,
+        "temporal_c_3y": "0.69 (0.63–0.75)",
+        "temporal_oe_3y": "1.68 (1.34–2.08)",
+        "note": ""
+      },
+      {
+        "subgroup": "diabetes",
+        "level": "1",
+        "dev_women": 5582,
+        "dev_strokes_5y": 119,
+        "dev_c_5y": "0.73 (0.68–0.78)",
+        "dev_oe_5y": "1.03 (0.86–1.24)",
+        "temporal_women": 2564,
+        "temporal_strokes_3y": 33,
+        "temporal_c_3y": "0.75 (0.68–0.83)",
+        "temporal_oe_3y": "1.05 (0.72–1.48)",
+        "note": ""
+      },
+      {
+        "subgroup": "estrogen-containing therapy",
+        "level": "0",
+        "dev_women": 23668,
+        "dev_strokes_5y": 295,
+        "dev_c_5y": "0.70 (0.67–0.73)",
+        "dev_oe_5y": "1.02 (0.91–1.15)",
+        "temporal_women": 12481,
+        "temporal_strokes_3y": 115,
+        "temporal_c_3y": "0.69 (0.64–0.74)",
+        "temporal_oe_3y": "1.43 (1.18–1.72)",
+        "note": ""
+      },
+      {
+        "subgroup": "estrogen-containing therapy",
+        "level": "1",
+        "dev_women": 338,
+        "dev_strokes_5y": 11,
+        "dev_c_5y": "0.67 (0.56–0.78)",
+        "dev_oe_5y": "0.95 (0.47–1.69)",
+        "temporal_women": 129,
+        "temporal_strokes_3y": 4,
+        "temporal_c_3y": "<5 events",
+        "temporal_oe_3y": "1.73 (0.47–4.42)",
+        "note": "fewer than 20 events: imprecise (temporal)"
+      },
+      {
+        "subgroup": "migraine",
+        "level": "0",
+        "dev_women": 17138,
+        "dev_strokes_5y": 164,
+        "dev_c_5y": "0.70 (0.66–0.75)",
+        "dev_oe_5y": "1.02 (0.87–1.19)",
+        "temporal_women": 9095,
+        "temporal_strokes_3y": 54,
+        "temporal_c_3y": "0.68 (0.60–0.76)",
+        "temporal_oe_3y": "1.10 (0.83–1.44)",
+        "note": ""
+      },
+      {
+        "subgroup": "migraine",
+        "level": "1",
+        "dev_women": 6868,
+        "dev_strokes_5y": 142,
+        "dev_c_5y": "0.61 (0.56–0.67)",
+        "dev_oe_5y": "1.02 (0.86–1.21)",
+        "temporal_women": 3515,
+        "temporal_strokes_3y": 65,
+        "temporal_c_3y": "0.59 (0.51–0.67)",
+        "temporal_oe_3y": "1.94 (1.50–2.47)",
+        "note": ""
+      },
+      {
+        "subgroup": "race (not a predictor)",
+        "level": "Asian",
+        "dev_women": 1266,
+        "dev_strokes_5y": 12,
+        "dev_c_5y": "0.62 (0.47–0.77)",
+        "dev_oe_5y": "0.82 (0.42–1.43)",
+        "temporal_women": 676,
+        "temporal_strokes_3y": 5,
+        "temporal_c_3y": "0.68 (0.53–0.83)",
+        "temporal_oe_3y": "1.17 (0.38–2.74)",
+        "note": "fewer than 20 events: imprecise (temporal)"
+      },
+      {
+        "subgroup": "race (not a predictor)",
+        "level": "Black",
+        "dev_women": 2187,
+        "dev_strokes_5y": 26,
+        "dev_c_5y": "0.70 (0.60–0.81)",
+        "dev_oe_5y": "0.95 (0.62–1.38)",
+        "temporal_women": 1193,
+        "temporal_strokes_3y": 10,
+        "temporal_c_3y": "0.69 (0.48–0.91)",
+        "temporal_oe_3y": "1.25 (0.60–2.30)",
+        "note": "(temporal)"
+      },
+      {
+        "subgroup": "race (not a predictor)",
+        "level": "Other/unknown",
+        "dev_women": 1562,
+        "dev_strokes_5y": 20,
+        "dev_c_5y": "0.68 (0.58–0.78)",
+        "dev_oe_5y": "1.02 (0.62–1.58)",
+        "temporal_women": 846,
+        "temporal_strokes_3y": 9,
+        "temporal_c_3y": "0.64 (0.51–0.77)",
+        "temporal_oe_3y": "1.79 (0.82–3.40)",
+        "note": "(temporal)"
+      },
+      {
+        "subgroup": "race (not a predictor)",
+        "level": "White",
+        "dev_women": 18991,
+        "dev_strokes_5y": 248,
+        "dev_c_5y": "0.71 (0.68–0.75)",
+        "dev_oe_5y": "1.04 (0.92–1.18)",
+        "temporal_women": 9895,
+        "temporal_strokes_3y": 95,
+        "temporal_c_3y": "0.70 (0.64–0.76)",
+        "temporal_oe_3y": "1.46 (1.18–1.78)",
+        "note": ""
+      }
+    ]
   }
 }

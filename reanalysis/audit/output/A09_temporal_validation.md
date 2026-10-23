@@ -78,3 +78,63 @@ All models refitted on anchors < 2023 and evaluated on ≥ 2023 at 3 years. The 
 | conventional_plus_medhack | 0.671 (0.618–0.724) | 0.82 (0.64–1.01) | 1.44 (1.19–1.72) | 0.74% |
 | points_published | 0.702 (0.654–0.751) |  |  |  |
 
+### A09f_temporal_delta_c
+
+Paired bootstrap (500 resamples of the validation set) differences in 3-year C
+
+| comparison | delta_c_3y_95ci |
+|---|---|
+| nine-item − fourteen | 0.0299 (0.0125 to 0.0480) |
+| nine-item − conventional | 0.1148 (0.0690 to 0.1655) |
+| conventional + MED-HACK items − conventional | 0.0911 (0.0508 to 0.1364) |
+| nine-item − points | -0.0075 (-0.0236 to 0.0082) |
+
+Flexible calibration in the validation set (3-year, nine-item temporal model): ICI 0.556 percentage points, E50 0.483, E90 1.178.
+
+### A09g_temporal_calibration_bands
+
+Temporal validation: predicted vs observed 3-year risk by predicted-risk band
+
+| predicted_3y_band | women | strokes_3y | mean_predicted_pct | observed_km_pct |
+|---|---|---|---|---|
+| <0.5% | 1,805 | 7 | 0.45 | 0.64 (0.15–1.12) |
+| 0.5–1% | 7,009 | 40 | 0.71 | 0.96 (0.60–1.31) |
+| 1–2% | 2,882 | 43 | 1.33 | 2.31 (1.52–3.11) |
+| 2–5% | 754 | 19 | 2.89 | 4.92 (2.21–7.55) |
+| ≥5% | 160 | 10 | 10.18 | 10.69 (3.84–17.05) |
+
+### A09h_updating_closed_test
+
+Closed testing for model updating in the 2023+ data (Vergouwe et al. 2017 logic, Cox version). Any updated model must be evaluated in data not used for the update; this audit does not change the calculator.
+
+| step | result |
+|---|---|
+| 1. baseline only (calibration-in-the-large): O/E by expected counts | 1.44 (1.19–1.73) |
+| 2. slope vs baseline-only: LR test (1 df) | χ² 1.08, P 0.298; slope 0.90 |
+| 3. revision of all nine coefficients vs baseline-only: LR test (9 df) | χ² 28.80, P <0.001 |
+| 3-year risk of the reference woman (age 41, Hb deficit 0.67, no binary risk factor): baseline-only update vs development | 0.827% vs 0.574% (baseline-only update = development cumulative baseline hazard × O/E) |
+|    O/E in validation women with no binary risk factor | 1.09 (0.70–1.63) (n = 6,391, 24 strokes) |
+|    O/E in validation women with ≥1 binary risk factor | 1.57 (1.27–1.92) (n = 6,219, 95 strokes) |
+|    revision: validation/development HR ratio, migraine_any | 1.80 (1.25–2.59) |
+|    revision: validation/development HR ratio, estrogen | 1.29 (0.47–3.54) |
+|    revision: validation/development HR ratio, dm | 0.55 (0.36–0.84) |
+|    revision: validation/development HR ratio, htn | 1.28 (0.86–1.90) |
+|    revision: validation/development HR ratio, haemoglobinopathy | 1.47 (0.66–3.24) |
+|    revision: validation/development HR ratio, hb_def | 0.97 (0.85–1.10) |
+|    revision: validation/development HR ratio, age | 1.02 (1.01–1.04) |
+|    revision: validation/development HR ratio, cad | 0.51 (0.24–1.11) |
+|    revision: validation/development HR ratio, ckd_pre | 1.18 (0.61–2.26) |
+
+### A09i_temporal_decision_curve
+
+Net benefit at 3 years in the temporal validation set (nine-item model refitted on < 2023)
+
+| threshold_pct | treat_all | nine_item | pct_flagged |
+|---|---|---|---|
+| 0.5 | 0.01165 | 0.0113 | 85.7 |
+| 1 | 0.00666 | 0.00685 | 30.1 |
+| 1.5 | 0.00162 | 0.00396 | 12.7 |
+| 2 | -0.00348 | 0.00294 | 7.2 |
+| 3 | -0.01382 | 0.00148 | 3.3 |
+| 5 | -0.03516 | 0.00076 | 1.3 |
+

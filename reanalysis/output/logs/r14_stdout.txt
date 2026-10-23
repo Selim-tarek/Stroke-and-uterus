@@ -1,0 +1,9 @@
+Warning message:
+Number of logged events: 100 
+Error in ubar + (1 + 1/m) * bvar : non-conformable arrays
+Calls: rbindlist -> lapply -> FUN -> pool_full
+Execution halted
+
+real	12m58.037s
+user	11m14.402s
+sys	1m40.585s

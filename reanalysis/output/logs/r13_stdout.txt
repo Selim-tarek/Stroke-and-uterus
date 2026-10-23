@@ -1,0 +1,2 @@
+Warning message:
+Number of logged events: 100 

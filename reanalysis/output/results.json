@@ -2843,5 +2843,782 @@
         "n_cases": 95
       }
     ]
+  },
+  "E1_prediction": {
+    "table": [
+      {
+        "metric": "Harrell C, base model",
+        "apparent": "0.706",
+        "optimism_corrected": "0.692",
+        "bootstrap_95ci": ""
+      },
+      {
+        "metric": "Harrell C, base + Hb",
+        "apparent": "0.717",
+        "optimism_corrected": "0.701",
+        "bootstrap_95ci": ""
+      },
+      {
+        "metric": "Harrell C difference (Hb added)",
+        "apparent": "0.011",
+        "optimism_corrected": "0.009",
+        "bootstrap_95ci": "0.002 to 0.024"
+      },
+      {
+        "metric": "Uno C (5 y), base model",
+        "apparent": "0.720",
+        "optimism_corrected": "0.706",
+        "bootstrap_95ci": ""
+      },
+      {
+        "metric": "Uno C (5 y), base + Hb",
+        "apparent": "0.723",
+        "optimism_corrected": "0.707",
+        "bootstrap_95ci": ""
+      },
+      {
+        "metric": "Uno C (5 y) difference",
+        "apparent": "0.003",
+        "optimism_corrected": "0.001",
+        "bootstrap_95ci": "-0.004 to 0.015"
+      },
+      {
+        "metric": "Likelihood-ratio test for Hb (3 df)",
+        "apparent": "chi2 17.05",
+        "optimism_corrected": "",
+        "bootstrap_95ci": "P = <0.001"
+      }
+    ],
+    "calibration": [
+      {
+        "dec": 1,
+        "women": 2489,
+        "strokes": 11,
+        "predicted_5y_pct": 0.69988219358997,
+        "observed_5y_pct": 0.687623021498407,
+        "obs_lo": 0.259661648016118,
+        "obs_hi": 1.1137481175004
+      },
+      {
+        "dec": 2,
+        "women": 2489,
+        "strokes": 8,
+        "predicted_5y_pct": 0.792938720499311,
+        "observed_5y_pct": 0.537156651533466,
+        "obs_lo": 0.104501601530271,
+        "obs_hi": 0.967937839397781
+      },
+      {
+        "dec": 3,
+        "women": 2488,
+        "strokes": 12,
+        "predicted_5y_pct": 0.890819990285533,
+        "observed_5y_pct": 0.628383458309434,
+        "obs_lo": 0.145295418176483,
+        "obs_hi": 1.10913436214524
+      },
+      {
+        "dec": 4,
+        "women": 2489,
+        "strokes": 13,
+        "predicted_5y_pct": 1.0096363712749,
+        "observed_5y_pct": 0.752162684738467,
+        "obs_lo": 0.296399955796189,
+        "obs_hi": 1.20584204191683
+      },
+      {
+        "dec": 5,
+        "women": 2488,
+        "strokes": 18,
+        "predicted_5y_pct": 1.18053966147048,
+        "observed_5y_pct": 0.997661072061351,
+        "obs_lo": 0.45655850552041,
+        "obs_hi": 1.53582228974875
+      },
+      {
+        "dec": 6,
+        "women": 2489,
+        "strokes": 26,
+        "predicted_5y_pct": 1.43810084644224,
+        "observed_5y_pct": 1.60941359647329,
+        "obs_lo": 0.923713716822161,
+        "obs_hi": 2.29036779638012
+      },
+      {
+        "dec": 7,
+        "women": 2488,
+        "strokes": 42,
+        "predicted_5y_pct": 1.72176628391808,
+        "observed_5y_pct": 2.25779539885741,
+        "obs_lo": 1.48878772573938,
+        "obs_hi": 3.02079997052473
+      },
+      {
+        "dec": 8,
+        "women": 2489,
+        "strokes": 31,
+        "predicted_5y_pct": 2.0764764755525,
+        "observed_5y_pct": 1.44326641820379,
+        "obs_lo": 0.880362127908108,
+        "obs_hi": 2.00297395307506
+      },
+      {
+        "dec": 9,
+        "women": 2488,
+        "strokes": 57,
+        "predicted_5y_pct": 2.69866294216698,
+        "observed_5y_pct": 2.91036381300623,
+        "obs_lo": 2.0177110521143,
+        "obs_hi": 3.79488419650543
+      },
+      {
+        "dec": 10,
+        "women": 2489,
+        "strokes": 129,
+        "predicted_5y_pct": 6.10231275766178,
+        "observed_5y_pct": 6.66597540012134,
+        "obs_lo": 5.43007974104155,
+        "obs_hi": 7.88571964365642
+      }
+    ]
+  },
+  "E2_trajectory": {
+    "differences": [
+      {
+        "window": "36 to 12 months before (long-standing)",
+        "cases_with_hb": 261,
+        "controls_with_hb": 2258,
+        "difference_g_dl": "-0.21 (-0.42–-0.01)",
+        "p": "0.044"
+      },
+      {
+        "window": "Last 3 months before",
+        "cases_with_hb": 195,
+        "controls_with_hb": 869,
+        "difference_g_dl": "-0.21 (-0.59–0.18)",
+        "p": "0.292"
+      },
+      {
+        "window": "12 to 3 months before",
+        "cases_with_hb": 219,
+        "controls_with_hb": 1679,
+        "difference_g_dl": "-0.11 (-0.40–0.17)",
+        "p": "0.434"
+      }
+    ],
+    "bins": [
+      {
+        "case": 0,
+        "bin": 0,
+        "persons": 869,
+        "mean_hb": 12.745589004877,
+        "lo": 12.6376914653583,
+        "hi": 12.8534865443956,
+        "pct_anemic": 25.5466052934407,
+        "group": "Matched controls",
+        "months_before": -3,
+        "n_total": 3940,
+        "pct_tested": 22.0558375634518
+      },
+      {
+        "case": 0,
+        "bin": 1,
+        "persons": 836,
+        "mean_hb": 12.766777367825,
+        "lo": 12.6573725763702,
+        "hi": 12.8761821592799,
+        "pct_anemic": 25,
+        "group": "Matched controls",
+        "months_before": -6,
+        "n_total": 3940,
+        "pct_tested": 21.2182741116751
+      },
+      {
+        "case": 0,
+        "bin": 2,
+        "persons": 789,
+        "mean_hb": 12.8818545129001,
+        "lo": 12.7787441792446,
+        "hi": 12.9849648465557,
+        "pct_anemic": 22.9404309252218,
+        "group": "Matched controls",
+        "months_before": -9,
+        "n_total": 3940,
+        "pct_tested": 20.0253807106599
+      },
+      {
+        "case": 0,
+        "bin": 3,
+        "persons": 729,
+        "mean_hb": 12.8122399028726,
+        "lo": 12.7048177509699,
+        "hi": 12.9196620547754,
+        "pct_anemic": 23.1824417009602,
+        "group": "Matched controls",
+        "months_before": -12,
+        "n_total": 3940,
+        "pct_tested": 18.502538071066
+      },
+      {
+        "case": 0,
+        "bin": 4,
+        "persons": 693,
+        "mean_hb": 12.8503985835428,
+        "lo": 12.7384640756569,
+        "hi": 12.9623330914286,
+        "pct_anemic": 22.7994227994228,
+        "group": "Matched controls",
+        "months_before": -15,
+        "n_total": 3940,
+        "pct_tested": 17.5888324873096
+      },
+      {
+        "case": 0,
+        "bin": 5,
+        "persons": 682,
+        "mean_hb": 12.8360156611879,
+        "lo": 12.7220763177507,
+        "hi": 12.9499550046252,
+        "pct_anemic": 21.1143695014663,
+        "group": "Matched controls",
+        "months_before": -18,
+        "n_total": 3940,
+        "pct_tested": 17.3096446700508
+      },
+      {
+        "case": 0,
+        "bin": 6,
+        "persons": 630,
+        "mean_hb": 12.9282796192251,
+        "lo": 12.815609314783,
+        "hi": 13.0409499236672,
+        "pct_anemic": 19.047619047619,
+        "group": "Matched controls",
+        "months_before": -21,
+        "n_total": 3940,
+        "pct_tested": 15.989847715736
+      },
+      {
+        "case": 0,
+        "bin": 7,
+        "persons": 606,
+        "mean_hb": 12.8982903439153,
+        "lo": 12.7816934040049,
+        "hi": 13.0148872838258,
+        "pct_anemic": 20.4620462046205,
+        "group": "Matched controls",
+        "months_before": -24,
+        "n_total": 3940,
+        "pct_tested": 15.3807106598985
+      },
+      {
+        "case": 0,
+        "bin": 8,
+        "persons": 604,
+        "mean_hb": 12.9453628435582,
+        "lo": 12.8274884898227,
+        "hi": 13.0632371972937,
+        "pct_anemic": 19.3708609271523,
+        "group": "Matched controls",
+        "months_before": -27,
+        "n_total": 3940,
+        "pct_tested": 15.3299492385787
+      },
+      {
+        "case": 0,
+        "bin": 9,
+        "persons": 592,
+        "mean_hb": 12.945363041613,
+        "lo": 12.8257511646736,
+        "hi": 13.0649749185525,
+        "pct_anemic": 19.9324324324324,
+        "group": "Matched controls",
+        "months_before": -30,
+        "n_total": 3940,
+        "pct_tested": 15.0253807106599
+      },
+      {
+        "case": 0,
+        "bin": 10,
+        "persons": 588,
+        "mean_hb": 12.8296577465901,
+        "lo": 12.7036634755031,
+        "hi": 12.9556520176772,
+        "pct_anemic": 23.469387755102,
+        "group": "Matched controls",
+        "months_before": -33,
+        "n_total": 3940,
+        "pct_tested": 14.9238578680203
+      },
+      {
+        "case": 0,
+        "bin": 11,
+        "persons": 547,
+        "mean_hb": 12.9383801700027,
+        "lo": 12.8225697245733,
+        "hi": 13.054190615432,
+        "pct_anemic": 19.1956124314442,
+        "group": "Matched controls",
+        "months_before": -36,
+        "n_total": 3940,
+        "pct_tested": 13.8832487309645
+      },
+      {
+        "case": 1,
+        "bin": 0,
+        "persons": 195,
+        "mean_hb": 12.667970169055,
+        "lo": 12.4227838961746,
+        "hi": 12.9131564419354,
+        "pct_anemic": 27.6923076923077,
+        "group": "Stroke",
+        "months_before": -3,
+        "n_total": 394,
+        "pct_tested": 49.492385786802
+      },
+      {
+        "case": 1,
+        "bin": 1,
+        "persons": 134,
+        "mean_hb": 12.6468293628406,
+        "lo": 12.3266511572247,
+        "hi": 12.9670075684564,
+        "pct_anemic": 29.8507462686567,
+        "group": "Stroke",
+        "months_before": -6,
+        "n_total": 394,
+        "pct_tested": 34.010152284264
+      },
+      {
+        "case": 1,
+        "bin": 2,
+        "persons": 122,
+        "mean_hb": 12.6066700380007,
+        "lo": 12.2670368354733,
+        "hi": 12.946303240528,
+        "pct_anemic": 31.1475409836066,
+        "group": "Stroke",
+        "months_before": -9,
+        "n_total": 394,
+        "pct_tested": 30.9644670050761
+      },
+      {
+        "case": 1,
+        "bin": 3,
+        "persons": 123,
+        "mean_hb": 12.8175781458046,
+        "lo": 12.5414365349807,
+        "hi": 13.0937197566284,
+        "pct_anemic": 26.0162601626016,
+        "group": "Stroke",
+        "months_before": -12,
+        "n_total": 394,
+        "pct_tested": 31.2182741116751
+      },
+      {
+        "case": 1,
+        "bin": 4,
+        "persons": 119,
+        "mean_hb": 12.5130328347555,
+        "lo": 12.21825095297,
+        "hi": 12.8078147165411,
+        "pct_anemic": 34.453781512605,
+        "group": "Stroke",
+        "months_before": -15,
+        "n_total": 394,
+        "pct_tested": 30.2030456852792
+      },
+      {
+        "case": 1,
+        "bin": 5,
+        "persons": 118,
+        "mean_hb": 12.5903212130384,
+        "lo": 12.2878061271862,
+        "hi": 12.8928362988906,
+        "pct_anemic": 29.6610169491525,
+        "group": "Stroke",
+        "months_before": -18,
+        "n_total": 394,
+        "pct_tested": 29.9492385786802
+      },
+      {
+        "case": 1,
+        "bin": 6,
+        "persons": 112,
+        "mean_hb": 12.5957895425354,
+        "lo": 12.279606227462,
+        "hi": 12.9119728576088,
+        "pct_anemic": 33.0357142857143,
+        "group": "Stroke",
+        "months_before": -21,
+        "n_total": 394,
+        "pct_tested": 28.4263959390863
+      },
+      {
+        "case": 1,
+        "bin": 7,
+        "persons": 100,
+        "mean_hb": 12.7212520010449,
+        "lo": 12.4242436777336,
+        "hi": 13.0182603243563,
+        "pct_anemic": 27,
+        "group": "Stroke",
+        "months_before": -24,
+        "n_total": 394,
+        "pct_tested": 25.3807106598985
+      },
+      {
+        "case": 1,
+        "bin": 8,
+        "persons": 95,
+        "mean_hb": 12.5769790954659,
+        "lo": 12.2349411848535,
+        "hi": 12.9190170060784,
+        "pct_anemic": 30.5263157894737,
+        "group": "Stroke",
+        "months_before": -27,
+        "n_total": 394,
+        "pct_tested": 24.1116751269036
+      },
+      {
+        "case": 1,
+        "bin": 9,
+        "persons": 92,
+        "mean_hb": 12.5464687848383,
+        "lo": 12.1775298111381,
+        "hi": 12.9154077585386,
+        "pct_anemic": 30.4347826086957,
+        "group": "Stroke",
+        "months_before": -30,
+        "n_total": 394,
+        "pct_tested": 23.3502538071066
+      },
+      {
+        "case": 1,
+        "bin": 10,
+        "persons": 88,
+        "mean_hb": 12.6178191040988,
+        "lo": 12.2775910846084,
+        "hi": 12.9580471235892,
+        "pct_anemic": 30.6818181818182,
+        "group": "Stroke",
+        "months_before": -33,
+        "n_total": 394,
+        "pct_tested": 22.3350253807107
+      },
+      {
+        "case": 1,
+        "bin": 11,
+        "persons": 87,
+        "mean_hb": 12.4545110381317,
+        "lo": 12.0782227993965,
+        "hi": 12.8307992768669,
+        "pct_anemic": 31.0344827586207,
+        "group": "Stroke",
+        "months_before": -36,
+        "n_total": 394,
+        "pct_tested": 22.0812182741117
+      }
+    ]
+  },
+  "E3_anemia_type": [
+    {
+      "level": "No anemia",
+      "women": 19380,
+      "strokes": 238,
+      "est": 1,
+      "analysis": "Anemia by evident cause",
+      "estimate": "1.00 (reference)"
+    },
+    {
+      "level": "Anemia with evident cause (iron deficiency / blood loss)",
+      "women": 2586,
+      "strokes": 53,
+      "est": 1.5185687825053,
+      "lo": 1.10720700508401,
+      "hi": 2.08276423163043,
+      "p": 0.00954844872998305,
+      "analysis": "Anemia by evident cause",
+      "estimate": "1.52 (1.11–2.08)"
+    },
+    {
+      "level": "Anemia without evident cause",
+      "women": 2920,
+      "strokes": 56,
+      "est": 1.50193498209845,
+      "lo": 1.108078070486,
+      "hi": 2.03578497809427,
+      "p": 0.00875824415085629,
+      "analysis": "Anemia by evident cause",
+      "estimate": "1.50 (1.11–2.04)"
+    },
+    {
+      "level": "No anemia",
+      "women": 19380,
+      "strokes": 238,
+      "est": 1,
+      "analysis": "Anemia by red-cell size (MCV)",
+      "estimate": "1.00 (reference)"
+    },
+    {
+      "level": "Microcytic anemia",
+      "women": 1745,
+      "strokes": 27,
+      "est": 1.21894109088746,
+      "lo": 0.810330237977685,
+      "hi": 1.83359488936513,
+      "p": 0.34191631220622,
+      "analysis": "Anemia by red-cell size (MCV)",
+      "estimate": "1.22 (0.81–1.83)"
+    },
+    {
+      "level": "Normocytic anemia",
+      "women": 3514,
+      "strokes": 74,
+      "est": 1.60011954515756,
+      "lo": 1.21601075132879,
+      "hi": 2.10555914575376,
+      "p": 0.000789687436466685,
+      "analysis": "Anemia by red-cell size (MCV)",
+      "estimate": "1.60 (1.22–2.11)"
+    },
+    {
+      "level": "Macrocytic anemia",
+      "women": 80,
+      "strokes": 3,
+      "analysis": "Anemia by red-cell size (MCV)",
+      "estimate": "not estimated (<5 strokes)"
+    },
+    {
+      "level": "Anemia, MCV missing",
+      "women": 167,
+      "strokes": 5,
+      "est": 2.42899585640864,
+      "lo": 0.992473570057521,
+      "hi": 5.94476371809921,
+      "p": 0.0519654213064205,
+      "analysis": "Anemia by red-cell size (MCV)",
+      "estimate": "2.43 (0.99–5.94)"
+    },
+    {
+      "level": "RDW-CV >14.5% vs ≤14.5%",
+      "women": 24020,
+      "strokes": 334,
+      "p": 0.12608117880722,
+      "analysis": "RDW-CV, adjusted for Hb",
+      "estimate": "1.30 (0.93–1.82)"
+    },
+    {
+      "level": "Per 1% higher RDW-CV",
+      "women": 24020,
+      "strokes": 334,
+      "p": 0.0189241743375092,
+      "analysis": "RDW-CV, adjusted for Hb",
+      "estimate": "1.07 (1.01–1.13)"
+    }
+  ],
+  "E4_effect_modification": [
+    {
+      "modifier": "Fibroids",
+      "stratum": "No fibroids (adenomyosis/endometriosis only)",
+      "women": 9277,
+      "strokes": 113,
+      "strokes_in_anemic": 31,
+      "any_anemia_RR": "1.80 (1.18–2.76)",
+      "ratio_of_RRs": "0.78 (0.47–1.29)",
+      "p_interaction": 0.336630417786578,
+      "q_BH": 0.970752792951006
+    },
+    {
+      "modifier": "Fibroids",
+      "stratum": "Any fibroids",
+      "women": 15609,
+      "strokes": 234,
+      "strokes_in_anemic": 78,
+      "any_anemia_RR": "1.40 (1.06–1.86)",
+      "ratio_of_RRs": ""
+    },
+    {
+      "modifier": "Heavy/abnormal bleeding",
+      "stratum": "No",
+      "women": 10289,
+      "strokes": 131,
+      "strokes_in_anemic": 34,
+      "any_anemia_RR": "1.54 (1.02–2.32)",
+      "ratio_of_RRs": "0.99 (0.60–1.63)",
+      "p_interaction": 0.970752792951006,
+      "q_BH": 0.970752792951006
+    },
+    {
+      "modifier": "Heavy/abnormal bleeding",
+      "stratum": "Yes",
+      "women": 14597,
+      "strokes": 216,
+      "strokes_in_anemic": 75,
+      "any_anemia_RR": "1.53 (1.14–2.05)",
+      "ratio_of_RRs": ""
+    },
+    {
+      "modifier": "Age at uterine diagnosis",
+      "stratum": "<45",
+      "women": 15316,
+      "strokes": 201,
+      "strokes_in_anemic": 60,
+      "any_anemia_RR": "1.48 (1.08–2.03)",
+      "ratio_of_RRs": "1.05 (0.66–1.68)",
+      "p_interaction": 0.825398087147598,
+      "q_BH": 0.970752792951006
+    },
+    {
+      "modifier": "Age at uterine diagnosis",
+      "stratum": "≥45",
+      "women": 9570,
+      "strokes": 146,
+      "strokes_in_anemic": 49,
+      "any_anemia_RR": "1.56 (1.09–2.22)",
+      "ratio_of_RRs": ""
+    },
+    {
+      "modifier": "Race",
+      "stratum": "Not Black",
+      "women": 22605,
+      "strokes": 314,
+      "strokes_in_anemic": 98,
+      "any_anemia_RR": "1.53 (1.19–1.97)",
+      "ratio_of_RRs": "0.85 (0.40–1.82)",
+      "p_interaction": 0.676127873246938,
+      "q_BH": 0.970752792951006
+    },
+    {
+      "modifier": "Race",
+      "stratum": "Black",
+      "women": 2281,
+      "strokes": 33,
+      "strokes_in_anemic": 11,
+      "any_anemia_RR": "1.30 (0.63–2.69)",
+      "ratio_of_RRs": ""
+    }
+  ],
+  "E5_mortality": {
+    "models": [
+      {
+        "level": "Mild",
+        "est": 2.20262772433913,
+        "lo": 1.54283651125755,
+        "hi": 3.14457744331766,
+        "p": 1.37955770193871e-05,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "All-cause death (reduced set, EPV<10 with full set)",
+        "outcome": "dead",
+        "N": 24886,
+        "events": 188,
+        "df": 16,
+        "epv": 11.75,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Moderate",
+        "est": 3.43902075738236,
+        "lo": 2.09228180335613,
+        "hi": 5.65261512609623,
+        "p": 1.10619240477688e-06,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "All-cause death (reduced set, EPV<10 with full set)",
+        "outcome": "dead",
+        "N": 24886,
+        "events": 188,
+        "df": 16,
+        "epv": 11.75,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Severe",
+        "est": 6.10872636751731,
+        "lo": 3.03956805888402,
+        "hi": 12.2769212961469,
+        "p": 3.74237134328319e-07,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "All-cause death (reduced set, EPV<10 with full set)",
+        "outcome": "dead",
+        "N": 24886,
+        "events": 188,
+        "df": 16,
+        "epv": 11.75,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Per grade (trend)",
+        "est": 1.87030850076449,
+        "lo": 1.58483160873604,
+        "hi": 2.20720855688999,
+        "p": 1.27123475158839e-13,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "All-cause death (reduced set, EPV<10 with full set)",
+        "outcome": "dead",
+        "N": 24886,
+        "events": 188,
+        "df": 16,
+        "epv": 11.75,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Any anemia (Hb <12)",
+        "est": 2.65812925591208,
+        "lo": 1.95335748532745,
+        "hi": 3.61718282199188,
+        "p": 4.98271307220148e-10,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "All-cause death (reduced set, EPV<10 with full set)",
+        "outcome": "dead",
+        "N": 24886,
+        "events": 188,
+        "df": 16,
+        "epv": 11.75,
+        "converged": true,
+        "imputations": 20
+      }
+    ],
+    "rates": [
+      {
+        "grade": "None",
+        "women": 19380,
+        "deaths": 104,
+        "py": 66337.3004791239,
+        "rate": 1.56774543505472,
+        "lo": 1.2809616263609,
+        "hi": 1.8995859958857
+      },
+      {
+        "grade": "Mild",
+        "women": 4029,
+        "deaths": 51,
+        "py": 13679.1238877481,
+        "rate": 3.72830894862198,
+        "lo": 2.77597089915251,
+        "hi": 4.90203772747924
+      },
+      {
+        "grade": "Moderate",
+        "women": 1079,
+        "deaths": 23,
+        "py": 3709.06502395619,
+        "rate": 6.20102366807998,
+        "lo": 3.93091707556348,
+        "hi": 9.30458017638697
+      },
+      {
+        "grade": "Severe",
+        "women": 398,
+        "deaths": 10,
+        "py": 1229.22108145106,
+        "rate": 8.13523307637652,
+        "lo": 3.90116047348587,
+        "hi": 14.9609832759364
+      }
+    ]
   }
 }

@@ -140,3 +140,40 @@ Cohort for every analysis below: the anchored cohort (`R/13_anchor_design.R`). W
   - Death after the anchor (EHR death dates). Follow-up is not stopped at stroke; it ends at death, last contact or administrative end.
   - Poisson rate ratios with the primary covariates, or the reduced set if EPV <10.
   - Limitation: deaths are captured from the EHR only (no national death index).
+
+---
+## Addendum 2 (2026-10-23, before fitting): stroke risk calculator (development and internal validation; TRIPOD)
+
+**Population, outcome and horizon**
+- Population: the anchored cohort (stroke-free at the earliest uterine evidence, with a CBC Hb in the 3 y up to it), complete case for BMI.
+- Outcome: first stroke (excluding TIA) after the anchor.
+- Horizon: 5-year risk.
+
+**Candidate predictors** (fixed in advance, all known at the gynecologic visit; no data-driven selection). Race is excluded from the calculator on equity grounds; adding it is reported as a check.
+
+| Predictor | Form |
+|---|---|
+| Age | per year, linear; non-linearity checked |
+| BMI | per 5 kg/m² |
+| Hypertension, diabetes, dyslipidemia | yes/no |
+| Smoking | ever documented vs not |
+| Coronary artery disease, migraine, chronic kidney disease, hemoglobinopathy | yes/no |
+| Endometriosis, adenomyosis | yes/no |
+| Estrogen-containing hormonal therapy | combined OC or menopausal HT |
+| Hemoglobin | per 1 g/dL below 13 (0 if ≥13) |
+
+**Model**
+- Cox regression. Uniform shrinkage of the linear predictor by the bootstrap calibration slope.
+- 5-year risk = 1 − S0(5)^exp(shrunken centred LP).
+
+**Validation**
+- Optimism-corrected Harrell C and calibration slope (200 bootstrap resamples).
+- Temporal validation: develop on anchors before 2023, validate on 2023 onward (3-year horizon because of shorter follow-up). Report C, calibration slope, and observed vs predicted risk by decile.
+- Decision-curve net benefit at 5-year risk thresholds of 1–10%.
+
+**Points score** (CHA2DS2-VASc-style)
+- Sullivan method: categorical bands for age, BMI and Hb; points = round(β × distance from reference / constant), with the constant equal to the coefficient of 5 years of age.
+- Five-year risk for each total score from a Cox model on the score.
+- The score is compared with the full model (C, calibration).
+
+**Labeling:** research use only; not externally validated.

@@ -114,13 +114,13 @@ textarea { width: 100%; min-height: 150px; font: 13px/1.5 var(--mono); padding: 
 </div>
 
 <script>
-// MODEL-START (values from reanalysis/output/risk_model_spec.json)
+// MODEL-START (exact model: reanalysis/output/calculator_model_spec.json; points table: risk_model_spec.json)
 const MODEL = {
-  s0: 0.99065689, shrink: 0.96243033,
-  coef: { age: -0.01088765, bmi5: -0.03206788, htn: 0.77511301, dm: 0.20668382, dyslipidemia: 0.01601691, smoke: 0.14307148, cad: 1.41405125, migraine_any: 0.67069882, ckd_pre: 0.66354351, haemoglobinopathy: 1.06332178, endo: -0.01376094, adeno: 0.01658595, estrogen: 0.68371802, hb_def: 0.13533720 },
-  means: { age: 41.11274543, bmi5: 5.91706657, hb_def: 0.67095101 },
+  s0: 0.99027729, shrink: 0.97961740,
+  coef: { migraine_any: 0.67590454, estrogen: 0.69257843, dm: 0.20193947, htn: 0.76275867, haemoglobinopathy: 1.06274906, hb_def: 0.13281833, age: -0.01072282, cad: 1.43018485, ckd_pre: 0.68031337 },
+  means: { age: 41.11274543, hb_def: 0.67095101 },
   scoreCoef: 0.33503725, scoreS0: 0.98980251, scoreShift: 1,
-  p99: 9.49
+  p99: 9.78
 };
 const BIN = [
   ["migraine_any", "Migraine", "With or without aura", 2, "M"],
@@ -129,9 +129,7 @@ const BIN = [
   ["htn", "Hypertension", "Diagnosis or treatment", 2, "H"],
   ["haemoglobinopathy", "Hemoglobinopathy", "Sickle cell disease or trait, thalassemia", 3, "H"],
   ["cad", "Coronary artery disease", "MI, angina, coronary stent or bypass", 4, "C"],
-  ["ckd_pre", "Chronic kidney disease", "Any stage, dialysis or transplant", 2, "K"],
-  ["dyslipidemia", "Dyslipidemia", "In the model; no points", 0, ""], ["smoke", "Current or former smoker", "In the model; no points", 0, ""],
-  ["endo", "Endometriosis", "In the model; no points", 0, ""], ["adeno", "Adenomyosis", "In the model; no points", 0, ""]];
+  ["ckd_pre", "Chronic kidney disease", "Any stage, dialysis or transplant", 2, "K"]];
 function hbPoints(hb) { return hb >= 12 ? 0 : hb >= 8 ? 1 : 2; }
 function score(x) {
   const parts = [];
@@ -142,14 +140,14 @@ function score(x) {
 }
 function scoreRisk(total) { return 100 * (1 - Math.pow(MODEL.scoreS0, Math.exp(MODEL.scoreCoef * (total - MODEL.scoreShift)))); }
 function modelRisk(x) {
-  const v = { age: x.age, bmi5: x.bmi / 5, hb_def: Math.max(13 - x.hb, 0) };
+  const v = { age: x.age, hb_def: Math.max(13 - x.hb, 0) };
   let lp = 0;
   for (const k in MODEL.coef) lp += MODEL.coef[k] * ((k in v ? v[k] : (x[k] ? 1 : 0)) - (MODEL.means[k] || 0));
   return 100 * (1 - Math.pow(MODEL.s0, Math.exp(MODEL.shrink * lp)));
 }
 // MODEL-END
 const ROWS = [[0,3195,18],[1,7439,44],[2,4129,35],[3,4622,76],[4,2270,56],[5,1123,42],[6,642,18],[7,285,18],[8,144,15],[9,66,11],[10,56,5],[11,23,4],[12,9,2],[13,3,1]];
-const EXAMPLE = { age: 48, bmi: 31, hb: 9.4, hbUnit: "gdl", htn: 1, migraine_any: 1, dm: 0, cad: 0, ckd_pre: 0, haemoglobinopathy: 0, estrogen: 0, dyslipidemia: 0, smoke: 0, endo: 0, adeno: 1 };
+const EXAMPLE = { age: 48, hb: 9.4, hbUnit: "gdl", migraine_any: 1, estrogen: 0, dm: 0, htn: 1, haemoglobinopathy: 0, cad: 0, ckd_pre: 0 };
 const $ = (id) => document.getElementById(id);
 const state = {};
 
@@ -164,12 +162,13 @@ function segRow(k, q, hint, p, L) {
       <button type="button" data-k="${k}" data-v="0" aria-pressed="false">No<small>0</small></button>
       <button type="button" data-k="${k}" data-v="1" aria-pressed="false">Yes<small>${p ? "+" + p : "0"}</small></button></div></div>`;
 }
-$("form").innerHTML =
-  numRow("age", "Age", "Under 45 years: +1 point (see Evidence)", `<span class="unit">years</span>`, "A") +
-  numRow("hb", "Hemoglobin (anemia)", "Laboratory CBC at diagnosis. 12 or more: 0 &middot; 8.0&ndash;11.9: +1 &middot; under 8.0: +2 (g/dL)",
+const seg = (k) => { const b = BIN.find(r => r[0] === k); return segRow(b[0], b[1], b[2], b[3], b[4]); };
+$("form").innerHTML =                                   // M E D H H A A C K
+  seg("migraine_any") + seg("estrogen") + seg("dm") + seg("htn") + seg("haemoglobinopathy") +
+  numRow("hb", "Anemia (hemoglobin)", "Laboratory CBC at diagnosis. 12 or more: 0 &middot; 8.0&ndash;11.9: +1 &middot; under 8.0: +2 (g/dL)",
          `<select id="hbUnit" aria-label="Hemoglobin unit"><option value="gdl">g/dL</option><option value="gl">g/L</option><option value="mmol">mmol/L</option></select>`, "A") +
-  numRow("bmi", "Body mass index", "In the model; no points", `<span class="unit">kg/m&sup2;</span>`) +
-  BIN.map(b => segRow(b[0], b[1], b[2], b[3], b[4])).join("");
+  numRow("age", "Age", "Under 45 years: +1 point (see Evidence)", `<span class="unit">years</span>`, "A") +
+  seg("cad") + seg("ckd_pre");
 $("hbUnit").style.cssText = "font:14px var(--body);padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)";
 
 function hbToGdl(v, u) { return u === "gl" ? v / 10 : u === "mmol" ? v * 1.611 : v; }
@@ -184,8 +183,7 @@ function collect() {
   const x = {};
   x.age = readNum("age", 18, 60, "Age");
   x.hb = readNum("hb", 3, 20, "Hemoglobin", (v) => hbToGdl(v, $("hbUnit").value));
-  x.bmi = readNum("bmi", 12, 80, "BMI");
-  let complete = [x.age, x.hb, x.bmi].every(v => v !== null && !Number.isNaN(v));
+  let complete = [x.age, x.hb].every(v => v !== null && !Number.isNaN(v));
   for (const [k] of BIN) { x[k] = state[k]; if (x[k] === undefined) complete = false; }
   return { x, complete };
 }
@@ -194,7 +192,7 @@ let last = null;
 function render() {
   const { x, complete } = collect();
   if (!complete) { $("pts").textContent = "–"; $("risk").textContent = "–";
-    const missing = BIN.filter(b => state[b[0]] === undefined).length + ["age", "hb", "bmi"].filter(i => $(i).value.trim() === "").length;
+    const missing = BIN.filter(b => state[b[0]] === undefined).length + ["age", "hb"].filter(i => $(i).value.trim() === "").length;
     $("interp").textContent = missing ? `Answer ${missing} more item${missing > 1 ? "s" : ""} to see the result.` : "Correct the highlighted values.";
     last = null; markRow(-1); return; }
   const s = score(x), sr = scoreRisk(s.total), mr = modelRisk(x), b = band(mr);
@@ -212,7 +210,7 @@ $("form").addEventListener("click", (e) => { const b = e.target.closest("button[
 $("form").addEventListener("input", () => { $("exampleTag").hidden = true; render(); });
 $("form").addEventListener("change", () => render());
 function load(v) {
-  $("age").value = v.age ?? ""; $("bmi").value = v.bmi ?? ""; $("hb").value = v.hb ?? ""; $("hbUnit").value = v.hbUnit || "gdl";
+  $("age").value = v.age ?? ""; $("hb").value = v.hb ?? ""; $("hbUnit").value = v.hbUnit || "gdl";
   for (const [k] of BIN) { if (k in v) setSeg(k, v[k]); else { delete state[k]; document.querySelectorAll(`[data-k="${k}"]`).forEach(b => b.setAttribute("aria-pressed", "false")); } }
   $("exampleTag").hidden = !("age" in v); render();
 }
@@ -222,7 +220,7 @@ $("copy").addEventListener("click", async () => {
   if (!last) return;
   const yes = BIN.filter(b => last.x[b[0]]).map(b => b[1]);
   const txt = `MED-HACK Score: ${last.s.total} points; 5-year stroke risk ${last.sr.toFixed(1)}% (points table), ${last.mr.toFixed(1)}% (exact model). ` +
-    `Inputs: age ${last.x.age} y, hemoglobin ${last.x.hb.toFixed(1)} g/dL, BMI ${last.x.bmi}; ${yes.length ? yes.join(", ") : "no listed conditions"}. Research use only; not externally validated.`;
+    `Inputs: age ${last.x.age} y, hemoglobin ${last.x.hb.toFixed(1)} g/dL; ${yes.length ? yes.join(", ") : "no listed conditions"}. Research use only; not externally validated.`;
   const btn = $("copy");
   try { await navigator.clipboard.writeText(txt); btn.textContent = "Copied"; }
   catch { const t = document.createElement("textarea"); t.value = txt; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); btn.textContent = "Copied"; } catch { btn.textContent = "Select and copy"; } t.remove(); }
@@ -230,30 +228,29 @@ $("copy").addEventListener("click", async () => {
 });
 
 // ---------- reference tabs ----------
-const coefRows = [["Age, per year", "age"], ["BMI, per 5 kg/m²", "bmi5"], ["Hemoglobin, per 1 g/dL below 13", "hb_def"], ["Hypertension", "htn"], ["Diabetes", "dm"],
-  ["Dyslipidemia", "dyslipidemia"], ["Current or former smoker", "smoke"], ["Coronary artery disease", "cad"], ["Migraine", "migraine_any"], ["Chronic kidney disease", "ckd_pre"],
-  ["Hemoglobinopathy", "haemoglobinopathy"], ["Endometriosis", "endo"], ["Adenomyosis", "adeno"], ["Estrogen-containing therapy", "estrogen"]];
+const coefRows = [["Migraine", "migraine_any"], ["Estrogen-containing therapy", "estrogen"], ["Diabetes", "dm"], ["Hypertension", "htn"],
+  ["Hemoglobinopathy", "haemoglobinopathy"], ["Anemia: hemoglobin, per 1 g/dL below 13", "hb_def"], ["Age, per year", "age"], ["Coronary artery disease", "cad"], ["Chronic kidney disease", "ckd_pre"]];
 const PANES = {
   "How to use": `<h3>Who it is for</h3><ul><li>Women aged 18&ndash;60 with a diagnosis of uterine fibroids, adenomyosis or endometriosis.</li><li>No previous stroke or TIA.</li><li>Use the values recorded at or before the gynecologic diagnosis. Hemoglobin should be a laboratory complete blood count, not a point-of-care or blood-gas value.</li></ul>
-    <h3>Two results</h3><ul><li><strong>Points and risk from the points table</strong>: the simple score, like CHA₂DS₂-VASc, for bedside use.</li><li><strong>Exact model risk</strong>: the full Cox model, which also uses age, BMI and hemoglobin as continuous values and the items that carry no points.</li></ul>
-    <h3>Pearls and pitfalls</h3><ul><li>Anemia found at gynecologic diagnosis deserves evaluation of its cause and of vascular risk factors whatever the score.</li><li>The score is not a treatment rule. It has not been shown that acting on it changes stroke risk.</li><li>In the most recent patients (2023&ndash;2026) observed risk was about 1.6 times the predicted risk, so treat the numbers as a lower bound.</li><li>Younger age carries a point because younger women in this cohort had slightly higher recorded stroke rates after accounting for other factors. This most likely reflects testing and coding patterns, not a protective effect of age.</li></ul>`,
+    <h3>Two results</h3><ul><li><strong>Points and risk from the points table</strong>: the simple score, like CHA₂DS₂-VASc, for bedside use.</li><li><strong>Exact model risk</strong>: a Cox model with the same nine items, using age and hemoglobin as exact values instead of bands.</li></ul>
+    <h3>Pearls and pitfalls</h3><ul><li>Smoking, BMI, dyslipidemia, endometriosis and adenomyosis were tested and added nothing in this cohort, so they are not asked. Smoking is an established stroke risk factor but was largely undocumented in the development data, so risk in smokers is probably underestimated.</li><li>Anemia found at gynecologic diagnosis deserves evaluation of its cause and of vascular risk factors whatever the score.</li><li>The score is not a treatment rule. It has not been shown that acting on it changes stroke risk.</li><li>In the most recent patients (2023&ndash;2026) observed risk was about 1.5 times the predicted risk, so treat the numbers as a lower bound.</li><li>Younger age carries a point because younger women in this cohort had slightly higher recorded stroke rates after accounting for other factors. This most likely reflects testing and coding patterns, not a protective effect of age.</li></ul>`,
   "Points and risk": `<div class="tscroll"><table><thead><tr><th>Item</th><th class="n">Points</th></tr></thead><tbody>
-    ${[["Coronary artery disease", 4], ["Hemoglobinopathy (sickle cell disease or trait, thalassemia)", 3], ["Hypertension", 2], ["Migraine", 2], ["Chronic kidney disease", 2], ["Estrogen-containing hormonal therapy", 2], ["Hemoglobin under 8.0 g/dL", 2], ["Hemoglobin 8.0–11.9 g/dL", 1], ["Diabetes", 1], ["Age under 45 years", 1], ["BMI, dyslipidemia, smoking, endometriosis, adenomyosis", 0]].map(r => `<tr><td>${r[0]}</td><td class="n">${r[1]}</td></tr>`).join("")}
+    ${[["M \u00b7 Migraine", 2], ["E \u00b7 Estrogen-containing hormonal therapy", 2], ["D \u00b7 Diabetes", 1], ["H \u00b7 Hypertension", 2], ["H \u00b7 Hemoglobinopathy (sickle cell disease or trait, thalassemia)", 3], ["A \u00b7 Anemia: hemoglobin 8.0\u201311.9 g/dL", 1], ["A \u00b7 Anemia: hemoglobin under 8.0 g/dL", 2], ["A \u00b7 Age under 45 years", 1], ["C \u00b7 Coronary artery disease", 4], ["K \u00b7 Chronic kidney disease", 2]].map(r => `<tr><td>${r[0]}</td><td class="n">${r[1]}</td></tr>`).join("")}
     </tbody></table></div><p class="muted">Each point is associated with a 40% higher stroke rate (hazard ratio 1.40). Maximum 19 points.</p>
     <div class="tscroll"><table><thead><tr><th>Points</th><th class="n">5-year risk</th><th class="n">Women</th><th class="n">Strokes</th></tr></thead><tbody id="rtab">
     ${ROWS.map(r => `<tr data-s="${r[0]}"><td class="n" style="text-align:left">${r[0]}${r[0] === 13 ? "+" : ""}</td><td class="n">${scoreRisk(r[0]).toFixed(1)}%</td><td class="n">${r[1].toLocaleString("en-US")}</td><td class="n">${r[2]}</td></tr>`).join("")}
     </tbody></table></div><p class="muted">Women and strokes are the counts observed in the development cohort at each score. Risks above 13 points come from the model equation and are not supported by observed data.</p>`,
   "Evidence": `<h3>Development</h3><p>Retrospective cohort from electronic health records at one US academic medical center. Women aged 18&ndash;60 with a first coded diagnosis of fibroids, adenomyosis or endometriosis (2018&ndash;2026; earlier if a dated myomectomy, hysterectomy, uterine artery embolization or endometrial ablation came first), free of recorded stroke at that date, with a laboratory hemoglobin in the preceding 3 years. 24,006 women; 345 first strokes (ischemic, hemorrhagic, cerebral venous thrombosis or unspecified; TIA excluded) over a median 2.8 years. Strokes were identified from diagnosis codes and imaging reports, not chart review.</p>
     <h3>Performance</h3><div class="tscroll"><table><tbody>
-    <tr><td>Harrell C, optimism-corrected (200 bootstrap samples)</td><td class="n">0.696</td></tr><tr><td>Points score, Harrell C</td><td class="n">0.697</td></tr>
-    <tr><td>Calibration slope (bootstrap; shrinkage applied)</td><td class="n">0.96</td></tr><tr><td>Temporal validation (2023&ndash;2026, n = 12,609, 119 strokes): C at 3 years</td><td class="n">0.665</td></tr>
-    <tr><td>Temporal validation: calibration slope</td><td class="n">0.82</td></tr><tr><td>Temporal validation: observed / expected 3-year risk</td><td class="n">1.64</td></tr>
-    <tr><td>Adding race to the model (likelihood-ratio P)</td><td class="n">0.88</td></tr></tbody></table></div>
+    <tr><td>Exact model (nine MED-HACK items): Harrell C, optimism-corrected (200 bootstrap samples)</td><td class="n">0.701</td></tr><tr><td>Points score, Harrell C</td><td class="n">0.697</td></tr>
+    <tr><td>Calibration slope (bootstrap; shrinkage applied)</td><td class="n">0.98</td></tr><tr><td>Temporal validation (2023&ndash;2026, n = 12,610, 119 strokes): C at 3 years</td><td class="n">0.695</td></tr>
+    <tr><td>Temporal validation: calibration slope</td><td class="n">0.90</td></tr><tr><td>Temporal validation: observed / expected 3-year risk</td><td class="n">1.56</td></tr>
+    <tr><td>Full 14-predictor model (adds BMI, dyslipidemia, smoking, endometriosis, adenomyosis): C, optimism-corrected</td><td class="n">0.696</td></tr><tr><td>Adding race to the model (likelihood-ratio P)</td><td class="n">0.88</td></tr></tbody></table></div>
     <h3>Limitations</h3><ul><li>Single center; not yet externally validated.</li><li>Age: stroke rates were highest in women under 30 and flat from 30 to 60, both by age at diagnosis and by age at the time of stroke (attained-age analysis, which gave the same hazard ratios for every other predictor). The age point therefore reflects this cohort, not a general rule.</li><li>Outcome from codes and imaging, not adjudicated.</li><li>Smoking was undocumented for two-thirds of women; oral contraceptives were under-recorded.</li><li>Risk is likely underestimated in recent patients and may differ in other health systems; recalibration is recommended before use elsewhere.</li><li>The association of hemoglobin with stroke in this cohort behaves like a marker of general illness; the score does not imply that correcting anemia lowers stroke risk.</li></ul>`,
   "Formula": `<p>Exact 5-year risk (Cox model with uniform shrinkage):</p>
     <span class="formula">risk = 1 − S₀(5) ^ exp( ${MODEL.shrink.toFixed(4)} × Σ βᵢ (xᵢ − cᵢ) )
 S₀(5) = ${MODEL.s0.toFixed(5)}
-c = 41.112 for age, 5.917 for BMI/5, 0.671 for hemoglobin deficit; 0 for every yes/no item
+c = 41.113 for age, 0.671 for hemoglobin deficit; 0 for every yes/no item
 hemoglobin deficit = max(13 − Hb in g/dL, 0)</span>
     <div class="tscroll"><table><thead><tr><th>Predictor</th><th class="n">β</th><th class="n">Hazard ratio</th></tr></thead><tbody>
     ${coefRows.map(r => `<tr><td>${r[0]}</td><td class="n">${MODEL.coef[r[1]].toFixed(4)}</td><td class="n">${Math.exp(MODEL.coef[r[1]]).toFixed(2)}</td></tr>`).join("")}
@@ -261,10 +258,10 @@ hemoglobin deficit = max(13 − Hb in g/dL, 0)</span>
     <p>Points-table risk: <code>1 − ${MODEL.scoreS0.toFixed(5)} ^ exp(${MODEL.scoreCoef.toFixed(4)} × (points − 1))</code>. Points are Sullivan-method weights, with one point equal to half the hypertension coefficient.</p>
     <p class="muted">Hemoglobin unit conversion: g/L ÷ 10; mmol/L × 1.611.</p>`,
   "Batch": `<p>For validation studies: paste one patient per line as comma-separated values with this header (yes/no as 1/0, hemoglobin in g/dL). Results are calculated in your browser; nothing is sent anywhere.</p>
-    <textarea id="batchIn" spellcheck="false" aria-label="Batch input">id,age,hb,bmi,htn,dm,cad,migraine,ckd,hemoglobinopathy,estrogen,dyslipidemia,smoker,endometriosis,adenomyosis
-example-1,48,9.4,31,1,0,0,1,0,0,0,0,0,0,1
-example-2,30,13.5,22,0,0,0,0,0,0,0,0,0,1,0
-example-3,55,11.2,34,1,1,0,0,1,0,0,1,1,0,0</textarea>
+    <textarea id="batchIn" spellcheck="false" aria-label="Batch input">id,migraine,estrogen,diabetes,hypertension,hemoglobinopathy,hb,age,cad,ckd
+example-1,1,0,0,1,0,9.4,48,0,0
+example-2,0,0,0,0,0,13.5,30,0,0
+example-3,0,0,1,1,0,11.2,55,0,1</textarea>
     <div class="tools"><button class="btn primary" type="button" id="batchRun">Calculate</button><button class="btn" type="button" id="batchCopy">Copy results as CSV</button><span class="muted" id="batchMsg">Example rows shown.</span></div>
     <div class="tscroll" id="batchOut"></div>`
 };
@@ -276,20 +273,19 @@ $("tabs").addEventListener("click", (e) => { const b = e.target.closest("button"
 function markRow(sc) { document.querySelectorAll("#rtab tr").forEach(r => r.classList.toggle("on", +r.dataset.s === Math.min(sc, 13))); }
 
 // ---------- batch ----------
-const BCOLS = { htn: "htn", dm: "dm", cad: "cad", migraine: "migraine_any", ckd: "ckd_pre", hemoglobinopathy: "haemoglobinopathy", estrogen: "estrogen",
-                dyslipidemia: "dyslipidemia", smoker: "smoke", endometriosis: "endo", adenomyosis: "adeno" };
+const BCOLS = { migraine: "migraine_any", estrogen: "estrogen", diabetes: "dm", hypertension: "htn", hemoglobinopathy: "haemoglobinopathy", cad: "cad", ckd: "ckd_pre" };
 let batchCsv = "";
 function runBatch() {
   const lines = $("batchIn").value.trim().split(/\r?\n/).filter(l => l.trim());
   if (lines.length < 2) { $("batchMsg").textContent = "Add a header line and at least one patient."; return; }
   const head = lines[0].split(",").map(h => h.trim().toLowerCase());
-  const need = ["age", "hb", "bmi", ...Object.keys(BCOLS)].filter(c => !head.includes(c));
+  const need = ["age", "hb", ...Object.keys(BCOLS)].filter(c => !head.includes(c));
   if (need.length) { $("batchMsg").textContent = "Missing columns: " + need.join(", "); return; }
   const out = [], errs = [];
   lines.slice(1).forEach((l, i) => {
     const v = l.split(","); const g = (c) => (v[head.indexOf(c)] ?? "").trim();
-    const x = { age: parseFloat(g("age")), hb: parseFloat(g("hb")), bmi: parseFloat(g("bmi")) };
-    let ok = x.age >= 18 && x.age <= 60 && x.hb >= 3 && x.hb <= 20 && x.bmi >= 12 && x.bmi <= 80;
+    const x = { age: parseFloat(g("age")), hb: parseFloat(g("hb")) };
+    let ok = x.age >= 18 && x.age <= 60 && x.hb >= 3 && x.hb <= 20;
     for (const [c, k] of Object.entries(BCOLS)) { const t = g(c); if (t !== "0" && t !== "1") ok = false; x[k] = +t; }
     const id = head.includes("id") ? g("id") : String(i + 1);
     if (!ok) { errs.push(id); out.push([id, "", "", "", "check values"]); return; }
@@ -298,7 +294,7 @@ function runBatch() {
   batchCsv = "id,points,risk5_points_pct,risk5_model_pct,note\n" + out.map(r => r.join(",")).join("\n");
   $("batchOut").innerHTML = `<table><thead><tr><th>ID</th><th class="n">Points</th><th class="n">5-y risk (points)</th><th class="n">5-y risk (model)</th><th>Note</th></tr></thead><tbody>${
     out.map(r => `<tr><td>${r[0].replace(/[<>&]/g, "")}</td><td class="n">${r[1]}</td><td class="n">${r[2] ? r[2] + "%" : ""}</td><td class="n">${r[3] ? r[3] + "%" : ""}</td><td>${r[4]}</td></tr>`).join("")}</tbody></table>`;
-  $("batchMsg").textContent = `${out.length - errs.length} of ${out.length} rows calculated` + (errs.length ? `; check rows ${errs.join(", ")} (age 18–60, Hb 3–20, BMI 12–80, yes/no as 1 or 0).` : ".");
+  $("batchMsg").textContent = `${out.length - errs.length} of ${out.length} rows calculated` + (errs.length ? `; check rows ${errs.join(", ")} (age 18–60, Hb 3–20 g/dL, yes/no as 1 or 0).` : ".");
 }
 $("panes").addEventListener("click", async (e) => {
   if (e.target.id === "batchRun") runBatch();

@@ -1,0 +1,38 @@
+{
+  "model": "MED-HACK calculator model: Cox, 5-year stroke risk, point-carrying predictors only",
+  "s0": 0.99027729171,
+  "shrink": 0.97961739939,
+  "coef": {
+    "migraine_any": 0.67590454381,
+    "estrogen": 0.69257843494,
+    "dm": 0.20193947002,
+    "htn": 0.76275866558,
+    "haemoglobinopathy": 1.0627490599,
+    "hb_def": 0.13281833472,
+    "age": -0.010722823198,
+    "cad": 1.4301848541,
+    "ckd_pre": 0.68031336514
+  },
+  "means": {
+    "migraine_any": 0,
+    "estrogen": 0,
+    "dm": 0,
+    "htn": 0,
+    "haemoglobinopathy": 0,
+    "hb_def": 0.67095101225,
+    "age": 41.1127454276,
+    "cad": 0,
+    "ckd_pre": 0
+  },
+  "validation": {
+    "Women / strokes": "24,006 / 345",
+    "Harrell C, apparent": "0.705",
+    "Harrell C, optimism-corrected": "0.701",
+    "Calibration slope (shrinkage)": "0.980",
+    "Temporal validation C at 3 years": "0.695",
+    "Temporal validation calibration slope": "0.90",
+    "Temporal validation observed / expected 3-year risk": "1.56",
+    "Full 14-predictor model, optimism-corrected C (for comparison)": "0.696"
+  },
+  "p99": 9.7771954073
+}

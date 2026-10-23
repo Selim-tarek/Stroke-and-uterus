@@ -15,3 +15,4 @@
 | Points-score constant | Pre-specified constant (5 years of age) unusable: adjusted age coefficient -0.0104 per year (HR 0.99). Constant set to half the hypertension coefficient (hypertension = 2 points). |
 | Anchor plausibility (2026-10-23) | Procedure dates implying age <18 at the anchor (2 women, no strokes) were ignored; the anchor falls back to the first coded diagnosis. |
 | Points-score constant | Pre-specified constant (5 years of age) unusable: adjusted age coefficient -0.0105 per year (HR 0.99). Constant set to half the hypertension coefficient (hypertension = 2 points). |
+| Calculator model (PI decision 2026-10-23) | Predictors that carry no points (BMI, dyslipidemia, smoking, endometriosis, adenomyosis) removed from the calculator; exact-risk model refitted with the nine MED-HACK items (R/16_calculator_model.R). Optimism-corrected C 0.701 vs 0.696 for the 14-predictor model; temporal C 0.695 vs 0.665. |

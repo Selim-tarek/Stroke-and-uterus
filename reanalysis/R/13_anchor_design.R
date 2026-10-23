@@ -145,4 +145,5 @@ r0 <- ncc(0L, "Hb 1-365 days before (no lag)")
 save_tab(rbind(r1$desc, r0$desc), "A5_ncc_anemia_before_stroke",
          "Women with stroke/TIA after uterine diagnosis vs matched controls: Hb in the year before the stroke date")
 save_tab(rbind(r1$fits, r0$fits), "A6_ncc_models", "Conditional logistic regression (matched sets): anemia grade before the reference date vs Hb ≥12")
+saveRDS(sets, file.path(DERIVED, "ncc_sets.rds"))
 res_put("anchor_design", list(flow = flow, models = ra, ncc_desc = rbind(r1$desc, r0$desc), ncc = rbind(r1$fits, r0$fits)))

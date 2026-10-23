@@ -111,3 +111,32 @@ The source is `stroke_any`, `stroke_type`, `stroke_date` and `stroke_timing` (Co
 - One primary estimand: grade categories plus trend.
 - Secondary outcomes and sensitivity analyses are labeled exploratory. Benjamini–Hochberg q-values are reported across the secondary-outcome table.
 - Estimates with 95% CIs are reported. Null and unfavorable results are kept. No causal language is used.
+
+---
+## Addendum 1 (2026-10-23, before fitting): anchored-design extensions requested by the PI
+Cohort for every analysis below: the anchored cohort (`R/13_anchor_design.R`). Women are stroke-free at the earliest evidence of uterine pathology and have a CBC Hb in the 3 y up to it. Covariates: primary set, dated to the anchor. All analyses are **secondary/exploratory**, every result is reported, and BH q-values are applied within each family.
+
+- **E1. Does Hb improve stroke prediction?**
+  - Cox models for incident stroke (excl. TIA), single imputation of BMI.
+  - Base model: age (spline), race, hypertension, diabetes, dyslipidemia, smoking, CAD, migraine, BMI, CKD.
+  - Added Hb: natural spline, 3 df.
+  - Metrics: Harrell and Uno C (5 y), with optimism correction by 200 bootstrap resamples; bootstrap CI for ΔC; likelihood-ratio test; 5-year calibration by decile of predicted risk.
+- **E2. Hb trajectory before stroke.**
+  - Matched sets from the nested case–control design (stroke excl. TIA): each case plus up to 10 controls at the same time since anchor, age ±2 y.
+  - Mean person-level CBC Hb in 3-month bins over the 36 months before the reference date, with 95% CI.
+  - Case–control difference estimated within matched sets for months −36 to −12 (long-standing) and −3 to 0 (proximal).
+- **E3. Type of anemia** (at the anchor Hb; MCV and RDW-CV from the CBC within 30 d, not after the anchor):
+  - (a) Anemia with an evident cause: coded iron-deficiency or blood-loss anemia within 1 y before the anchor, or MCV <80 fL.
+  - (b) Anemia without an evident cause: everything else.
+  - Each is compared with no anemia. Also: MCV pattern (microcytic / normocytic / macrocytic), and RDW-CV (high >14.5%, per 1%) adjusted for Hb.
+- **E4. Effect modification** of any anemia (binary), four modifiers only:
+  - any fibroids vs none
+  - heavy/abnormal bleeding
+  - age at anchor ≥45
+  - Black race
+
+  Stratum-specific RRs and product-term P values; BH across the 4 tests.
+- **E5. All-cause mortality.**
+  - Death after the anchor (EHR death dates). Follow-up is not stopped at stroke; it ends at death, last contact or administrative end.
+  - Poisson rate ratios with the primary covariates, or the reduced set if EPV <10.
+  - Limitation: deaths are captured from the EHR only (no national death index).

@@ -3620,5 +3620,183 @@
         "hi": 14.9609832759364
       }
     ]
+  },
+  "risk_model": {
+    "validation": [
+      {
+        "measure": "Women (development)",
+        "value": "24,006"
+      },
+      {
+        "measure": "Strokes",
+        "value": "345"
+      },
+      {
+        "measure": "Harrell C, apparent",
+        "value": "0.707"
+      },
+      {
+        "measure": "Harrell C, optimism-corrected (200 bootstraps)",
+        "value": "0.696"
+      },
+      {
+        "measure": "Bootstrap calibration slope (shrinkage applied)",
+        "value": "0.962"
+      },
+      {
+        "measure": "Proportional hazards, global P",
+        "value": "0.956"
+      },
+      {
+        "measure": "Age non-linearity, P",
+        "value": "0.134"
+      },
+      {
+        "measure": "Adding race: likelihood-ratio P",
+        "value": "0.879"
+      },
+      {
+        "measure": "Temporal validation: development n / strokes (anchor <2023)",
+        "value": "11,397 / 226"
+      },
+      {
+        "measure": "Temporal validation: validation n / strokes (anchor ≥2023)",
+        "value": "12,609 / 119"
+      },
+      {
+        "measure": "Temporal validation: C at 3 years",
+        "value": "0.665"
+      },
+      {
+        "measure": "Temporal validation: calibration slope at 3 years",
+        "value": "0.82"
+      },
+      {
+        "measure": "Temporal validation: observed / expected 3-year risk",
+        "value": "1.64"
+      },
+      {
+        "measure": "Points score: Harrell C",
+        "value": "0.697"
+      },
+      {
+        "measure": "Points score range in cohort",
+        "value": "-1 to 12"
+      }
+    ],
+    "coefficients": [
+      {
+        "predictor": "Age (per year)",
+        "hazard_ratio": "0.99 (0.98–1.00)",
+        "p": "0.058",
+        "beta": -0.0109,
+        "beta_shrunk": -0.0104,
+        "mean_in_cohort": 41.1121
+      },
+      {
+        "predictor": "BMI (per 5 kg/m²)",
+        "hazard_ratio": "0.97 (0.90–1.04)",
+        "p": "0.380",
+        "beta": -0.0322,
+        "beta_shrunk": -0.031,
+        "mean_in_cohort": 5.9171
+      },
+      {
+        "predictor": "Hypertension",
+        "hazard_ratio": "2.17 (1.70–2.77)",
+        "p": "<0.001",
+        "beta": 0.7748,
+        "beta_shrunk": 0.7457,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Diabetes",
+        "hazard_ratio": "1.23 (0.97–1.56)",
+        "p": "0.094",
+        "beta": 0.2055,
+        "beta_shrunk": 0.1978,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Dyslipidemia",
+        "hazard_ratio": "1.02 (0.80–1.30)",
+        "p": "0.897",
+        "beta": 0.016,
+        "beta_shrunk": 0.0154,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Ever smoker",
+        "hazard_ratio": "1.15 (0.91–1.46)",
+        "p": "0.235",
+        "beta": 0.144,
+        "beta_shrunk": 0.1386,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Coronary artery disease",
+        "hazard_ratio": "4.12 (2.86–5.93)",
+        "p": "<0.001",
+        "beta": 1.4158,
+        "beta_shrunk": 1.3627,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Migraine",
+        "hazard_ratio": "1.96 (1.58–2.43)",
+        "p": "<0.001",
+        "beta": 0.6709,
+        "beta_shrunk": 0.6457,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Chronic kidney disease",
+        "hazard_ratio": "1.94 (1.33–2.85)",
+        "p": "<0.001",
+        "beta": 0.6651,
+        "beta_shrunk": 0.6401,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Hemoglobinopathy (sickle cell / thalassemia)",
+        "hazard_ratio": "2.89 (1.68–4.99)",
+        "p": "<0.001",
+        "beta": 1.0629,
+        "beta_shrunk": 1.0229,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Endometriosis",
+        "hazard_ratio": "0.99 (0.79–1.23)",
+        "p": "0.905",
+        "beta": -0.0135,
+        "beta_shrunk": -0.013,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Adenomyosis",
+        "hazard_ratio": "1.02 (0.80–1.30)",
+        "p": "0.894",
+        "beta": 0.0166,
+        "beta_shrunk": 0.016,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Estrogen-containing hormonal therapy",
+        "hazard_ratio": "1.98 (1.16–3.39)",
+        "p": "0.013",
+        "beta": 0.6835,
+        "beta_shrunk": 0.6578,
+        "mean_in_cohort": 0
+      },
+      {
+        "predictor": "Hemoglobin, per 1 g/dL below 13",
+        "hazard_ratio": "1.15 (1.06–1.23)",
+        "p": "<0.001",
+        "beta": 0.136,
+        "beta_shrunk": 0.1309,
+        "mean_in_cohort": 0.6709
+      }
+    ]
   }
 }

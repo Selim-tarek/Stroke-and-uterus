@@ -19,3 +19,5 @@
 - **Manuscript** — revised manuscript written (4651 words in md; pandoc status 0) 
 - **Extensions** — E4,E5 complete 
 - **Extensions** — E2 complete 
+- **Risk model** — C 0.707 (optimism-corrected 0.696); temporal C 0.665; score C 0.697 
+- **Risk model** — C 0.707 (optimism-corrected 0.696); temporal C 0.665; score C 0.697 

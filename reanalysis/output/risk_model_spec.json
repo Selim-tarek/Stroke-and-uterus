@@ -1,0 +1,289 @@
+{
+  "model": "Cox, 5-year risk of stroke (excluding TIA), women 18-60 with benign uterine disease",
+  "horizon_years": 5,
+  "baseline_survival_5y": 0.99065985,
+  "shrinkage": 0.96244439,
+  "means": {
+    "age": 41.11206011,
+    "bmi5": 5.91706657,
+    "htn": 0,
+    "dm": 0,
+    "dyslipidemia": 0,
+    "smoke": 0,
+    "cad": 0,
+    "migraine_any": 0,
+    "ckd_pre": 0,
+    "haemoglobinopathy": 0,
+    "endo": 0,
+    "adeno": 0,
+    "estrogen": 0,
+    "hb_def": 0.67088645
+  },
+  "coef": {
+    "age": -0.01085583,
+    "bmi5": -0.03218955,
+    "htn": 0.77482591,
+    "dm": 0.20554678,
+    "dyslipidemia": 0.01602871,
+    "smoke": 0.14397257,
+    "cad": 1.41584925,
+    "migraine_any": 0.67093977,
+    "ckd_pre": 0.66511653,
+    "haemoglobinopathy": 1.06285561,
+    "endo": -0.01347216,
+    "adeno": 0.01660276,
+    "estrogen": 0.68349317,
+    "hb_def": 0.13604605
+  },
+  "predictors": {
+    "age": "Age (per year)",
+    "bmi5": "BMI (per 5 kg/m²)",
+    "htn": "Hypertension",
+    "dm": "Diabetes",
+    "dyslipidemia": "Dyslipidemia",
+    "smoke": "Ever smoker",
+    "cad": "Coronary artery disease",
+    "migraine_any": "Migraine",
+    "ckd_pre": "Chronic kidney disease",
+    "haemoglobinopathy": "Hemoglobinopathy (sickle cell / thalassemia)",
+    "endo": "Endometriosis",
+    "adeno": "Adenomyosis",
+    "estrogen": "Estrogen-containing hormonal therapy",
+    "hb_def": "Hemoglobin, per 1 g/dL below 13"
+  },
+  "points": {
+    "age": [
+      {
+        "lab": "18–34",
+        "lo": 18,
+        "hi": 35,
+        "mid": 30,
+        "points": -0
+      },
+      {
+        "lab": "35–44",
+        "lo": 35,
+        "hi": 45,
+        "mid": 40,
+        "points": -0
+      },
+      {
+        "lab": "45–54",
+        "lo": 45,
+        "hi": 55,
+        "mid": 50,
+        "points": -1
+      },
+      {
+        "lab": "55–60",
+        "lo": 55,
+        "hi": 61,
+        "mid": 57.5,
+        "points": -1
+      }
+    ],
+    "bmi": [
+      {
+        "lab": "<25",
+        "lo": 0,
+        "hi": 25,
+        "mid": 22,
+        "points": -0
+      },
+      {
+        "lab": "25–29.9",
+        "lo": 25,
+        "hi": 30,
+        "mid": 27.5,
+        "points": -0
+      },
+      {
+        "lab": "30–34.9",
+        "lo": 30,
+        "hi": 35,
+        "mid": 32.5,
+        "points": -0
+      },
+      {
+        "lab": "≥35",
+        "lo": 35,
+        "hi": 200,
+        "mid": 39,
+        "points": -0
+      }
+    ],
+    "hb": [
+      {
+        "lab": "≥12",
+        "lo": 12,
+        "hi": 99,
+        "mid": 13.2,
+        "points": 0
+      },
+      {
+        "lab": "10–11.9",
+        "lo": 10,
+        "hi": 12,
+        "mid": 11,
+        "points": 1
+      },
+      {
+        "lab": "8–9.9",
+        "lo": 8,
+        "hi": 10,
+        "mid": 9,
+        "points": 1
+      },
+      {
+        "lab": "<8",
+        "lo": 0,
+        "hi": 8,
+        "mid": 7,
+        "points": 2
+      }
+    ],
+    "binary": [
+      {
+        "var": "htn",
+        "label": "Hypertension",
+        "points": 2
+      },
+      {
+        "var": "dm",
+        "label": "Diabetes",
+        "points": 1
+      },
+      {
+        "var": "dyslipidemia",
+        "label": "Dyslipidemia",
+        "points": 0
+      },
+      {
+        "var": "smoke",
+        "label": "Ever smoker",
+        "points": 0
+      },
+      {
+        "var": "cad",
+        "label": "Coronary artery disease",
+        "points": 4
+      },
+      {
+        "var": "migraine_any",
+        "label": "Migraine",
+        "points": 2
+      },
+      {
+        "var": "ckd_pre",
+        "label": "Chronic kidney disease",
+        "points": 2
+      },
+      {
+        "var": "haemoglobinopathy",
+        "label": "Hemoglobinopathy (sickle cell / thalassemia)",
+        "points": 3
+      },
+      {
+        "var": "endo",
+        "label": "Endometriosis",
+        "points": -0
+      },
+      {
+        "var": "adeno",
+        "label": "Adenomyosis",
+        "points": 0
+      },
+      {
+        "var": "estrogen",
+        "label": "Estrogen-containing hormonal therapy",
+        "points": 2
+      }
+    ]
+  },
+  "score_coef": 0.33524913,
+  "score_baseline_survival_5y": 0.98980746,
+  "score_risk": [
+    {
+      "score": -1,
+      "risk5_pct": 0.72999204
+    },
+    {
+      "score": 0,
+      "risk5_pct": 1.01925355
+    },
+    {
+      "score": 1,
+      "risk5_pct": 1.42231191
+    },
+    {
+      "score": 2,
+      "risk5_pct": 1.98315331
+    },
+    {
+      "score": 3,
+      "risk5_pct": 2.76202535
+    },
+    {
+      "score": 4,
+      "risk5_pct": 3.8407466
+    },
+    {
+      "score": 5,
+      "risk5_pct": 5.3290744
+    },
+    {
+      "score": 6,
+      "risk5_pct": 7.37164036
+    },
+    {
+      "score": 7,
+      "risk5_pct": 10.15405651
+    },
+    {
+      "score": 8,
+      "risk5_pct": 13.90509693
+    },
+    {
+      "score": 9,
+      "risk5_pct": 18.88901201
+    },
+    {
+      "score": 10,
+      "risk5_pct": 25.37795263
+    },
+    {
+      "score": 11,
+      "risk5_pct": 33.5902894
+    },
+    {
+      "score": 12,
+      "risk5_pct": 43.58060318
+    }
+  ],
+  "validation": {
+    "Women (development)": "24,006",
+    "Strokes": "345",
+    "Harrell C, apparent": "0.707",
+    "Harrell C, optimism-corrected (200 bootstraps)": "0.696",
+    "Bootstrap calibration slope (shrinkage applied)": "0.962",
+    "Proportional hazards, global P": "0.956",
+    "Age non-linearity, P": "0.134",
+    "Adding race: likelihood-ratio P": "0.879",
+    "Temporal validation: development n / strokes (anchor <2023)": "11,397 / 226",
+    "Temporal validation: validation n / strokes (anchor ≥2023)": "12,609 / 119",
+    "Temporal validation: C at 3 years": "0.665",
+    "Temporal validation: calibration slope at 3 years": "0.82",
+    "Temporal validation: observed / expected 3-year risk": "1.64",
+    "Points score: Harrell C": "0.697",
+    "Points score range in cohort": "-1 to 12"
+  },
+  "cohort_5y_risk_pct": 1.9918492,
+  "risk_distribution_pct": {
+    "10%": 0.84224288,
+    "25%": 0.94502707,
+    "50%": 1.23841119,
+    "75%": 2.00058976,
+    "90%": 3.18995679,
+    "99%": 9.49604673
+  }
+}

@@ -1,147 +1,112 @@
 <title>BUD-Stroke Score</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: clinical worksheet - inputs on the left, a sticky result card on the right; stacks to one column on phones. */
+/* Layout: point-of-care calculator - one column of criterion rows with Yes/No segments, a result bar pinned to the bottom,
+   reference tabs (how to use, evidence, formula, batch) underneath. */
 :root {
-  --bg: #f4f6f8; --paper: #ffffff; --ink: #14212b; --ink-2: #4d5b66; --line: #d9e0e6; --accent: #1d5f7a; --accent-soft: #e3eef3;
-  --low: #2f7d4f; --mid: #a86a00; --high: #b3362f; --low-bg: #e6f2ea; --mid-bg: #fbf0dc; --high-bg: #f8e3e1;
+  --bg: #f3f5f7; --paper: #ffffff; --ink: #13202a; --ink-2: #4e5c67; --line: #d7dee4; --accent: #1b5d78; --accent-ink: #ffffff; --accent-soft: #e2edf2;
+  --low: #2c7a4c; --mid: #9a6300; --high: #b0352e; --low-bg: #e4f1e8; --mid-bg: #faeed6; --high-bg: #f7e1df; --bar: #13202a; --bar-ink: #f3f5f7;
   --display: "Fraunces", Georgia, "Times New Roman", serif;
-  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0f161c; --paper: #16212a; --ink: #e6edf2; --ink-2: #9fb0bd; --line: #2a3a46; --accent: #6db7d4; --accent-soft: #1b3240;
-  --low: #6cc492; --mid: #e3a93f; --high: #f0837b; --low-bg: #16302a; --mid-bg: #33280f; --high-bg: #3a1b1a; color-scheme: dark } }
+  --bg: #0e151b; --paper: #151f28; --ink: #e5ecf1; --ink-2: #9eafbc; --line: #2a3a46; --accent: #6cb6d3; --accent-ink: #0e151b; --accent-soft: #19303d;
+  --low: #6cc492; --mid: #e2a83e; --high: #ef837a; --low-bg: #15302a; --mid-bg: #33280f; --high-bg: #3a1a19; --bar: #dfe8ee; --bar-ink: #0e151b; color-scheme: dark } }
 :root[data-theme="dark"] {
-  --bg: #0f161c; --paper: #16212a; --ink: #e6edf2; --ink-2: #9fb0bd; --line: #2a3a46; --accent: #6db7d4; --accent-soft: #1b3240;
-  --low: #6cc492; --mid: #e3a93f; --high: #f0837b; --low-bg: #16302a; --mid-bg: #33280f; --high-bg: #3a1b1a; color-scheme: dark }
+  --bg: #0e151b; --paper: #151f28; --ink: #e5ecf1; --ink-2: #9eafbc; --line: #2a3a46; --accent: #6cb6d3; --accent-ink: #0e151b; --accent-soft: #19303d;
+  --low: #6cc492; --mid: #e2a83e; --high: #ef837a; --low-bg: #15302a; --mid-bg: #33280f; --high-bg: #3a1a19; --bar: #dfe8ee; --bar-ink: #0e151b; color-scheme: dark }
 * { box-sizing: border-box }
-body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px }
-.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 20px }
-header h1 { font-family: var(--display); font-weight: 650; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance }
-header p { margin: 6px 0 0; color: var(--ink-2); max-width: 70ch }
-.badge { display: inline-block; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; color: var(--high);
-  background: var(--high-bg); border-radius: 4px; padding: 2px 8px; margin-bottom: 10px }
-.grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start }
-@media (max-width: 820px) { .grid { grid-template-columns: 1fr } }
-.panel { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 20px; min-width: 0 }
-.panel h2 { font-family: var(--display); font-weight: 500; font-size: 20px; margin: 0 0 4px }
-.sub { color: var(--ink-2); font-size: 13px; margin: 0 0 16px }
-.example { font-size: 12px; color: var(--accent); background: var(--accent-soft); border-radius: 4px; padding: 2px 8px; display: inline-block; margin-bottom: 12px }
-.nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px }
-@media (max-width: 480px) { .nums { grid-template-columns: 1fr } }
-label.num { display: grid; gap: 4px; font-size: 13px; font-weight: 500 }
-label.num span.u { color: var(--ink-2); font-weight: 400 }
-input[type=number] { font: 500 18px var(--mono); padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); width: 100% }
-input[type=number]:focus-visible, input[type=checkbox]:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
-.err { color: var(--high); font-size: 12px; min-height: 1em }
-fieldset { border: 0; padding: 0; margin: 0 0 14px }
-legend { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; margin-bottom: 8px }
-.checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px }
-@media (max-width: 480px) { .checks { grid-template-columns: 1fr } }
-.chk { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; font-size: 14px }
-.chk:has(input:checked) { border-color: var(--accent); background: var(--accent-soft) }
-.chk input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); flex: none }
-.chk .pt { margin-left: auto; font: 500 12px var(--mono); color: var(--ink-2); white-space: nowrap }
-.actions { display: flex; gap: 10px; flex-wrap: wrap }
-button { font: 500 14px var(--body); padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer }
-button.primary { background: var(--accent); color: var(--paper); border-color: var(--accent) }
-.result { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; gap: 16px }
-.scorebox { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center }
-.score { font: 650 64px/1 var(--display); font-variant-numeric: tabular-nums; min-width: 1.6ch; text-align: center }
-.scorelabel { font-size: 13px; color: var(--ink-2) }
-.risk { font: 500 34px/1.1 var(--mono); font-variant-numeric: tabular-nums }
-.pill { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; border-radius: 999px; padding: 3px 10px }
+[hidden] { display: none !important }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; padding-block: 0 140px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.wrap { max-width: 860px; margin: 0 auto; display: grid; gap: 18px; padding-top: 24px }
+header { display: grid; gap: 6px }
+.tag { justify-self: start; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: var(--high); background: var(--high-bg); border-radius: 4px; padding: 2px 8px }
+h1 { font-family: var(--display); font-weight: 600; font-size: clamp(30px, 5vw, 42px); line-height: 1.05; margin: 0; letter-spacing: -.01em }
+.lede { margin: 0; color: var(--ink-2); max-width: 68ch }
+.when { display: flex; flex-wrap: wrap; gap: 8px }
+.when span { font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; color: var(--ink-2); background: var(--paper) }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 10px }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 18px; border-top: 1px solid var(--line) }
+.row:first-child { border-top: 0 }
+.row .q { font-weight: 500 } .row .hint { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2) }
+@media (max-width: 560px) { .row { grid-template-columns: 1fr } }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; justify-self: start }
+.seg button { font: 500 14px var(--body); background: var(--paper); color: var(--ink); border: 0; padding: 9px 14px; min-width: 92px; cursor: pointer; display: grid; gap: 0; text-align: center }
+.seg button + button { border-left: 1px solid var(--line) }
+.seg button small { font: 400 11px var(--mono); color: var(--ink-2) }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink) }
+.seg button[aria-pressed="true"] small { color: var(--accent-ink); opacity: .85 }
+.numin { display: flex; gap: 8px; align-items: center; justify-self: start; flex-wrap: wrap }
+.numin input { font: 500 18px var(--mono); width: 120px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink) }
+.unit { font-size: 13px; color: var(--ink-2) }
+.err { grid-column: 1 / -1; color: var(--high); font-size: 13px }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.ptchip { font: 500 12px var(--mono); color: var(--ink-2); margin-left: 6px }
+.tools { display: flex; gap: 10px; flex-wrap: wrap }
+.btn { font: 500 14px var(--body); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent) }
+.example { font-size: 12px; color: var(--accent); background: var(--accent-soft); border-radius: 4px; padding: 2px 8px; justify-self: start }
+/* result bar */
+.resbar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bar); color: var(--bar-ink); z-index: 5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); padding-top: 12px }
+.resin { max-width: 860px; margin: 0 auto; display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 8px 22px; align-items: center }
+@media (max-width: 640px) { .resin { grid-template-columns: auto minmax(0, 1fr); } .resin .interp { grid-column: 1 / -1 } .resin .copy { grid-column: 1 / -1; justify-self: start } }
+.big { font: 600 40px/1 var(--display); font-variant-numeric: tabular-nums }
+.lab { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .75 }
+.pct { font: 500 28px/1.1 var(--mono); font-variant-numeric: tabular-nums }
+.interp { font-size: 13px; line-height: 1.4 }
+.pill { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; border-radius: 999px; padding: 2px 9px; margin-right: 6px }
 .pill.low { color: var(--low); background: var(--low-bg) } .pill.mid { color: var(--mid); background: var(--mid-bg) } .pill.high { color: var(--high); background: var(--high-bg) }
-.kv { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; font-size: 14px }
-.kv dt { color: var(--ink-2) } .kv dd { margin: 0; font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right }
-.bar { position: relative; height: 10px; border-radius: 5px; background: linear-gradient(90deg, var(--low-bg), var(--mid-bg) 55%, var(--high-bg)); border: 1px solid var(--line) }
-.bar i { position: absolute; top: -4px; width: 3px; height: 16px; background: var(--ink); border-radius: 2px; transform: translateX(-1px) }
-.bar b { position: absolute; top: -4px; width: 2px; height: 16px; background: var(--ink-2); opacity: .6 }
-.barlab { display: flex; justify-content: space-between; font: 400 11px var(--mono); color: var(--ink-2); margin-top: 4px }
-.warn { font-size: 13px; color: var(--mid); background: var(--mid-bg); border-radius: 6px; padding: 8px 10px }
-ul.break { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; font-size: 14px }
-ul.break li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--line); padding-bottom: 3px }
-ul.break li span:last-child { font-family: var(--mono) }
-.tables { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px }
-@media (max-width: 820px) { .tables { grid-template-columns: 1fr } }
+.resbar .btn { background: transparent; color: var(--bar-ink); border-color: currentColor }
+/* tabs */
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line) }
+.tabs button { font: 500 14px var(--body); background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; color: var(--ink-2); cursor: pointer }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent) }
+.pane { padding: 18px; display: grid; gap: 12px }
+.pane h3 { font-family: var(--display); font-weight: 600; font-size: 18px; margin: 4px 0 0 }
+.pane p, .pane li { max-width: 72ch } .pane ul { margin: 0; padding-left: 20px; display: grid; gap: 4px }
 .tscroll { overflow-x: auto }
 table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums }
-th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line) }
-th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2); font-weight: 600 }
-td.n { font-family: var(--mono); text-align: right } th.n { text-align: right }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); font-weight: 600 }
+td.n, th.n { text-align: right; font-family: var(--mono) }
 tr.on td { background: var(--accent-soft); font-weight: 600 }
-.notes { font-size: 13px; color: var(--ink-2); display: grid; gap: 8px; max-width: 90ch }
-.notes p { margin: 0 }
-@media (prefers-reduced-motion: no-preference) { .bar i { transition: left .25s ease } }
+code, .formula { font-family: var(--mono); font-size: 13px }
+.formula { display: block; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; white-space: pre }
+textarea { width: 100%; min-height: 150px; font: 13px/1.5 var(--mono); padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink) }
+.muted { color: var(--ink-2); font-size: 13px }
 </style>
 
 <div class="wrap">
   <header>
-    <span class="badge">Research use only · not externally validated</span>
+    <span class="tag">Research use only &middot; not externally validated</span>
     <h1>BUD-Stroke Score</h1>
-    <p>Five-year risk of a first stroke for women aged 18&ndash;60 with uterine fibroids, adenomyosis or endometriosis (benign uterine disease, BUD) and no previous stroke. Developed in 24,006 women with 345 strokes at one US academic center.</p>
+    <p class="lede">Estimates the 5-year risk of a first stroke in women aged 18&ndash;60 years with benign uterine disease (uterine fibroids, adenomyosis or endometriosis) and no previous stroke, using information available at the gynecologic diagnosis.</p>
+    <div class="when"><span>Women 18&ndash;60 y</span><span>Fibroids, adenomyosis or endometriosis</span><span>No prior stroke</span><span>Hemoglobin from a laboratory CBC</span></div>
   </header>
 
-  <div class="grid">
-    <form class="panel" id="f" novalidate>
-      <h2>Patient at gynecologic diagnosis</h2>
-      <p class="sub">Use information available at the visit where the uterine condition was diagnosed.</p>
-      <span class="example" id="exampleTag">Example patient loaded &mdash; replace with your patient's values</span>
-      <div class="nums">
-        <label class="num" for="age">Age <span class="u">years (18&ndash;60)</span><input id="age" type="number" min="18" max="60" step="1" inputmode="numeric"><span class="err" id="age_e"></span></label>
-        <label class="num" for="bmi">BMI <span class="u">kg/m&sup2;</span><input id="bmi" type="number" min="12" max="80" step="0.1" inputmode="decimal"><span class="err" id="bmi_e"></span></label>
-        <label class="num" for="hb">Hemoglobin <span class="u">g/dL (CBC)</span><input id="hb" type="number" min="3" max="20" step="0.1" inputmode="decimal"><span class="err" id="hb_e"></span></label>
-      </div>
-      <fieldset><legend>Vascular and medical history</legend><div class="checks" id="c1"></div></fieldset>
-      <fieldset><legend>Uterine condition and treatment</legend><div class="checks" id="c2"></div></fieldset>
-      <div class="actions"><button type="button" class="primary" id="clear">Clear for a new patient</button><button type="button" id="ex">Load example</button></div>
-    </form>
+  <span class="example" id="exampleTag">Example patient loaded &mdash; change any answer or press Reset</span>
+  <section class="card" id="form" aria-label="Calculator inputs"></section>
+  <div class="tools"><button class="btn primary" type="button" id="reset">Reset</button><button class="btn" type="button" id="loadEx">Load example</button></div>
 
-    <section class="panel result" aria-live="polite">
-      <div class="scorebox">
-        <div class="score" id="score">&ndash;</div>
-        <div><div class="scorelabel">BUD-Stroke points (0&ndash;19)</div><div class="risk" id="scoreRisk">&ndash;</div><div class="scorelabel">5-year stroke risk for this score</div></div>
-      </div>
-      <div><span class="pill" id="band">&ndash;</span></div>
-      <dl class="kv">
-        <dt>Model-based 5-year risk (exact)</dt><dd id="model">&ndash;</dd>
-        <dt>Average woman in the cohort</dt><dd>2.0%</dd>
-        <dt>Compared with the cohort</dt><dd id="rel">&ndash;</dd>
-      </dl>
-      <div>
-        <div class="bar" id="bar"><b style="left:33.4%" title="Cohort average 2.0%"></b><i id="mark" style="left:0"></i></div>
-        <div class="barlab"><span>0%</span><span>2% avg</span><span>6%</span></div>
-      </div>
-      <div class="warn" id="warn" hidden></div>
-      <div><h2 style="font-size:16px;margin:0 0 6px">Where the points come from</h2><ul class="break" id="break"></ul></div>
-    </section>
-  </div>
-
-  <div class="tables">
-    <section class="panel">
-      <h2>Points</h2>
-      <p class="sub">Each point is about a 40% higher stroke rate (hazard ratio 1.40 per point).</p>
-      <div class="tscroll"><table><thead><tr><th>Item</th><th class="n">Points</th></tr></thead><tbody id="ptab"></tbody></table></div>
-    </section>
-    <section class="panel">
-      <h2>Score and 5-year risk</h2>
-      <p class="sub">Risk from a Cox model on the total score; women and strokes observed in the development cohort.</p>
-      <div class="tscroll"><table><thead><tr><th>Score</th><th class="n">5-year risk</th><th class="n">Women</th><th class="n">Strokes</th></tr></thead><tbody id="rtab"></tbody></table></div>
-    </section>
-  </div>
-
-  <section class="panel notes">
-    <h2 style="color:var(--ink)">How well it works, and its limits</h2>
-    <p><strong>Discrimination.</strong> Harrell C 0.696 after optimism correction (200 bootstrap samples); the points score has C 0.697. Temporal validation (developed on diagnoses 2018&ndash;2022, tested on 2023&ndash;2026): C 0.665 at 3 years.</p>
-    <p><strong>Calibration.</strong> Predicted and observed risks agree in the development data. In the 2023&ndash;2026 validation group the observed 3-year risk was 1.64 times the predicted risk, so the calculator may <em>underestimate</em> risk in newer patients or other settings.</p>
-    <p><strong>Predictors.</strong> Hypertension, coronary artery disease, migraine, chronic kidney disease, hemoglobinopathy, estrogen-containing hormonal therapy, diabetes and lower hemoglobin carry points. Age, BMI, dyslipidemia, smoking, endometriosis and adenomyosis were in the model but carried no independent points in this cohort (they affect only the exact model risk). Younger age scored slightly higher, which most likely reflects who was tested and coded rather than a real protective effect of age. Smoking was undocumented for two-thirds of women. Race was not used.</p>
-    <p><strong>Outcome.</strong> Stroke (ischemic, hemorrhagic, cerebral venous thrombosis or unspecified; TIA excluded) identified from diagnosis codes and imaging reports, not chart review. Median follow-up 2.8 years.</p>
-    <p><strong>Use.</strong> For research and hypothesis generation. It has not been validated in another population and should not guide individual treatment. Anemia found at gynecologic diagnosis warrants evaluation of its cause and of vascular risk factors regardless of the score.</p>
+  <section class="card">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div id="panes"></div>
   </section>
+  <p class="muted">Developed from electronic health records of 24,006 women (345 strokes) at one US academic medical center, 2018&ndash;2026. Citation: [Authors]. BUD-Stroke score: stroke risk in women with benign uterine disease. [Journal, year &mdash; in preparation].</p>
+</div>
+
+<div class="resbar" role="status" aria-live="polite">
+  <div class="resin">
+    <div><div class="lab">Points</div><div class="big" id="pts">&ndash;</div></div>
+    <div><div class="lab">5-year stroke risk</div><div class="pct" id="risk">&ndash;</div></div>
+    <div class="interp" id="interp">Answer all items to see the result.</div>
+    <button class="btn copy" type="button" id="copy">Copy result</button>
+  </div>
 </div>
 
 <script>
@@ -151,20 +116,23 @@ const MODEL = {
   coef: { age: -0.01085583, bmi5: -0.03218955, htn: 0.77482591, dm: 0.20554678, dyslipidemia: 0.01602871, smoke: 0.14397257, cad: 1.41584925,
           migraine_any: 0.67093977, ckd_pre: 0.66511653, haemoglobinopathy: 1.06285561, endo: -0.01347216, adeno: 0.01660276, estrogen: 0.68349317, hb_def: 0.13604605 },
   means: { age: 41.11206011, bmi5: 5.91706657, hb_def: 0.67088645 },
-  scoreCoef: 0.33524913, scoreS0: 0.98980746, scoreShift: 1,   // published score = development score + 1 (age < 45 shown as +1 instead of age >= 45 as -1)
+  scoreCoef: 0.33524913, scoreS0: 0.98980746, scoreShift: 1,
   p99: 9.50
 };
 const BIN = [
-  ["htn", "Hypertension", 2, 1], ["dm", "Diabetes", 1, 1], ["dyslipidemia", "Dyslipidemia", 0, 1], ["smoke", "Current or former smoker", 0, 1],
-  ["cad", "Coronary artery disease", 4, 1], ["migraine_any", "Migraine (any type)", 2, 1], ["ckd_pre", "Chronic kidney disease", 2, 1],
-  ["haemoglobinopathy", "Sickle cell disease or trait, thalassemia", 3, 1],
-  ["endo", "Endometriosis", 0, 2], ["adeno", "Adenomyosis", 0, 2], ["estrogen", "Estrogen-containing therapy (combined pill or menopausal HT)", 2, 2]];
-function hbPoints(hb) { return hb >= 12 ? 0 : hb >= 10 ? 1 : hb >= 8 ? 1 : 2; }
+  ["htn", "Hypertension", "Diagnosis or treatment", 2], ["dm", "Diabetes mellitus", "Type 1 or type 2", 1],
+  ["cad", "Coronary artery disease", "MI, angina, coronary stent or bypass", 4], ["migraine_any", "Migraine", "With or without aura", 2],
+  ["ckd_pre", "Chronic kidney disease", "Any stage, dialysis or transplant", 2],
+  ["haemoglobinopathy", "Hemoglobinopathy", "Sickle cell disease or trait, thalassemia", 3],
+  ["estrogen", "Estrogen-containing hormonal therapy", "Combined oral contraceptive or menopausal hormone therapy", 2],
+  ["dyslipidemia", "Dyslipidemia", "In the model; no points", 0], ["smoke", "Current or former smoker", "In the model; no points", 0],
+  ["endo", "Endometriosis", "In the model; no points", 0], ["adeno", "Adenomyosis", "In the model; no points", 0]];
+function hbPoints(hb) { return hb >= 12 ? 0 : hb >= 8 ? 1 : 2; }
 function score(x) {
   const parts = [];
   if (x.age < 45) parts.push(["Age under 45", 1]);
-  const hp = hbPoints(x.hb); if (hp) parts.push([`Hemoglobin ${x.hb.toFixed(1)} g/dL`, hp]);
-  for (const [k, lab, p] of BIN) if (x[k] && p) parts.push([lab, p]);
+  const hp = hbPoints(x.hb); if (hp) parts.push(["Hemoglobin " + x.hb.toFixed(1) + " g/dL", hp]);
+  for (const [k, lab, , p] of BIN) if (x[k] && p) parts.push([lab, p]);
   return { total: parts.reduce((s, p) => s + p[1], 0), parts };
 }
 function scoreRisk(total) { return 100 * (1 - Math.pow(MODEL.scoreS0, Math.exp(MODEL.scoreCoef * (total - MODEL.scoreShift)))); }
@@ -176,60 +144,162 @@ function modelRisk(x) {
 }
 // MODEL-END
 const ROWS = [[0,3195,18],[1,7439,44],[2,4129,35],[3,4622,76],[4,2270,56],[5,1123,42],[6,642,18],[7,285,18],[8,144,15],[9,67,11],[10,55,5],[11,23,4],[12,9,2],[13,3,1]];
-const EXAMPLE = { age: 48, bmi: 31, hb: 9.4, htn: 1, migraine_any: 1 };
+const EXAMPLE = { age: 48, bmi: 31, hb: 9.4, hbUnit: "gdl", htn: 1, migraine_any: 1, dm: 0, cad: 0, ckd_pre: 0, haemoglobinopathy: 0, estrogen: 0, dyslipidemia: 0, smoke: 0, endo: 0, adeno: 1 };
 const $ = (id) => document.getElementById(id);
+const state = {};
 
-function buildChecks() {
-  for (const [k, lab, p, grp] of BIN) {
-    const el = document.createElement("label"); el.className = "chk"; el.htmlFor = k;
-    el.innerHTML = `<input type="checkbox" id="${k}"><span>${lab}</span><span class="pt">${p ? "+" + p : "0"}</span>`;
-    $(grp === 1 ? "c1" : "c2").appendChild(el);
-  }
-  const pt = $("ptab");
-  const rows = [["Age under 45 years", 1], ["Hemoglobin 10.0–11.9 g/dL", 1], ["Hemoglobin 8.0–9.9 g/dL", 1], ["Hemoglobin under 8.0 g/dL", 2]]
-    .concat(BIN.filter(b => b[2]).map(b => [b[1], b[2]]));
-  rows.sort((a, b) => b[1] - a[1]);
-  pt.innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td class="n">${r[1]}</td></tr>`).join("") +
-    `<tr><td style="color:var(--ink-2)">BMI, dyslipidemia, smoking, endometriosis, adenomyosis</td><td class="n">0</td></tr>`;
+// ---------- build input rows ----------
+function numRow(id, q, hint, unitHtml) {
+  return `<div class="row"><label class="q" for="${id}">${q}<span class="hint">${hint}</span></label>
+    <div class="numin"><input id="${id}" type="number" inputmode="decimal" step="any">${unitHtml}</div><div class="err" id="${id}_e" hidden></div></div>`;
 }
-function read() {
-  const x = {}; let ok = true;
-  for (const [id, lo, hi, name] of [["age", 18, 60, "Age"], ["bmi", 12, 80, "BMI"], ["hb", 3, 20, "Hemoglobin"]]) {
-    const v = parseFloat($(id).value);
-    const bad = !Number.isFinite(v) || v < lo || v > hi;
-    $(id + "_e").textContent = bad ? `${name}: enter a value from ${lo} to ${hi}` : "";
-    if (bad) ok = false; x[id] = v;
-  }
-  for (const [k] of BIN) x[k] = $(k).checked ? 1 : 0;
-  return ok ? x : null;
+function segRow(k, q, hint, p) {
+  return `<div class="row"><div class="q" id="${k}_l">${q}<span class="hint">${hint}</span></div>
+    <div class="seg" role="group" aria-labelledby="${k}_l">
+      <button type="button" data-k="${k}" data-v="0" aria-pressed="false">No<small>0</small></button>
+      <button type="button" data-k="${k}" data-v="1" aria-pressed="false">Yes<small>${p ? "+" + p : "0"}</small></button></div></div>`;
 }
+$("form").innerHTML =
+  numRow("age", "Age", "Under 45 years: +1 point (see Evidence)", `<span class="unit">years</span>`) +
+  numRow("hb", "Hemoglobin", "Laboratory CBC at diagnosis. 12 or more: 0 &middot; 8.0&ndash;11.9: +1 &middot; under 8.0: +2 (g/dL)",
+         `<select id="hbUnit" aria-label="Hemoglobin unit"><option value="gdl">g/dL</option><option value="gl">g/L</option><option value="mmol">mmol/L</option></select>`) +
+  numRow("bmi", "Body mass index", "In the model; no points", `<span class="unit">kg/m&sup2;</span>`) +
+  BIN.map(b => segRow(b[0], b[1], b[2], b[3])).join("");
+$("hbUnit").style.cssText = "font:14px var(--body);padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)";
+
+function hbToGdl(v, u) { return u === "gl" ? v / 10 : u === "mmol" ? v * 1.611 : v; }
+function readNum(id, lo, hi, name, conv) {
+  const raw = $(id).value.trim(); const e = $(id + "_e");
+  if (raw === "") { e.hidden = true; return null; }
+  let v = parseFloat(raw); if (conv) v = conv(v);
+  if (!Number.isFinite(v) || v < lo || v > hi) { e.hidden = false; e.textContent = `${name} must be between ${lo} and ${hi}${conv ? " g/dL after conversion" : ""}.`; return NaN; }
+  e.hidden = true; return v;
+}
+function collect() {
+  const x = {};
+  x.age = readNum("age", 18, 60, "Age");
+  x.hb = readNum("hb", 3, 20, "Hemoglobin", (v) => hbToGdl(v, $("hbUnit").value));
+  x.bmi = readNum("bmi", 12, 80, "BMI");
+  let complete = [x.age, x.hb, x.bmi].every(v => v !== null && !Number.isNaN(v));
+  for (const [k] of BIN) { x[k] = state[k]; if (x[k] === undefined) complete = false; }
+  return { x, complete };
+}
+function band(r) { return r < 1 ? ["Below average", "low"] : r < 2.5 ? ["Around average", "low"] : r < 5 ? ["Elevated", "mid"] : ["High", "high"]; }
+let last = null;
 function render() {
-  const x = read();
-  if (!x) { ["score", "scoreRisk", "model", "rel"].forEach(i => $(i).textContent = "–"); $("band").textContent = "Complete the inputs"; $("band").className = "pill"; $("break").innerHTML = ""; return; }
-  const s = score(x), sr = scoreRisk(s.total), mr = modelRisk(x);
-  $("score").textContent = s.total;
-  $("scoreRisk").textContent = sr.toFixed(1) + "%";
-  $("model").textContent = mr.toFixed(1) + "%";
-  $("rel").textContent = (mr / 2.0).toFixed(1) + "× average";
-  const band = mr < 1 ? ["Below average", "low"] : mr < 2.5 ? ["Around average", "low"] : mr < 5 ? ["Elevated", "mid"] : ["High", "high"];
-  $("band").textContent = band[0]; $("band").className = "pill " + band[1];
-  $("mark").style.left = Math.min(100, mr / 6 * 100) + "%";
-  $("break").innerHTML = s.parts.length ? s.parts.map(p => `<li><span>${p[0]}</span><span>+${p[1]}</span></li>`).join("") : `<li><span>No point-carrying items</span><span>0</span></li>`;
-  const w = $("warn");
-  if (mr > MODEL.p99) { w.hidden = false; w.textContent = `This risk is higher than 99% of women in the development cohort (above ${MODEL.p99}%). Few women had this combination, so the number is imprecise.`; }
-  else w.hidden = true;
-  [...$("rtab").rows].forEach(r => r.classList.toggle("on", +r.dataset.s === s.total));
+  const { x, complete } = collect();
+  if (!complete) { $("pts").textContent = "–"; $("risk").textContent = "–";
+    const missing = BIN.filter(b => state[b[0]] === undefined).length + ["age", "hb", "bmi"].filter(i => $(i).value.trim() === "").length;
+    $("interp").textContent = missing ? `Answer ${missing} more item${missing > 1 ? "s" : ""} to see the result.` : "Correct the highlighted values.";
+    last = null; markRow(-1); return; }
+  const s = score(x), sr = scoreRisk(s.total), mr = modelRisk(x), b = band(mr);
+  $("pts").textContent = s.total;
+  $("risk").textContent = sr.toFixed(1) + "%";
+  $("interp").innerHTML = `<span class="pill ${b[1]}">${b[0]}</span>Exact model risk <strong>${mr.toFixed(1)}%</strong>, ${(mr / 2).toFixed(1)}&times; the cohort average of 2.0%.` +
+    (mr > MODEL.p99 ? ` Higher than 99% of the development cohort, so the estimate is imprecise.` : "");
+  last = { x, s, sr, mr }; markRow(s.total);
 }
+function setSeg(k, v) {
+  state[k] = v;
+  document.querySelectorAll(`[data-k="${k}"]`).forEach(btn => btn.setAttribute("aria-pressed", String(+btn.dataset.v === v)));
+}
+$("form").addEventListener("click", (e) => { const b = e.target.closest("button[data-k]"); if (!b) return; setSeg(b.dataset.k, +b.dataset.v); $("exampleTag").hidden = true; render(); });
+$("form").addEventListener("input", () => { $("exampleTag").hidden = true; render(); });
+$("form").addEventListener("change", () => render());
 function load(v) {
-  $("age").value = v.age ?? ""; $("bmi").value = v.bmi ?? ""; $("hb").value = v.hb ?? "";
-  for (const [k] of BIN) $(k).checked = !!v[k];
-  $("exampleTag").hidden = !v.age; render();
+  $("age").value = v.age ?? ""; $("bmi").value = v.bmi ?? ""; $("hb").value = v.hb ?? ""; $("hbUnit").value = v.hbUnit || "gdl";
+  for (const [k] of BIN) { if (k in v) setSeg(k, v[k]); else { delete state[k]; document.querySelectorAll(`[data-k="${k}"]`).forEach(b => b.setAttribute("aria-pressed", "false")); } }
+  $("exampleTag").hidden = !("age" in v); render();
 }
-buildChecks();
-$("rtab").innerHTML = ROWS.map(r => `<tr data-s="${r[0]}"><td class="n" style="text-align:left">${r[0]}</td><td class="n">${scoreRisk(r[0]).toFixed(1)}%</td><td class="n">${r[1].toLocaleString()}</td><td class="n">${r[2]}</td></tr>`).join("");
-$("f").addEventListener("input", () => { $("exampleTag").hidden = true; render(); });
-$("f").addEventListener("submit", (e) => e.preventDefault());
-$("clear").addEventListener("click", () => load({}));
-$("ex").addEventListener("click", () => load(EXAMPLE));
+$("reset").addEventListener("click", () => load({}));
+$("loadEx").addEventListener("click", () => load(EXAMPLE));
+$("copy").addEventListener("click", async () => {
+  if (!last) return;
+  const yes = BIN.filter(b => last.x[b[0]]).map(b => b[1]);
+  const txt = `BUD-Stroke Score: ${last.s.total} points; 5-year stroke risk ${last.sr.toFixed(1)}% (points table), ${last.mr.toFixed(1)}% (exact model). ` +
+    `Inputs: age ${last.x.age} y, hemoglobin ${last.x.hb.toFixed(1)} g/dL, BMI ${last.x.bmi}; ${yes.length ? yes.join(", ") : "no listed conditions"}. Research use only; not externally validated.`;
+  const btn = $("copy");
+  try { await navigator.clipboard.writeText(txt); btn.textContent = "Copied"; }
+  catch { const t = document.createElement("textarea"); t.value = txt; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); btn.textContent = "Copied"; } catch { btn.textContent = "Select and copy"; } t.remove(); }
+  setTimeout(() => btn.textContent = "Copy result", 1800);
+});
+
+// ---------- reference tabs ----------
+const coefRows = [["Age, per year", "age"], ["BMI, per 5 kg/m²", "bmi5"], ["Hemoglobin, per 1 g/dL below 13", "hb_def"], ["Hypertension", "htn"], ["Diabetes", "dm"],
+  ["Dyslipidemia", "dyslipidemia"], ["Current or former smoker", "smoke"], ["Coronary artery disease", "cad"], ["Migraine", "migraine_any"], ["Chronic kidney disease", "ckd_pre"],
+  ["Hemoglobinopathy", "haemoglobinopathy"], ["Endometriosis", "endo"], ["Adenomyosis", "adeno"], ["Estrogen-containing therapy", "estrogen"]];
+const PANES = {
+  "How to use": `<h3>Who it is for</h3><ul><li>Women aged 18&ndash;60 with a diagnosis of uterine fibroids, adenomyosis or endometriosis.</li><li>No previous stroke or TIA.</li><li>Use the values recorded at or before the gynecologic diagnosis. Hemoglobin should be a laboratory complete blood count, not a point-of-care or blood-gas value.</li></ul>
+    <h3>Two results</h3><ul><li><strong>Points and risk from the points table</strong>: the simple score, like CHA₂DS₂-VASc, for bedside use.</li><li><strong>Exact model risk</strong>: the full Cox model, which also uses age, BMI and hemoglobin as continuous values and the items that carry no points.</li></ul>
+    <h3>Pearls and pitfalls</h3><ul><li>Anemia found at gynecologic diagnosis deserves evaluation of its cause and of vascular risk factors whatever the score.</li><li>The score is not a treatment rule. It has not been shown that acting on it changes stroke risk.</li><li>In the most recent patients (2023&ndash;2026) observed risk was about 1.6 times the predicted risk, so treat the numbers as a lower bound.</li><li>Younger age carries a point because younger women in this cohort had slightly higher recorded stroke rates after accounting for other factors. This most likely reflects testing and coding patterns, not a protective effect of age.</li></ul>`,
+  "Points and risk": `<div class="tscroll"><table><thead><tr><th>Item</th><th class="n">Points</th></tr></thead><tbody>
+    ${[["Coronary artery disease", 4], ["Hemoglobinopathy (sickle cell disease or trait, thalassemia)", 3], ["Hypertension", 2], ["Migraine", 2], ["Chronic kidney disease", 2], ["Estrogen-containing hormonal therapy", 2], ["Hemoglobin under 8.0 g/dL", 2], ["Hemoglobin 8.0–11.9 g/dL", 1], ["Diabetes", 1], ["Age under 45 years", 1], ["BMI, dyslipidemia, smoking, endometriosis, adenomyosis", 0]].map(r => `<tr><td>${r[0]}</td><td class="n">${r[1]}</td></tr>`).join("")}
+    </tbody></table></div><p class="muted">Each point is associated with a 40% higher stroke rate (hazard ratio 1.40). Maximum 19 points.</p>
+    <div class="tscroll"><table><thead><tr><th>Points</th><th class="n">5-year risk</th><th class="n">Women</th><th class="n">Strokes</th></tr></thead><tbody id="rtab">
+    ${ROWS.map(r => `<tr data-s="${r[0]}"><td class="n" style="text-align:left">${r[0]}${r[0] === 13 ? "+" : ""}</td><td class="n">${scoreRisk(r[0]).toFixed(1)}%</td><td class="n">${r[1].toLocaleString("en-US")}</td><td class="n">${r[2]}</td></tr>`).join("")}
+    </tbody></table></div><p class="muted">Women and strokes are the counts observed in the development cohort at each score. Risks above 13 points come from the model equation and are not supported by observed data.</p>`,
+  "Evidence": `<h3>Development</h3><p>Retrospective cohort from electronic health records at one US academic medical center. Women aged 18&ndash;60 with a first coded diagnosis of fibroids, adenomyosis or endometriosis (2018&ndash;2026; earlier if a dated myomectomy, hysterectomy, uterine artery embolization or endometrial ablation came first), free of recorded stroke at that date, with a laboratory hemoglobin in the preceding 3 years. 24,006 women; 345 first strokes (ischemic, hemorrhagic, cerebral venous thrombosis or unspecified; TIA excluded) over a median 2.8 years. Strokes were identified from diagnosis codes and imaging reports, not chart review.</p>
+    <h3>Performance</h3><div class="tscroll"><table><tbody>
+    <tr><td>Harrell C, optimism-corrected (200 bootstrap samples)</td><td class="n">0.696</td></tr><tr><td>Points score, Harrell C</td><td class="n">0.697</td></tr>
+    <tr><td>Calibration slope (bootstrap; shrinkage applied)</td><td class="n">0.96</td></tr><tr><td>Temporal validation (2023&ndash;2026, n = 12,609, 119 strokes): C at 3 years</td><td class="n">0.665</td></tr>
+    <tr><td>Temporal validation: calibration slope</td><td class="n">0.82</td></tr><tr><td>Temporal validation: observed / expected 3-year risk</td><td class="n">1.64</td></tr>
+    <tr><td>Adding race to the model (likelihood-ratio P)</td><td class="n">0.88</td></tr></tbody></table></div>
+    <h3>Limitations</h3><ul><li>Single center; not yet externally validated.</li><li>Outcome from codes and imaging, not adjudicated.</li><li>Smoking was undocumented for two-thirds of women; oral contraceptives were under-recorded.</li><li>Risk is likely underestimated in recent patients and may differ in other health systems; recalibration is recommended before use elsewhere.</li><li>The association of hemoglobin with stroke in this cohort behaves like a marker of general illness; the score does not imply that correcting anemia lowers stroke risk.</li></ul>`,
+  "Formula": `<p>Exact 5-year risk (Cox model with uniform shrinkage):</p>
+    <span class="formula">risk = 1 − S₀(5) ^ exp( ${MODEL.shrink.toFixed(4)} × Σ βᵢ (xᵢ − cᵢ) )
+S₀(5) = ${MODEL.s0.toFixed(5)}
+c = 41.112 for age, 5.917 for BMI/5, 0.671 for hemoglobin deficit; 0 for every yes/no item
+hemoglobin deficit = max(13 − Hb in g/dL, 0)</span>
+    <div class="tscroll"><table><thead><tr><th>Predictor</th><th class="n">β</th><th class="n">Hazard ratio</th></tr></thead><tbody>
+    ${coefRows.map(r => `<tr><td>${r[0]}</td><td class="n">${MODEL.coef[r[1]].toFixed(4)}</td><td class="n">${Math.exp(MODEL.coef[r[1]]).toFixed(2)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p>Points-table risk: <code>1 − ${MODEL.scoreS0.toFixed(5)} ^ exp(${MODEL.scoreCoef.toFixed(4)} × (points − 1))</code>. Points are Sullivan-method weights, with one point equal to half the hypertension coefficient.</p>
+    <p class="muted">Hemoglobin unit conversion: g/L ÷ 10; mmol/L × 1.611.</p>`,
+  "Batch": `<p>For validation studies: paste one patient per line as comma-separated values with this header (yes/no as 1/0, hemoglobin in g/dL). Results are calculated in your browser; nothing is sent anywhere.</p>
+    <textarea id="batchIn" spellcheck="false" aria-label="Batch input">id,age,hb,bmi,htn,dm,cad,migraine,ckd,hemoglobinopathy,estrogen,dyslipidemia,smoker,endometriosis,adenomyosis
+example-1,48,9.4,31,1,0,0,1,0,0,0,0,0,0,1
+example-2,30,13.5,22,0,0,0,0,0,0,0,0,0,1,0
+example-3,55,11.2,34,1,1,0,0,1,0,0,1,1,0,0</textarea>
+    <div class="tools"><button class="btn primary" type="button" id="batchRun">Calculate</button><button class="btn" type="button" id="batchCopy">Copy results as CSV</button><span class="muted" id="batchMsg">Example rows shown.</span></div>
+    <div class="tscroll" id="batchOut"></div>`
+};
+const order = Object.keys(PANES);
+$("tabs").innerHTML = order.map((t, i) => `<button role="tab" type="button" id="tab${i}" aria-selected="${i === 0}" aria-controls="pane${i}">${t}</button>`).join("");
+$("panes").innerHTML = order.map((t, i) => `<div class="pane" role="tabpanel" id="pane${i}" aria-labelledby="tab${i}" ${i ? "hidden" : ""}>${PANES[t]}</div>`).join("");
+$("tabs").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return;
+  order.forEach((t, i) => { $("tab" + i).setAttribute("aria-selected", String("tab" + i === b.id)); $("pane" + i).hidden = "tab" + i !== b.id; }); });
+function markRow(sc) { document.querySelectorAll("#rtab tr").forEach(r => r.classList.toggle("on", +r.dataset.s === Math.min(sc, 13))); }
+
+// ---------- batch ----------
+const BCOLS = { htn: "htn", dm: "dm", cad: "cad", migraine: "migraine_any", ckd: "ckd_pre", hemoglobinopathy: "haemoglobinopathy", estrogen: "estrogen",
+                dyslipidemia: "dyslipidemia", smoker: "smoke", endometriosis: "endo", adenomyosis: "adeno" };
+let batchCsv = "";
+function runBatch() {
+  const lines = $("batchIn").value.trim().split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) { $("batchMsg").textContent = "Add a header line and at least one patient."; return; }
+  const head = lines[0].split(",").map(h => h.trim().toLowerCase());
+  const need = ["age", "hb", "bmi", ...Object.keys(BCOLS)].filter(c => !head.includes(c));
+  if (need.length) { $("batchMsg").textContent = "Missing columns: " + need.join(", "); return; }
+  const out = [], errs = [];
+  lines.slice(1).forEach((l, i) => {
+    const v = l.split(","); const g = (c) => (v[head.indexOf(c)] ?? "").trim();
+    const x = { age: parseFloat(g("age")), hb: parseFloat(g("hb")), bmi: parseFloat(g("bmi")) };
+    let ok = x.age >= 18 && x.age <= 60 && x.hb >= 3 && x.hb <= 20 && x.bmi >= 12 && x.bmi <= 80;
+    for (const [c, k] of Object.entries(BCOLS)) { const t = g(c); if (t !== "0" && t !== "1") ok = false; x[k] = +t; }
+    const id = head.includes("id") ? g("id") : String(i + 1);
+    if (!ok) { errs.push(id); out.push([id, "", "", "", "check values"]); return; }
+    const s = score(x); out.push([id, s.total, scoreRisk(s.total).toFixed(2), modelRisk(x).toFixed(2), ""]);
+  });
+  batchCsv = "id,points,risk5_points_pct,risk5_model_pct,note\n" + out.map(r => r.join(",")).join("\n");
+  $("batchOut").innerHTML = `<table><thead><tr><th>ID</th><th class="n">Points</th><th class="n">5-y risk (points)</th><th class="n">5-y risk (model)</th><th>Note</th></tr></thead><tbody>${
+    out.map(r => `<tr><td>${r[0].replace(/[<>&]/g, "")}</td><td class="n">${r[1]}</td><td class="n">${r[2] ? r[2] + "%" : ""}</td><td class="n">${r[3] ? r[3] + "%" : ""}</td><td>${r[4]}</td></tr>`).join("")}</tbody></table>`;
+  $("batchMsg").textContent = `${out.length - errs.length} of ${out.length} rows calculated` + (errs.length ? `; check rows ${errs.join(", ")} (age 18–60, Hb 3–20, BMI 12–80, yes/no as 1 or 0).` : ".");
+}
+$("panes").addEventListener("click", async (e) => {
+  if (e.target.id === "batchRun") runBatch();
+  if (e.target.id === "batchCopy") { if (!batchCsv) runBatch(); try { await navigator.clipboard.writeText(batchCsv); $("batchMsg").textContent = "Results copied as CSV."; }
+    catch { $("batchIn").value = batchCsv; $("batchIn").select(); $("batchMsg").textContent = "Copying is blocked here; the results are now in the box above, selected, ready to copy."; } }
+});
 load(EXAMPLE);
+runBatch();
 </script>

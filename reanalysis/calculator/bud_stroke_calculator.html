@@ -116,12 +116,11 @@ textarea { width: 100%; min-height: 150px; font: 13px/1.5 var(--mono); padding: 
 <script>
 // MODEL-START (values from reanalysis/output/risk_model_spec.json)
 const MODEL = {
-  s0: 0.99065985, shrink: 0.96244439,
-  coef: { age: -0.01085583, bmi5: -0.03218955, htn: 0.77482591, dm: 0.20554678, dyslipidemia: 0.01602871, smoke: 0.14397257, cad: 1.41584925,
-          migraine_any: 0.67093977, ckd_pre: 0.66511653, haemoglobinopathy: 1.06285561, endo: -0.01347216, adeno: 0.01660276, estrogen: 0.68349317, hb_def: 0.13604605 },
-  means: { age: 41.11206011, bmi5: 5.91706657, hb_def: 0.67088645 },
-  scoreCoef: 0.33524913, scoreS0: 0.98980746, scoreShift: 1,
-  p99: 9.50
+  s0: 0.99065689, shrink: 0.96243033,
+  coef: { age: -0.01088765, bmi5: -0.03206788, htn: 0.77511301, dm: 0.20668382, dyslipidemia: 0.01601691, smoke: 0.14307148, cad: 1.41405125, migraine_any: 0.67069882, ckd_pre: 0.66354351, haemoglobinopathy: 1.06332178, endo: -0.01376094, adeno: 0.01658595, estrogen: 0.68371802, hb_def: 0.13533720 },
+  means: { age: 41.11274543, bmi5: 5.91706657, hb_def: 0.67095101 },
+  scoreCoef: 0.33503725, scoreS0: 0.98980251, scoreShift: 1,
+  p99: 9.49
 };
 const BIN = [
   ["migraine_any", "Migraine", "With or without aura", 2, "M"],
@@ -149,7 +148,7 @@ function modelRisk(x) {
   return 100 * (1 - Math.pow(MODEL.s0, Math.exp(MODEL.shrink * lp)));
 }
 // MODEL-END
-const ROWS = [[0,3195,18],[1,7439,44],[2,4129,35],[3,4622,76],[4,2270,56],[5,1123,42],[6,642,18],[7,285,18],[8,144,15],[9,67,11],[10,55,5],[11,23,4],[12,9,2],[13,3,1]];
+const ROWS = [[0,3195,18],[1,7439,44],[2,4129,35],[3,4622,76],[4,2270,56],[5,1123,42],[6,642,18],[7,285,18],[8,144,15],[9,66,11],[10,56,5],[11,23,4],[12,9,2],[13,3,1]];
 const EXAMPLE = { age: 48, bmi: 31, hb: 9.4, hbUnit: "gdl", htn: 1, migraine_any: 1, dm: 0, cad: 0, ckd_pre: 0, haemoglobinopathy: 0, estrogen: 0, dyslipidemia: 0, smoke: 0, endo: 0, adeno: 1 };
 const $ = (id) => document.getElementById(id);
 const state = {};
@@ -250,7 +249,7 @@ const PANES = {
     <tr><td>Calibration slope (bootstrap; shrinkage applied)</td><td class="n">0.96</td></tr><tr><td>Temporal validation (2023&ndash;2026, n = 12,609, 119 strokes): C at 3 years</td><td class="n">0.665</td></tr>
     <tr><td>Temporal validation: calibration slope</td><td class="n">0.82</td></tr><tr><td>Temporal validation: observed / expected 3-year risk</td><td class="n">1.64</td></tr>
     <tr><td>Adding race to the model (likelihood-ratio P)</td><td class="n">0.88</td></tr></tbody></table></div>
-    <h3>Limitations</h3><ul><li>Single center; not yet externally validated.</li><li>Outcome from codes and imaging, not adjudicated.</li><li>Smoking was undocumented for two-thirds of women; oral contraceptives were under-recorded.</li><li>Risk is likely underestimated in recent patients and may differ in other health systems; recalibration is recommended before use elsewhere.</li><li>The association of hemoglobin with stroke in this cohort behaves like a marker of general illness; the score does not imply that correcting anemia lowers stroke risk.</li></ul>`,
+    <h3>Limitations</h3><ul><li>Single center; not yet externally validated.</li><li>Age: stroke rates were highest in women under 30 and flat from 30 to 60, both by age at diagnosis and by age at the time of stroke (attained-age analysis, which gave the same hazard ratios for every other predictor). The age point therefore reflects this cohort, not a general rule.</li><li>Outcome from codes and imaging, not adjudicated.</li><li>Smoking was undocumented for two-thirds of women; oral contraceptives were under-recorded.</li><li>Risk is likely underestimated in recent patients and may differ in other health systems; recalibration is recommended before use elsewhere.</li><li>The association of hemoglobin with stroke in this cohort behaves like a marker of general illness; the score does not imply that correcting anemia lowers stroke risk.</li></ul>`,
   "Formula": `<p>Exact 5-year risk (Cox model with uniform shrinkage):</p>
     <span class="formula">risk = 1 − S₀(5) ^ exp( ${MODEL.shrink.toFixed(4)} × Σ βᵢ (xᵢ − cᵢ) )
 S₀(5) = ${MODEL.s0.toFixed(5)}

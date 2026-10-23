@@ -23,7 +23,8 @@ ev <- rbind(
 ev <- ev[!is.na(date) & year(date) >= 1980]
 first_ev <- ev[order(date), .SD[1], by = study_id]
 e <- merge(e, first_ev[, .(study_id, proc_src = src, proc_date = date)], by = "study_id", all.x = TRUE)
-e[, anchor := fifelse(!is.na(proc_date) & proc_date < index_date, proc_date, index_date)]
+e[, anchor := fifelse(!is.na(proc_date) & proc_date < index_date &
+                       age_index - as.numeric(index_date - proc_date) / 365.25 >= 18, proc_date, index_date)]   # implausible procedure dates (age <18) ignored
 e[, anchor_src := fifelse(anchor < index_date, proc_src, "first coded diagnosis (2018+)")]
 e[, age_anchor := age_index - as.numeric(index_date - anchor) / 365.25]
 shift <- e[anchor < index_date]

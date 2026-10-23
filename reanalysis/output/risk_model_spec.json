@@ -1,10 +1,10 @@
 {
   "model": "Cox, 5-year risk of stroke (excluding TIA), women 18-60 with benign uterine disease",
   "horizon_years": 5,
-  "baseline_survival_5y": 0.99065985,
-  "shrinkage": 0.96244439,
+  "baseline_survival_5y": 0.99065689,
+  "shrinkage": 0.96243033,
   "means": {
-    "age": 41.11206011,
+    "age": 41.11274543,
     "bmi5": 5.91706657,
     "htn": 0,
     "dm": 0,
@@ -17,23 +17,23 @@
     "endo": 0,
     "adeno": 0,
     "estrogen": 0,
-    "hb_def": 0.67088645
+    "hb_def": 0.67095101
   },
   "coef": {
-    "age": -0.01085583,
-    "bmi5": -0.03218955,
-    "htn": 0.77482591,
-    "dm": 0.20554678,
-    "dyslipidemia": 0.01602871,
-    "smoke": 0.14397257,
-    "cad": 1.41584925,
-    "migraine_any": 0.67093977,
-    "ckd_pre": 0.66511653,
-    "haemoglobinopathy": 1.06285561,
-    "endo": -0.01347216,
-    "adeno": 0.01660276,
-    "estrogen": 0.68349317,
-    "hb_def": 0.13604605
+    "age": -0.01088765,
+    "bmi5": -0.03206788,
+    "htn": 0.77511301,
+    "dm": 0.20668382,
+    "dyslipidemia": 0.01601691,
+    "smoke": 0.14307148,
+    "cad": 1.41405125,
+    "migraine_any": 0.67069882,
+    "ckd_pre": 0.66354351,
+    "haemoglobinopathy": 1.06332178,
+    "endo": -0.01376094,
+    "adeno": 0.01658595,
+    "estrogen": 0.68371802,
+    "hb_def": 0.1353372
   },
   "predictors": {
     "age": "Age (per year)",
@@ -200,90 +200,90 @@
       }
     ]
   },
-  "score_coef": 0.33524913,
-  "score_baseline_survival_5y": 0.98980746,
+  "score_coef": 0.33503725,
+  "score_baseline_survival_5y": 0.98980251,
   "score_risk": [
     {
       "score": -1,
-      "risk5_pct": 0.72999204
+      "risk5_pct": 0.73050163
     },
     {
       "score": 0,
-      "risk5_pct": 1.01925355
+      "risk5_pct": 1.01974904
     },
     {
       "score": 1,
-      "risk5_pct": 1.42231191
+      "risk5_pct": 1.42270261
     },
     {
       "score": 2,
-      "risk5_pct": 1.98315331
+      "risk5_pct": 1.98328045
     },
     {
       "score": 3,
-      "risk5_pct": 2.76202535
+      "risk5_pct": 2.76162468
     },
     {
       "score": 4,
-      "risk5_pct": 3.8407466
+      "risk5_pct": 3.83939482
     },
     {
       "score": 5,
-      "risk5_pct": 5.3290744
+      "risk5_pct": 5.32611546
     },
     {
       "score": 6,
-      "risk5_pct": 7.37164036
+      "risk5_pct": 7.36609024
     },
     {
       "score": 7,
-      "risk5_pct": 10.15405651
+      "risk5_pct": 10.14449217
     },
     {
       "score": 8,
-      "risk5_pct": 13.90509693
+      "risk5_pct": 13.88955271
     },
     {
       "score": 9,
-      "risk5_pct": 18.88901201
+      "risk5_pct": 18.86494007
     },
     {
       "score": 10,
-      "risk5_pct": 25.37795263
+      "risk5_pct": 25.34236067
     },
     {
       "score": 11,
-      "risk5_pct": 33.5902894
+      "risk5_pct": 33.54024077
     },
     {
       "score": 12,
-      "risk5_pct": 43.58060318
+      "risk5_pct": 43.5143033
     }
   ],
   "validation": {
     "Women (development)": "24,006",
     "Strokes": "345",
-    "Harrell C, apparent": "0.707",
+    "Harrell C, apparent": "0.706",
     "Harrell C, optimism-corrected (200 bootstraps)": "0.696",
     "Bootstrap calibration slope (shrinkage applied)": "0.962",
-    "Proportional hazards, global P": "0.956",
-    "Age non-linearity, P": "0.134",
-    "Adding race: likelihood-ratio P": "0.879",
-    "Temporal validation: development n / strokes (anchor <2023)": "11,397 / 226",
-    "Temporal validation: validation n / strokes (anchor ≥2023)": "12,609 / 119",
+    "Proportional hazards, global P": "0.951",
+    "Age non-linearity, P": "0.127",
+    "Adding race: likelihood-ratio P": "0.877",
+    "Temporal validation: development n / strokes (anchor <2023)": "11,396 / 226",
+    "Temporal validation: validation n / strokes (anchor ≥2023)": "12,610 / 119",
     "Temporal validation: C at 3 years": "0.665",
     "Temporal validation: calibration slope at 3 years": "0.82",
     "Temporal validation: observed / expected 3-year risk": "1.64",
     "Points score: Harrell C": "0.697",
     "Points score range in cohort": "-1 to 12"
   },
-  "cohort_5y_risk_pct": 1.9918492,
+  "cohort_5y_risk_pct": 1.99197369,
   "risk_distribution_pct": {
-    "10%": 0.84224288,
-    "25%": 0.94502707,
-    "50%": 1.23841119,
-    "75%": 2.00058976,
-    "90%": 3.18995679,
-    "99%": 9.49604673
+    "10%": 0.84255642,
+    "25%": 0.94535131,
+    "50%": 1.23849835,
+    "75%": 2.00172198,
+    "90%": 3.18828682,
+    "99%": 9.48988402
   }
 }

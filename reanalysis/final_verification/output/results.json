@@ -1,0 +1,304 @@
+{
+  "V01": {
+    "events": [
+      {
+        "step": "A. audit development sample: CBC, BMI recorded, age ≥ 18; outcome O1 (all coded strokes excl. TIA)",
+        "women": 24006,
+        "events": "345"
+      },
+      {
+        "step": "  minus procedure-anchored women (anchor before first coded diagnosis)",
+        "women": 336,
+        "events": "<11"
+      },
+      {
+        "step": "  = index-anchored, BMI recorded",
+        "women": 23670,
+        "events": "337"
+      },
+      {
+        "step": "  plus index-anchored women without BMI (BMI requirement dropped post-audit)",
+        "women": 880,
+        "events": "<11"
+      },
+      {
+        "step": "B. post-audit baseline cohort, outcome O1",
+        "women": 24550,
+        "events": "339"
+      },
+      {
+        "step": "  minus imaging-only events",
+        "events": "<11"
+      },
+      {
+        "step": "  minus history/sequela-only events (no acute code)",
+        "events": "<11"
+      },
+      {
+        "step": "C. post-audit baseline cohort, outcome O2 (acute-coded) — used in P05/P06/P08",
+        "women": 24550,
+        "events": "322"
+      },
+      {
+        "step": "  of which corroborated by dated positive imaging or NIHSS flowsheet within ±30 days (O6)",
+        "events": " 89"
+      }
+    ],
+    "temporal": [
+      {
+        "model": "C1_conventional_baseline",
+        "predictors": "age, htn, cad, ckd_pre, dyslipidemia, smoke_b",
+        "dev": "anchors 2018–2022",
+        "n_dev": 11395,
+        "events_dev": 205,
+        "validation": "anchors 2023+",
+        "n_val": 13155,
+        "events_val_3y": 117,
+        "c3_temporal": "0.617 (0.554–0.680)",
+        "ipa3_temporal": "0.51%",
+        "oe3_expected_counts": "1.45 (1.20–1.74)",
+        "oe3_km_over_mean": "1.58 (1.24–1.92)"
+      },
+      {
+        "model": "C2_current_nine_as_coded",
+        "predictors": "migraine_any, estrogen, dm, htn, haemoglobinopathy, hb_def, age, cad, ckd_pre",
+        "dev": "anchors 2018–2022",
+        "n_dev": 11395,
+        "events_dev": 205,
+        "validation": "anchors 2023+",
+        "n_val": 13155,
+        "events_val_3y": 117,
+        "c3_temporal": "0.711 (0.662–0.760)",
+        "ipa3_temporal": "1.11%",
+        "oe3_expected_counts": "1.49 (1.23–1.79)",
+        "oe3_km_over_mean": "1.65 (1.29–2.00)"
+      },
+      {
+        "model": "C3_baseline_only",
+        "predictors": "age, hb_def, htn, cad, ckd_pre, hbp_pre, dyslipidemia, smoke_b",
+        "dev": "anchors 2018–2022",
+        "n_dev": 11395,
+        "events_dev": 205,
+        "validation": "anchors 2023+",
+        "n_val": 13155,
+        "events_val_3y": 117,
+        "c3_temporal": "0.644 (0.585–0.703)",
+        "ipa3_temporal": "0.40%",
+        "oe3_expected_counts": "1.45 (1.20–1.74)",
+        "oe3_km_over_mean": "1.58 (1.23–1.92)"
+      },
+      {
+        "model": "C4_reduced_baseline",
+        "predictors": "age, hb_def, htn, cad, ckd_pre",
+        "dev": "anchors 2018–2022",
+        "n_dev": 11395,
+        "events_dev": 205,
+        "validation": "anchors 2023+",
+        "n_val": 13155,
+        "events_val_3y": 117,
+        "c3_temporal": "0.663 (0.608–0.718)",
+        "ipa3_temporal": "0.48%",
+        "oe3_expected_counts": "1.45 (1.20–1.74)",
+        "oe3_km_over_mean": "1.57 (1.23–1.91)"
+      },
+      {
+        "model": "C1min_age_htn_cad_ckd",
+        "predictors": "age, htn, cad, ckd_pre",
+        "dev": "anchors 2018–2022",
+        "n_dev": 11395,
+        "events_dev": 205,
+        "validation": "anchors 2023+",
+        "n_val": 13155,
+        "events_val_3y": 117,
+        "c3_temporal": "0.641 (0.583–0.698)",
+        "ipa3_temporal": "0.59%",
+        "oe3_expected_counts": "1.45 (1.20–1.74)",
+        "oe3_km_over_mean": "1.57 (1.23–1.91)"
+      }
+    ],
+    "diffs": [
+      {
+        "comparison": "C2_current_nine_as_coded − C3_baseline_only",
+        "dev_apparent_paired_95ci": "0.049 (0.021 to 0.081)",
+        "dev_P05d_fitting_interval": "0.051 [0.041 to 0.063]",
+        "temporal_paired_95ci": "0.067 (0.024 to 0.117)"
+      },
+      {
+        "comparison": "C2_current_nine_as_coded − C4_reduced_baseline",
+        "dev_apparent_paired_95ci": "0.046 (0.020 to 0.078)",
+        "dev_P05d_fitting_interval": "0.045 [0.040 to 0.056]",
+        "temporal_paired_95ci": "0.048 (0.007 to 0.093)"
+      },
+      {
+        "comparison": "C3_baseline_only − C1_conventional_baseline",
+        "dev_apparent_paired_95ci": "0.028 (0.003 to 0.054)",
+        "dev_P05d_fitting_interval": "0.022 [0.012 to 0.028]",
+        "temporal_paired_95ci": "0.027 (-0.005 to 0.066)"
+      },
+      {
+        "comparison": "C4_reduced_baseline − C1_conventional_baseline",
+        "dev_apparent_paired_95ci": "0.031 (0.005 to 0.057)",
+        "dev_P05d_fitting_interval": "0.027 [0.016 to 0.037]",
+        "temporal_paired_95ci": "0.045 (0.003 to 0.089)"
+      },
+      {
+        "comparison": "C2_current_nine_as_coded − C1_conventional_baseline",
+        "dev_apparent_paired_95ci": "0.076 (0.042 to 0.113)",
+        "dev_P05d_fitting_interval": "0.072 [0.062 to 0.084]",
+        "temporal_paired_95ci": "0.094 (0.043 to 0.148)"
+      },
+      {
+        "comparison": "C4_reduced_baseline − C1min_age_htn_cad_ckd",
+        "dev_apparent_paired_95ci": "0.026 (0.003 to 0.049)",
+        "dev_P05d_fitting_interval": "not in P05",
+        "temporal_paired_95ci": "0.022 (-0.010 to 0.056)"
+      },
+      {
+        "comparison": "C4_reduced_baseline − C3_baseline_only",
+        "dev_apparent_paired_95ci": "0.003 (-0.004 to 0.010)",
+        "dev_P05d_fitting_interval": "0.005 [-0.002 to 0.018]",
+        "temporal_paired_95ci": "0.018 (-0.007 to 0.040)"
+      }
+    ]
+  },
+  "V03": {
+    "period_cohort": [
+      {
+        "group": "anchored before 2023: calendar-2023+ follow-up within 0–3 y of the anchor",
+        "women": 6568,
+        "observed": 21,
+        "expected": 35.8,
+        "oe": "0.59 (0.36–0.90)"
+      },
+      {
+        "group": "anchored 2023+: follow-up within 0–3 y of the anchor",
+        "women": 13155,
+        "observed": 117,
+        "expected": 86.8,
+        "oe": "1.35 (1.11–1.62)"
+      }
+    ]
+  },
+  "V04": {
+    "c": [
+      {
+        "model": "C4",
+        "subgroup": "no fibroids",
+        "women": 5258,
+        "events_3y": 49,
+        "c3": "0.59 (0.50–0.68)"
+      },
+      {
+        "model": "C4",
+        "subgroup": "fibroids",
+        "women": 7897,
+        "events_3y": 68,
+        "c3": "0.70 (0.63–0.77)"
+      },
+      {
+        "model": "C2",
+        "subgroup": "no fibroids",
+        "women": 5258,
+        "events_3y": 49,
+        "c3": "0.70 (0.63–0.78)"
+      },
+      {
+        "model": "C2",
+        "subgroup": "fibroids",
+        "women": 7897,
+        "events_3y": 68,
+        "c3": "0.72 (0.65–0.78)"
+      },
+      {
+        "model": "C4_plus_migraine_as_coded",
+        "subgroup": "no fibroids",
+        "women": 5258,
+        "events_3y": 49,
+        "c3": "0.72 (0.65–0.79)"
+      },
+      {
+        "model": "C4_plus_migraine_as_coded",
+        "subgroup": "fibroids",
+        "women": 7897,
+        "events_3y": 68,
+        "c3": "0.72 (0.65–0.78)"
+      }
+    ]
+  },
+  "V05": {
+    "sparse": [
+      {
+        "predictor": "estrogen (as coded), published development sample",
+        "women": 338,
+        "events": "14",
+        "outcome": "O1"
+      },
+      {
+        "predictor": "hemoglobinopathy, any date, published development sample",
+        "women": 263,
+        "events": "14",
+        "outcome": "O1"
+      },
+      {
+        "predictor": "hemoglobinopathy before anchor, baseline cohort",
+        "women": 197,
+        "events": "<11",
+        "outcome": "O2"
+      },
+      {
+        "predictor": "CAD, baseline cohort",
+        "women": 376,
+        "events": "34",
+        "outcome": "O2"
+      },
+      {
+        "predictor": "CKD, baseline cohort",
+        "women": 661,
+        "events": "33",
+        "outcome": "O2"
+      }
+    ],
+    "calculator": [
+      {
+        "item": "'Research use only' text (line numbers)",
+        "finding": "96, 230"
+      },
+      {
+        "item": "'not externally validated' text",
+        "finding": "96, 230, 256"
+      },
+      {
+        "item": "mentions predictor timing / leakage",
+        "finding": "absent"
+      },
+      {
+        "item": "mentions underprediction in recent patients",
+        "finding": "243, 256"
+      },
+      {
+        "item": "horizon shown",
+        "finding": "5-year"
+      },
+      {
+        "item": "inputs required before a result is shown",
+        "finding": "all 9 (collect(): complete = FALSE until every item answered; age 18–60, Hb 3–20 g/dL)"
+      },
+      {
+        "item": "'unknown' option for yes/no items",
+        "finding": "absent (Yes/No buttons only)"
+      },
+      {
+        "item": "upper cap or suppression of extreme risks",
+        "finding": "none (risk computed for any valid input)"
+      },
+      {
+        "item": "warning above the development 99th percentile",
+        "finding": "130, 209"
+      },
+      {
+        "item": "points table rows shown",
+        "finding": "0–13 (ROWS array); points total can reach 19"
+      }
+    ]
+  }
+}

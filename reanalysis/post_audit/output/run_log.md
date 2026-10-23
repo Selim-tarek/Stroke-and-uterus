@@ -1,18 +1,12 @@
 
-## P01 Input inventory, integrity check and decision timeline — `post_audit/R/P01_inventory.R` (2026-10-23 21:33)
-- table `P01a_data_files` (23 rows)
-- table `P01b_lab_contents` (5 rows)
-- table `P01c_dated_workbook_sheets` (7 rows)
-- table `P01d_integrity` (4 rows)
-
-## P01 Input inventory, integrity check and decision timeline — `post_audit/R/P01_inventory.R` (2026-10-23 21:34)
+## P01 Input inventory, integrity check and decision timeline — `post_audit/R/P01_inventory.R` (2026-10-23 22:01)
 - table `P01a_data_files` (23 rows)
 - table `P01b_lab_contents` (5 rows)
 - table `P01c_dated_workbook_sheets` (7 rows)
 - table `P01d_integrity` (4 rows)
 - table `P01e_git_timeline` (12 rows)
 
-## P02 Predictor provenance and strict baseline reconstruction — `post_audit/R/P02_baseline_reconstruction.R` (2026-10-23 21:35)
+## P02 Predictor provenance and strict baseline reconstruction — `post_audit/R/P02_baseline_reconstruction.R` (2026-10-23 22:01)
 - table `P02a_baseline_cohort` (4 rows)
 - baseline cohort, primary outcome (acute-coded stroke): 24,550 women, 322 events
 - table `P02b_reconstructed_predictors` (2 rows)
@@ -20,29 +14,26 @@
 - table `P02d_utilization_association` (9 rows)
 - table `P02e_hr_utilization_adjusted` (9 rows)
 
-## P03 Outcome definitions — `post_audit/R/P03_outcome_definitions.R` (2026-10-23 21:35)
+## P03 Outcome definitions — `post_audit/R/P03_outcome_definitions.R` (2026-10-23 22:01)
 - table `P03a_outcome_counts` (6 rows)
 - table `P03b_outcome_composition` (7 rows)
 - table `P03c_models_by_outcome` (19 rows)
 
-## P04 Prediction horizon and censoring — `post_audit/R/P04_horizon_censoring.R` (2026-10-23 21:36)
+## P04 Prediction horizon and censoring — `post_audit/R/P04_horizon_censoring.R` (2026-10-23 22:01)
 - table `P04a_risk_sets` (15 rows)
 - table `P04b_censoring_sensitivity` (3 rows)
 - table `P04c_competing_death` (3 rows)
 
-## P05 Candidate-model comparison (baseline cohort, acute-coded stroke, 3 years) — `post_audit/R/P05_candidate_models.R` (2026-10-23 21:37)
+## P05 Candidate-model comparison (baseline cohort, acute-coded stroke, 3 years) — `post_audit/R/P05_candidate_models.R` (2026-10-23 22:01)
 - table `P05a_coefficients` (13 rows)
+- table `P05b_apparent_performance` (7 rows)
+- table `P05c_full_process_validation` (7 rows)
+- table `P05d_paired_c_differences` (6 rows)
+- table `P05e_sign_stability` (12 rows)
+- table `P05f_reclassification` (5 rows)
+- table `P05g_decision_curve_3y` (6 rows)
 
-## P06 Temporal validation and calibration drift — `post_audit/R/P06_temporal_drift.R` (2026-10-23 21:38)
-- table `P06a_period_sizes` (3 rows)
-- table `P06b_temporal_primary` (4 rows)
-- table `P06c_temporal_delta_c` (4 rows)
-- table `P06d_three_way_1y` (2 rows)
-- table `P06e_drift_case_mix` (9 rows)
-- table `P06f_drift_outcome_coding` (2 rows)
-- table `P06g_effect_drift` (2 rows)
-
-## P06 Temporal validation and calibration drift — `post_audit/R/P06_temporal_drift.R` (2026-10-23 21:39)
+## P06 Temporal validation and calibration drift — `post_audit/R/P06_temporal_drift.R` (2026-10-23 22:01)
 - table `P06a_period_sizes` (3 rows)
 - table `P06b_temporal_primary` (4 rows)
 - table `P06c_temporal_delta_c` (4 rows)
@@ -53,7 +44,11 @@
 - table `P06h_temporal_excluding_30d` (2 rows)
 - table `P06i_early_events` (3 rows)
 
-## P07 Empirical support for calculator outputs — `post_audit/R/P07_calculator_support.R` (2026-10-23 21:40)
+## P07 Empirical support for calculator outputs — `post_audit/R/P07_calculator_support.R` (2026-10-23 22:02)
 - table `P07a_support` (10 rows)
 - table `P07b_age_point` (5 rows)
 - table `P07c_unknown_status` (4 rows)
+
+## P08 Performance by uterine diagnosis — `post_audit/R/P08_fibroid_subgroups.R` (2026-10-23 22:02)
+- table `P08a_by_fibroid_status` (4 rows)
+- table `P08b_rates` (2 rows)

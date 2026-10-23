@@ -139,7 +139,9 @@ Counts are from `post_audit/output/P02_baseline_reconstruction.md`, `P06_tempora
 
 ## Recommended predictor set for the next model
 
-**Use:** age, Hb deficit, hypertension, CAD, CKD, and hemoglobinopathy coded on or before the anchor (`hbp_pre`). This is C4 plus `hbp_pre`, or the pre-specified C3, depending on the P05 and P06 results. See `CANDIDATE_MODEL_COMPARISON.md`.
+**Use (model C4):** age, Hb deficit, hypertension, CAD and CKD. C4 performs as well as the 8-predictor C3 (corrected C 0.661 vs 0.652; temporal 0.663 vs 0.644). See `CANDIDATE_MODEL_COMPARISON.md`.
+
+**Hold, as a sparse candidate:** hemoglobinopathy coded on or before the anchor (`hbp_pre`): 197 women, HR 2.06 (0.92–4.64). Re-consider it only with more events.
 
 **Restrict to:** women anchored at the first coded diagnosis.
 

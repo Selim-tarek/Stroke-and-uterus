@@ -33,6 +33,7 @@ evalm <- function(fit, nd) { x <- copy(nd)[, y := get(fit$m$outcome)]; lp <- pre
   c(c = cstat(lp, x, H)[["c"]], slope = unname(coef(coxph(Surv(xt$t, xt$y) ~ lp))), oe = sum(xt$y) / E, ipa = brier(r, x, H)[["ipa"]]) }
 
 # ---- apparent performance and coefficients ---------------------------------------------------------------------------------
+set.seed(SEED)                                            # cv.glmnet fold assignment for the ridge fit
 fits <- lapply(MODELS, fitm, dd = b)
 app <- rbindlist(lapply(names(fits), function(n) { f <- fits[[n]]; x <- copy(b)[, y := get(f$m$outcome)]; lp <- predlp(f, x); cc <- cstat(lp, x, H); r <- risk3(f, x)
   fc <- flex_cal(r, x, H); e <- evalm(f, b)
@@ -81,12 +82,16 @@ aud_tab(dcast(st[model %in% c("C2_current_nine_as_coded", "C3_baseline_only", "C
 # individual prediction changes, current nine vs baseline-only
 r2 <- risk3(fits$C2_current_nine_as_coded, b); r3 <- risk3(fits$C3_baseline_only, b)
 bands <- function(r) cut(r, c(0, .005, .01, .02, .05, 1), c("<0.5%", "0.5–1%", "1–2%", "2–5%", "≥5%"), right = FALSE)
-rc <- as.data.table(table(current_nine = bands(r2), baseline_only = bands(r3)))[N > 0]
-aud_tab(dcast(rc, current_nine ~ baseline_only, value.var = "N", fill = 0), "P05f_reclassification", sprintf("3-year risk band, current nine (rows) vs baseline-only (columns). Same band for %s%% of women; ratio C2/C3 risk: median %.2f, 5th–95th percentile %.2f–%.2f.",
+rc <- as.data.table(table(current_nine = bands(r2), baseline_only = bands(r3)))
+rc[, `:=`(current_nine = factor(current_nine, levels(bands(0))), baseline_only = factor(baseline_only, levels(bands(0))))]
+aud_tab(dcast(rc, current_nine ~ baseline_only, value.var = "N", fill = 0, drop = FALSE), "P05f_reclassification", sprintf("3-year risk band, current nine (rows) vs baseline-only (columns). Same band for %s%% of women; ratio C2/C3 risk: median %.2f, 5th–95th percentile %.2f–%.2f.",
         pct(mean(bands(r2) == bands(r3))), median(r2 / r3), quantile(r2 / r3, .05), quantile(r2 / r3, .95)))
 # DCA at 3 years: conventional, current nine, baseline-only (apparent; illustrative only — no clinical threshold is established)
 th <- c(.005, .01, .015, .02, .03, .05)
 aud_tab(rbindlist(lapply(th, function(p) data.table(threshold_pct = 100 * p, treat_all = round(nb_all(b, p, H), 5),
   C1 = round(nb_at(risk3(fits$C1_conventional_baseline, b), b, p, H), 5), C2 = round(nb_at(r2, b, p, H), 5), C3 = round(nb_at(r3, b, p, H), 5)))),
   "P05g_decision_curve_3y", "Apparent 3-year net benefit (illustrative; thresholds are not clinically justified decision points)")
+inf <- bt[abs(coef) > 5, .N, by = .(model, coef_name)]
+md_note("Bootstrap fits with a near-infinite coefficient (|β| > 5, i.e. no events among predictor-positive women in that resample): ", if (nrow(inf)) paste(sprintf("%s/%s: %d", inf$model, inf$coef_name, inf$N), collapse = "; ") else "none",
+        " of ", B, " resamples per model. These resamples are retained (excluding them would bias the optimism estimate downwards).")
 res_put("P05", list(apparent = app, validation = val))

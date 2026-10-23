@@ -300,5 +300,63 @@
         "finding": "0–13 (ROWS array); points total can reach 19"
       }
     ]
+  },
+  "V06": {
+    "reproduction": [
+      {
+        "check": "fits (resample × model) in cache",
+        "value": 1400
+      },
+      {
+        "check": "fits in re-run",
+        "value": 1400
+      },
+      {
+        "check": "coefficient rows matched",
+        "value": 10600
+      },
+      {
+        "check": "max |coef cache − coef re-run|",
+        "value": 0
+      },
+      {
+        "check": "max |C_test cache − re-run|",
+        "value": 0
+      }
+    ],
+    "infinite": [
+      {
+        "b": 2,
+        "model": "C6_baseline_only_ischemic",
+        "coef_name": "hbp_pre",
+        "coef": -14.8,
+        "hbp_pos_women": 181,
+        "hbp_pos_events": 0
+      },
+      {
+        "b": 150,
+        "model": "C3_baseline_only",
+        "coef_name": "hbp_pre",
+        "coef": -14.6,
+        "hbp_pos_women": 188,
+        "hbp_pos_events": 0
+      },
+      {
+        "b": 150,
+        "model": "C3s_baseline_only_age_spline",
+        "coef_name": "hbp_pre",
+        "coef": -14.6,
+        "hbp_pos_women": 188,
+        "hbp_pos_events": 0
+      },
+      {
+        "b": 150,
+        "model": "C6_baseline_only_ischemic",
+        "coef_name": "hbp_pre",
+        "coef": -14.7,
+        "hbp_pos_women": 188,
+        "hbp_pos_events": 0
+      }
+    ]
   }
 }

@@ -39,3 +39,18 @@
 ## V05_sparse_calculator.R — 2026-10-23 23:21
 - table `V05a_sparse_denominators` (5 rows)
 - table `V05b_calculator_source` (10 rows)
+
+## V06_compare_bootstrap.R — 2026-10-23 23:35
+- table `V06a_reproduction` (5 rows)
+- table `V06b_near_infinite_fits` (4 rows)
+- table `V06c_sensitivity` (3 rows)
+
+## V06_compare_bootstrap.R — 2026-10-23 23:35
+- table `V06a_reproduction` (5 rows)
+- table `V06b_near_infinite_fits` (4 rows)
+- table `V06c_sensitivity` (3 rows)
+
+## V06_compare_bootstrap.R — 2026-10-23 23:35
+- table `V06a_reproduction` (5 rows)
+- table `V06b_near_infinite_fits` (4 rows)
+- table `V06c_sensitivity` (3 rows)

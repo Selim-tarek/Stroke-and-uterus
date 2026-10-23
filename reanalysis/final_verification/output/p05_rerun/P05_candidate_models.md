@@ -22,3 +22,90 @@ Hazard ratios (95% CI, unshrunk; ridge: penalized point estimates, lambda by 10-
 | migraine_any |  | 2.17 (1.74–2.70) |  |  |  |  |  |
 | smoke_b | 0.95 (0.69–1.32) |  | 0.96 (0.69–1.33) | 0.96 (0.69–1.33) |  | 0.98 (penalized; no CI) | 0.94 (0.67–1.33) |
 
+### P05b_apparent_performance
+
+Apparent performance at 3 years (in-sample; O/E by expected counts; ICI = mean |observed − predicted| from flexible calibration). C6 uses the ischemic outcome and is not comparable with the others.
+
+| model | outcome | women | events_total | events_3y | parameters | events_per_parameter | apparent_c3 | apparent_oe3 | apparent_ici3_pp | apparent_ipa3 | mean_risk3_pct |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| C1_conventional_baseline | y | 24,550 | 322 | 235 | 6 | 53.7 | 0.637 (0.595–0.678) | 1.000 | 0.060 | 1.12% | 1.25 |
+| C2_current_nine_as_coded | y | 24,550 | 322 | 235 | 9 | 35.8 | 0.713 (0.678–0.747) | 1.000 | 0.129 | 1.45% | 1.22 |
+| C3_baseline_only | y | 24,550 | 322 | 235 | 8 | 40.2 | 0.664 (0.624–0.703) | 1.000 | 0.073 | 1.24% | 1.25 |
+| C3s_baseline_only_age_spline | y | 24,550 | 322 | 235 | 9 | 35.8 | 0.664 (0.624–0.703) | 1.000 | 0.075 | 1.24% | 1.25 |
+| C4_reduced_baseline | y | 24,550 | 322 | 235 | 5 | 64.4 | 0.667 (0.628–0.706) | 1.000 | 0.091 | 1.18% | 1.25 |
+| C5_baseline_only_ridge | y | 24,550 | 322 | 235 | 8 | 40.2 | 0.663 (0.623–0.702) | 1.000 | 0.127 | 1.24% | 1.25 |
+| C6_baseline_only_ischemic | y_isch | 24,550 | 285 | 207 | 8 | 35.6 | 0.678 (0.637–0.718) | 1.000 | 0.089 | 1.19% | 1.10 |
+
+### P05c_full_process_validation
+
+Full-process bootstrap (200 resamples, patient level, seed 20261022). Calibration slope = mean slope of the bootstrap model's linear predictor in the original data (shrinkage needed); interval = 2.5th–97.5th percentile across resamples. corrected_citl_oe = exp(−optimism in log O/E).
+
+| model | apparent_c3 | optimism_c | mc_se_c | corrected_c3 | calibration_slope | slope_interval | corrected_citl_oe | apparent_ipa3 | corrected_ipa3 |
+|---|---|---|---|---|---|---|---|---|---|
+| C1_conventional_baseline | 0.637 (0.595–0.678) | 0.0116 | 0.0014 | 0.625 | 1.001 | 0.89–1.15 | 0.999 | 1.12% | 0.92% |
+| C2_current_nine_as_coded | 0.713 (0.678–0.747) | 0.0089 | 0.0012 | 0.704 | 0.990 | 0.90–1.08 | 0.998 | 1.45% | 1.14% |
+| C3_baseline_only | 0.664 (0.624–0.703) | 0.0116 | 0.0014 | 0.652 | 0.998 | 0.90–1.12 | 0.999 | 1.24% | 0.99% |
+| C3s_baseline_only_age_spline | 0.664 (0.624–0.703) | 0.0131 | 0.0014 | 0.651 | 0.994 | 0.89–1.12 | 0.999 | 1.24% | 0.97% |
+| C4_reduced_baseline | 0.667 (0.628–0.706) | 0.0064 | 0.0013 | 0.661 | 1.017 | 0.91–1.15 | 0.999 | 1.18% | 1.00% |
+| C5_baseline_only_ridge | 0.663 (0.623–0.702) | 0.0112 | 0.0014 | 0.652 | 1.058 | 0.94–1.20 | 0.999 | 1.24% | 1.01% |
+| C6_baseline_only_ischemic | 0.678 (0.637–0.718) | 0.0127 | 0.0014 | 0.665 | 0.981 | 0.88–1.11 | 0.997 | 1.19% | 0.92% |
+
+### P05d_paired_c_differences
+
+Difference in 3-year C of bootstrap-fitted models evaluated in the original data (optimism-adjusted comparison), 2.5th–97.5th percentiles
+
+| comparison | delta_c3_test_95pct |
+|---|---|
+| C2 current nine − C1 conventional | 0.0724 (0.0624 to 0.0835) |
+| C3 baseline-only − C1 conventional | 0.0218 (0.0120 to 0.0277) |
+| C4 reduced − C1 conventional | 0.0273 (0.0165 to 0.0373) |
+| C5 ridge − C1 conventional | 0.0217 (0.0137 to 0.0270) |
+| C2 current nine − C3 baseline-only | 0.0505 (0.0414 to 0.0630) |
+| C3s spline − C3 linear age | -0.0008 (-0.0061 to 0.0025) |
+
+### P05e_sign_stability
+
+Percentage of bootstrap resamples in which each coefficient has the same sign as its bootstrap median
+
+| predictor | C2_current_nine_as_coded | C3_baseline_only | C5_baseline_only_ridge |
+|---|---|---|---|
+| age | 94.5 | 95.5 | 95.5 |
+| cad | 100.0 | 100.0 | 100.0 |
+| ckd_pre | 100.0 | 100.0 | 100.0 |
+| dm | 92.0 |  |  |
+| dyslipidemia |  | 75.0 | 81.5 |
+| estrogen | 98.5 |  |  |
+| haemoglobinopathy | 98.5 |  |  |
+| hb_def | 100.0 | 100.0 | 100.0 |
+| hbp_pre |  | 94.0 | 95.5 |
+| htn | 100.0 | 100.0 | 100.0 |
+| migraine_any | 100.0 |  |  |
+| smoke_b |  | 63.0 | 59.5 |
+
+### P05f_reclassification
+
+3-year risk band, current nine (rows) vs baseline-only (columns). Same band for 61.5% of women; ratio C2/C3 risk: median 0.73, 5th–95th percentile 0.66–1.72.
+
+| current_nine | <0.5% | 0.5–1% | 1–2% | 2–5% | ≥5% |
+|---|---|---|---|---|---|
+| <0.5% | 0 | 469 | 0 | 0 | 0 |
+| 0.5–1% | 0 | 11,191 | 2,221 | 0 | 0 |
+| 1–2% | 0 | 4,473 | 2,787 | 757 | 0 |
+| 2–5% | 0 | 87 | 1,139 | 880 | 108 |
+| ≥5% | 0 | 0 | 23 | 176 | 239 |
+
+### P05g_decision_curve_3y
+
+Apparent 3-year net benefit (illustrative; thresholds are not clinically justified decision points)
+
+| threshold_pct | treat_all | C1 | C2 | C3 |
+|---|---|---|---|---|
+| 0.5 | 0.00774 | 0.00774 | 0.00771 | 0.00774 |
+| 1 | 0.00272 | 0.00388 | 0.00505 | 0.00432 |
+| 1.5 | -0.00234 | 0.00263 | 0.00326 | 0.00277 |
+| 2 | -0.00745 | 0.00168 | 0.00233 | 0.0021 |
+| 3 | -0.01784 | 0.00113 | 0.0011 | 0.00124 |
+| 5 | -0.03927 | 0.00043 | 0.00075 | 0.0006 |
+
+Bootstrap fits with a near-infinite coefficient (|β| > 5, i.e. no events among predictor-positive women in that resample): C6_baseline_only_ischemic/hbp_pre: 2; C3_baseline_only/hbp_pre: 1; C3s_baseline_only_age_spline/hbp_pre: 1 of 200 resamples per model. These resamples are retained (excluding them would bias the optimism estimate downwards).
+

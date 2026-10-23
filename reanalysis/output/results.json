@@ -2007,5 +2007,841 @@
       "N": 23991,
       "events": 340
     }
-  ]
+  ],
+  "anchor_design": {
+    "flow": [
+      {
+        "step": "Eligible women",
+        "n": 39807
+      },
+      {
+        "step": "Stroke/TIA on or before the anchor, or undated (excluded)",
+        "n": 983
+      },
+      {
+        "step": "No follow-up after the anchor (excluded)",
+        "n": 491
+      },
+      {
+        "step": "Anchored cohort (stroke-free at earliest uterine evidence)",
+        "n": 38332
+      },
+      {
+        "step": "  with a CBC Hb in the 3 y up to the anchor (analysis A)",
+        "n": 24886
+      },
+      {
+        "step": "  incident strokes (excl. TIA) after the anchor",
+        "n": 456
+      },
+      {
+        "step": "  incident stroke or TIA after the anchor",
+        "n": 555
+      }
+    ],
+    "models": [
+      {
+        "level": "Mild",
+        "est": 1.46802627056107,
+        "lo": 1.11827674078134,
+        "hi": 1.92716261768233,
+        "p": 0.00569049967789196,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, stroke (excl. TIA)",
+        "outcome": "ev_stroke",
+        "N": 24886,
+        "events": 347,
+        "df": 32,
+        "epv": 10.84375,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Moderate",
+        "est": 1.60919913504311,
+        "lo": 1.05958956121982,
+        "hi": 2.44389143777747,
+        "p": 0.0256506842390659,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, stroke (excl. TIA)",
+        "outcome": "ev_stroke",
+        "N": 24886,
+        "events": 347,
+        "df": 32,
+        "epv": 10.84375,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Severe",
+        "est": 1.67034547431906,
+        "lo": 0.805621528190274,
+        "hi": 3.46323168628037,
+        "p": 0.167897504769885,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, stroke (excl. TIA)",
+        "outcome": "ev_stroke",
+        "N": 24886,
+        "events": 347,
+        "df": 32,
+        "epv": 10.84375,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Per grade (trend)",
+        "est": 1.2759421508499,
+        "lo": 1.10736527138264,
+        "hi": 1.47018189425676,
+        "p": 0.000750139390149404,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, stroke (excl. TIA)",
+        "outcome": "ev_stroke",
+        "N": 24886,
+        "events": 347,
+        "df": 32,
+        "epv": 10.84375,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Any anemia (Hb <12)",
+        "est": 1.50971110332573,
+        "lo": 1.18833208636743,
+        "hi": 1.91800561615085,
+        "p": 0.000744011714811042,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, stroke (excl. TIA)",
+        "outcome": "ev_stroke",
+        "N": 24886,
+        "events": 347,
+        "df": 32,
+        "epv": 10.84375,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Mild",
+        "est": 1.48438341576214,
+        "lo": 1.12111511810433,
+        "hi": 1.96535939031429,
+        "p": 0.00581046752293205,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, ischemic stroke (reduced set)",
+        "outcome": "ev_isch",
+        "N": 24886,
+        "events": 303,
+        "df": 16,
+        "epv": 18.9375,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Moderate",
+        "est": 1.81150552724278,
+        "lo": 1.17630305035033,
+        "hi": 2.78971670969807,
+        "p": 0.00699607498567989,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, ischemic stroke (reduced set)",
+        "outcome": "ev_isch",
+        "N": 24886,
+        "events": 303,
+        "df": 16,
+        "epv": 18.9375,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Severe",
+        "est": 1.34208615949262,
+        "lo": 0.552371953446623,
+        "hi": 3.26083764438578,
+        "p": 0.515963217141534,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, ischemic stroke (reduced set)",
+        "outcome": "ev_isch",
+        "N": 24886,
+        "events": 303,
+        "df": 16,
+        "epv": 18.9375,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Per grade (trend)",
+        "est": 1.29058010059666,
+        "lo": 1.11529081386317,
+        "hi": 1.49341945199634,
+        "p": 0.000614786368104149,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, ischemic stroke (reduced set)",
+        "outcome": "ev_isch",
+        "N": 24886,
+        "events": 303,
+        "df": 16,
+        "epv": 18.9375,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Any anemia (Hb <12)",
+        "est": 1.54172576612973,
+        "lo": 1.20415417517662,
+        "hi": 1.97393189921022,
+        "p": 0.000596114673562463,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, ischemic stroke (reduced set)",
+        "outcome": "ev_isch",
+        "N": 24886,
+        "events": 303,
+        "df": 16,
+        "epv": 18.9375,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Mild",
+        "est": 1.48814239316519,
+        "lo": 1.17176738189693,
+        "hi": 1.88993806838209,
+        "p": 0.00111491990557455,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, stroke or TIA",
+        "outcome": "ev_any",
+        "N": 24886,
+        "events": 432,
+        "df": 32,
+        "epv": 13.5,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Moderate",
+        "est": 1.30754689446196,
+        "lo": 0.86706740576184,
+        "hi": 1.9717946607795,
+        "p": 0.200753360931235,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, stroke or TIA",
+        "outcome": "ev_any",
+        "N": 24886,
+        "events": 432,
+        "df": 32,
+        "epv": 13.5,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Severe",
+        "est": 1.37314123797815,
+        "lo": 0.665307136667401,
+        "hi": 2.83405476285875,
+        "p": 0.391049993317897,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, stroke or TIA",
+        "outcome": "ev_any",
+        "N": 24886,
+        "events": 432,
+        "df": 32,
+        "epv": 13.5,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Per grade (trend)",
+        "est": 1.20890599409157,
+        "lo": 1.06061246733357,
+        "hi": 1.37793373881855,
+        "p": 0.00449329346738153,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, stroke or TIA",
+        "outcome": "ev_any",
+        "N": 24886,
+        "events": 432,
+        "df": 32,
+        "epv": 13.5,
+        "converged": true,
+        "imputations": 20
+      },
+      {
+        "level": "Any anemia (Hb <12)",
+        "est": 1.44421358639728,
+        "lo": 1.16354136882892,
+        "hi": 1.79259022413081,
+        "p": 0.000856811675771005,
+        "measure": "Rate ratio (Poisson, robust SE)",
+        "analysis": "A: anchored cohort, stroke or TIA",
+        "outcome": "ev_any",
+        "N": 24886,
+        "events": 432,
+        "df": 32,
+        "epv": 13.5,
+        "converged": true,
+        "imputations": 20
+      }
+    ],
+    "ncc_desc": [
+      {
+        "case_type": "Control",
+        "n": 4890,
+        "with_hb": 2397,
+        "anemic": 575,
+        "mild": 421,
+        "moderate": 131,
+        "severe": 23,
+        "median_hb": 13.2,
+        "median_tests": 0,
+        "pct_anemic_of_tested": 24,
+        "window": "Hb 31-365 days before (30-day lag)"
+      },
+      {
+        "case_type": "Stroke",
+        "n": 394,
+        "with_hb": 257,
+        "anemic": 66,
+        "mild": 45,
+        "moderate": 20,
+        "severe": 1,
+        "median_hb": 13.1,
+        "median_tests": 1,
+        "pct_anemic_of_tested": 25.7,
+        "window": "Hb 31-365 days before (30-day lag)"
+      },
+      {
+        "case_type": "TIA",
+        "n": 95,
+        "with_hb": 63,
+        "anemic": 12,
+        "mild": 10,
+        "moderate": 2,
+        "severe": 0,
+        "median_hb": 12.8,
+        "median_tests": 1,
+        "pct_anemic_of_tested": 19,
+        "window": "Hb 31-365 days before (30-day lag)"
+      },
+      {
+        "case_type": "Control",
+        "n": 4890,
+        "with_hb": 2495,
+        "anemic": 592,
+        "mild": 433,
+        "moderate": 135,
+        "severe": 24,
+        "median_hb": 13.2,
+        "median_tests": 1,
+        "pct_anemic_of_tested": 23.7,
+        "window": "Hb 1-365 days before (no lag)"
+      },
+      {
+        "case_type": "Stroke",
+        "n": 394,
+        "with_hb": 333,
+        "anemic": 84,
+        "mild": 62,
+        "moderate": 16,
+        "severe": 6,
+        "median_hb": 13.1,
+        "median_tests": 2,
+        "pct_anemic_of_tested": 25.2,
+        "window": "Hb 1-365 days before (no lag)"
+      },
+      {
+        "case_type": "TIA",
+        "n": 95,
+        "with_hb": 85,
+        "anemic": 17,
+        "mild": 13,
+        "moderate": 4,
+        "severe": 0,
+        "median_hb": 12.9,
+        "median_tests": 2,
+        "pct_anemic_of_tested": 20,
+        "window": "Hb 1-365 days before (no lag)"
+      }
+    ],
+    "ncc": [
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Mild",
+        "or": "0.99 (0.70–1.41)",
+        "p": "0.977",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Moderate",
+        "or": "1.45 (0.88–2.40)",
+        "p": "0.144",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Severe",
+        "or": "0.36 (0.05–2.70)",
+        "p": "0.322",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "No Hb in window",
+        "or": "0.51 (0.40–0.64)",
+        "p": "<0.001",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "adjusted",
+        "level": "Mild",
+        "or": "0.95 (0.65–1.37)",
+        "p": "0.777",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "adjusted",
+        "level": "Moderate",
+        "or": "1.35 (0.78–2.34)",
+        "p": "0.288",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "adjusted",
+        "level": "Severe",
+        "or": "0.31 (0.04–2.44)",
+        "p": "0.267",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "adjusted",
+        "level": "No Hb in window",
+        "or": "0.75 (0.59–0.97)",
+        "p": "0.025",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Mild",
+        "or": "0.80 (0.54–1.18)",
+        "p": "0.258",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Moderate",
+        "or": "0.85 (0.45–1.60)",
+        "p": "0.622",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Severe",
+        "or": "0.17 (0.02–1.48)",
+        "p": "0.107",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "Stroke",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "No Hb in window",
+        "or": "0.93 (0.71–1.21)",
+        "p": "0.578",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Mild",
+        "or": "1.07 (0.52–2.21)",
+        "p": "0.853",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Moderate",
+        "or": "0.68 (0.15–3.07)",
+        "p": "0.618",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Severe",
+        "or": "0.00 (0.00–Inf)",
+        "p": "0.997",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "No Hb in window",
+        "or": "0.42 (0.26–0.67)",
+        "p": "<0.001",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "adjusted",
+        "level": "Mild",
+        "or": "0.99 (0.44–2.19)",
+        "p": "0.972",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "adjusted",
+        "level": "Moderate",
+        "or": "0.72 (0.14–3.66)",
+        "p": "0.697",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "adjusted",
+        "level": "Severe",
+        "or": "0.00 (0.00–Inf)",
+        "p": "0.997",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "adjusted",
+        "level": "No Hb in window",
+        "or": "0.68 (0.40–1.15)",
+        "p": "0.146",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Mild",
+        "or": "0.90 (0.40–2.02)",
+        "p": "0.792",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Moderate",
+        "or": "0.54 (0.11–2.82)",
+        "p": "0.469",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Severe",
+        "or": "0.00 (0.00–Inf)",
+        "p": "0.996",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 31-365 days before (30-day lag)",
+        "cases": "TIA",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "No Hb in window",
+        "or": "0.79 (0.46–1.37)",
+        "p": "0.404",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Mild",
+        "or": "1.12 (0.83–1.51)",
+        "p": "0.475",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Moderate",
+        "or": "0.95 (0.55–1.65)",
+        "p": "0.862",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Severe",
+        "or": "1.68 (0.67–4.21)",
+        "p": "0.268",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "No Hb in window",
+        "or": "0.18 (0.14–0.25)",
+        "p": "<0.001",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "adjusted",
+        "level": "Mild",
+        "or": "1.10 (0.80–1.51)",
+        "p": "0.571",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "adjusted",
+        "level": "Moderate",
+        "or": "0.86 (0.48–1.53)",
+        "p": "0.605",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "adjusted",
+        "level": "Severe",
+        "or": "1.69 (0.64–4.50)",
+        "p": "0.291",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "adjusted",
+        "level": "No Hb in window",
+        "or": "0.26 (0.19–0.35)",
+        "p": "<0.001",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Mild",
+        "or": "0.89 (0.63–1.25)",
+        "p": "0.497",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Moderate",
+        "or": "0.49 (0.25–0.97)",
+        "p": "0.040",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Severe",
+        "or": "1.32 (0.50–3.48)",
+        "p": "0.576",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "Stroke",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "No Hb in window",
+        "or": "0.31 (0.23–0.43)",
+        "p": "<0.001",
+        "n_case_sets": 394,
+        "n_cases": 394
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Mild",
+        "or": "0.98 (0.51–1.90)",
+        "p": "0.963",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Moderate",
+        "or": "1.12 (0.35–3.56)",
+        "p": "0.845",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "Severe",
+        "or": "0.00 (0.00–Inf)",
+        "p": "0.997",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "crude (matched on age and time since diagnosis)",
+        "level": "No Hb in window",
+        "or": "0.10 (0.05–0.19)",
+        "p": "<0.001",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "adjusted",
+        "level": "Mild",
+        "or": "0.93 (0.45–1.91)",
+        "p": "0.838",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "adjusted",
+        "level": "Moderate",
+        "or": "1.38 (0.40–4.72)",
+        "p": "0.611",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "adjusted",
+        "level": "Severe",
+        "or": "0.00 (0.00–Inf)",
+        "p": "0.997",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "adjusted",
+        "level": "No Hb in window",
+        "or": "0.13 (0.06–0.27)",
+        "p": "<0.001",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Mild",
+        "or": "0.89 (0.43–1.84)",
+        "p": "0.750",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Moderate",
+        "or": "0.95 (0.25–3.62)",
+        "p": "0.938",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "Severe",
+        "or": "0.00 (0.00–Inf)",
+        "p": "0.997",
+        "n_case_sets": 95,
+        "n_cases": 95
+      },
+      {
+        "window": "Hb 1-365 days before (no lag)",
+        "cases": "TIA",
+        "model": "adjusted + number of Hb tests in the window",
+        "level": "No Hb in window",
+        "or": "0.15 (0.07–0.31)",
+        "p": "<0.001",
+        "n_case_sets": 95,
+        "n_cases": 95
+      }
+    ]
+  }
 }

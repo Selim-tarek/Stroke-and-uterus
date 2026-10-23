@@ -10,3 +10,4 @@
 | Primary estimand | Changed from prevalent-or-incident stroke/TIA (cross-sectional, Hb +-3 y in either direction) to incident stroke excluding TIA after index, with Hb on/before index (PI decision 2026-10-22). |
 | Hb source | Primary exposure uses laboratory CBC Hb only; the Codebook hgb also included point-of-care Hb (S4). |
 | Sensitivity analyses S2-S5, S10, S11 | Complete case for BMI (3.5% missing) instead of MI, to limit computation; S1 shows MI and complete-case estimates agree. S6-S9 reuse the primary imputations. |
+| Anchored design (PI request 2026-10-23) | Anchor = earliest evidence of uterine pathology: first coded diagnosis (2018 onward, IRB window) or an earlier dated myomectomy, uterine artery embolisation, hysterectomy or endometrial ablation. 'Other gynaecological surgery' (tubal, ovarian, D&C, IUD removal) not used as evidence. TIA severe-grade cells in the nested case-control analysis have 0 cases (not estimable). |

@@ -1,4 +1,4 @@
-<title>BUD-Stroke Score</title>
+<title>MED-HACK Score</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -27,6 +27,9 @@ header { display: grid; gap: 6px }
 .tag { justify-self: start; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: var(--high); background: var(--high-bg); border-radius: 4px; padding: 2px 8px }
 h1 { font-family: var(--display); font-weight: 600; font-size: clamp(30px, 5vw, 42px); line-height: 1.05; margin: 0; letter-spacing: -.01em }
 .lede { margin: 0; color: var(--ink-2); max-width: 68ch }
+.acro { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; color: var(--ink-2) }
+.acro b, .ltr { font-family: var(--display); font-weight: 600; color: var(--accent) }
+.ltr { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; margin-right: 8px; border-radius: 5px; background: var(--accent-soft); font-size: 14px; vertical-align: 1px }
 .when { display: flex; flex-wrap: wrap; gap: 8px }
 .when span { font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; color: var(--ink-2); background: var(--paper) }
 .card { background: var(--paper); border: 1px solid var(--line); border-radius: 10px }
@@ -84,7 +87,8 @@ textarea { width: 100%; min-height: 150px; font: 13px/1.5 var(--mono); padding: 
 <div class="wrap">
   <header>
     <span class="tag">Research use only &middot; not externally validated</span>
-    <h1>BUD-Stroke Score</h1>
+    <h1>MED-HACK Score</h1>
+    <div class="acro" aria-label="What the letters stand for"><span><b>M</b>igraine</span><span><b>E</b>strogen therapy</span><span><b>D</b>iabetes</span><span><b>H</b>ypertension &middot; <b>H</b>emoglobinopathy</span><span><b>A</b>nemia &middot; <b>A</b>ge &lt;45</span><span><b>C</b>oronary disease</span><span><b>K</b>idney disease</span></div>
     <p class="lede">Estimates the 5-year risk of a first stroke in women aged 18&ndash;60 years with benign uterine disease (uterine fibroids, adenomyosis or endometriosis) and no previous stroke, using information available at the gynecologic diagnosis.</p>
     <div class="when"><span>Women 18&ndash;60 y</span><span>Fibroids, adenomyosis or endometriosis</span><span>No prior stroke</span><span>Hemoglobin from a laboratory CBC</span></div>
   </header>
@@ -97,7 +101,7 @@ textarea { width: 100%; min-height: 150px; font: 13px/1.5 var(--mono); padding: 
     <div class="tabs" role="tablist" id="tabs"></div>
     <div id="panes"></div>
   </section>
-  <p class="muted">Developed from electronic health records of 24,006 women (345 strokes) at one US academic medical center, 2018&ndash;2026. Citation: [Authors]. BUD-Stroke score: stroke risk in women with benign uterine disease. [Journal, year &mdash; in preparation].</p>
+  <p class="muted">Developed from electronic health records of 24,006 women (345 strokes) at one US academic medical center, 2018&ndash;2026. Citation: [Authors]. MED-HACK score: 5-year stroke risk in women with benign uterine disease. [Journal, year &mdash; in preparation].</p>
 </div>
 
 <div class="resbar" role="status" aria-live="polite">
@@ -120,13 +124,15 @@ const MODEL = {
   p99: 9.50
 };
 const BIN = [
-  ["htn", "Hypertension", "Diagnosis or treatment", 2], ["dm", "Diabetes mellitus", "Type 1 or type 2", 1],
-  ["cad", "Coronary artery disease", "MI, angina, coronary stent or bypass", 4], ["migraine_any", "Migraine", "With or without aura", 2],
-  ["ckd_pre", "Chronic kidney disease", "Any stage, dialysis or transplant", 2],
-  ["haemoglobinopathy", "Hemoglobinopathy", "Sickle cell disease or trait, thalassemia", 3],
-  ["estrogen", "Estrogen-containing hormonal therapy", "Combined oral contraceptive or menopausal hormone therapy", 2],
-  ["dyslipidemia", "Dyslipidemia", "In the model; no points", 0], ["smoke", "Current or former smoker", "In the model; no points", 0],
-  ["endo", "Endometriosis", "In the model; no points", 0], ["adeno", "Adenomyosis", "In the model; no points", 0]];
+  ["migraine_any", "Migraine", "With or without aura", 2, "M"],
+  ["estrogen", "Estrogen-containing hormonal therapy", "Combined oral contraceptive or menopausal hormone therapy", 2, "E"],
+  ["dm", "Diabetes mellitus", "Type 1 or type 2", 1, "D"],
+  ["htn", "Hypertension", "Diagnosis or treatment", 2, "H"],
+  ["haemoglobinopathy", "Hemoglobinopathy", "Sickle cell disease or trait, thalassemia", 3, "H"],
+  ["cad", "Coronary artery disease", "MI, angina, coronary stent or bypass", 4, "C"],
+  ["ckd_pre", "Chronic kidney disease", "Any stage, dialysis or transplant", 2, "K"],
+  ["dyslipidemia", "Dyslipidemia", "In the model; no points", 0, ""], ["smoke", "Current or former smoker", "In the model; no points", 0, ""],
+  ["endo", "Endometriosis", "In the model; no points", 0, ""], ["adeno", "Adenomyosis", "In the model; no points", 0, ""]];
 function hbPoints(hb) { return hb >= 12 ? 0 : hb >= 8 ? 1 : 2; }
 function score(x) {
   const parts = [];
@@ -149,22 +155,22 @@ const $ = (id) => document.getElementById(id);
 const state = {};
 
 // ---------- build input rows ----------
-function numRow(id, q, hint, unitHtml) {
-  return `<div class="row"><label class="q" for="${id}">${q}<span class="hint">${hint}</span></label>
+function numRow(id, q, hint, unitHtml, L) {
+  return `<div class="row"><label class="q" for="${id}">${L ? `<span class="ltr">${L}</span>` : ""}${q}<span class="hint">${hint}</span></label>
     <div class="numin"><input id="${id}" type="number" inputmode="decimal" step="any">${unitHtml}</div><div class="err" id="${id}_e" hidden></div></div>`;
 }
-function segRow(k, q, hint, p) {
-  return `<div class="row"><div class="q" id="${k}_l">${q}<span class="hint">${hint}</span></div>
+function segRow(k, q, hint, p, L) {
+  return `<div class="row"><div class="q" id="${k}_l">${L ? `<span class="ltr">${L}</span>` : ""}${q}<span class="hint">${hint}</span></div>
     <div class="seg" role="group" aria-labelledby="${k}_l">
       <button type="button" data-k="${k}" data-v="0" aria-pressed="false">No<small>0</small></button>
       <button type="button" data-k="${k}" data-v="1" aria-pressed="false">Yes<small>${p ? "+" + p : "0"}</small></button></div></div>`;
 }
 $("form").innerHTML =
-  numRow("age", "Age", "Under 45 years: +1 point (see Evidence)", `<span class="unit">years</span>`) +
-  numRow("hb", "Hemoglobin", "Laboratory CBC at diagnosis. 12 or more: 0 &middot; 8.0&ndash;11.9: +1 &middot; under 8.0: +2 (g/dL)",
-         `<select id="hbUnit" aria-label="Hemoglobin unit"><option value="gdl">g/dL</option><option value="gl">g/L</option><option value="mmol">mmol/L</option></select>`) +
+  numRow("age", "Age", "Under 45 years: +1 point (see Evidence)", `<span class="unit">years</span>`, "A") +
+  numRow("hb", "Hemoglobin (anemia)", "Laboratory CBC at diagnosis. 12 or more: 0 &middot; 8.0&ndash;11.9: +1 &middot; under 8.0: +2 (g/dL)",
+         `<select id="hbUnit" aria-label="Hemoglobin unit"><option value="gdl">g/dL</option><option value="gl">g/L</option><option value="mmol">mmol/L</option></select>`, "A") +
   numRow("bmi", "Body mass index", "In the model; no points", `<span class="unit">kg/m&sup2;</span>`) +
-  BIN.map(b => segRow(b[0], b[1], b[2], b[3])).join("");
+  BIN.map(b => segRow(b[0], b[1], b[2], b[3], b[4])).join("");
 $("hbUnit").style.cssText = "font:14px var(--body);padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)";
 
 function hbToGdl(v, u) { return u === "gl" ? v / 10 : u === "mmol" ? v * 1.611 : v; }
@@ -216,7 +222,7 @@ $("loadEx").addEventListener("click", () => load(EXAMPLE));
 $("copy").addEventListener("click", async () => {
   if (!last) return;
   const yes = BIN.filter(b => last.x[b[0]]).map(b => b[1]);
-  const txt = `BUD-Stroke Score: ${last.s.total} points; 5-year stroke risk ${last.sr.toFixed(1)}% (points table), ${last.mr.toFixed(1)}% (exact model). ` +
+  const txt = `MED-HACK Score: ${last.s.total} points; 5-year stroke risk ${last.sr.toFixed(1)}% (points table), ${last.mr.toFixed(1)}% (exact model). ` +
     `Inputs: age ${last.x.age} y, hemoglobin ${last.x.hb.toFixed(1)} g/dL, BMI ${last.x.bmi}; ${yes.length ? yes.join(", ") : "no listed conditions"}. Research use only; not externally validated.`;
   const btn = $("copy");
   try { await navigator.clipboard.writeText(txt); btn.textContent = "Copied"; }

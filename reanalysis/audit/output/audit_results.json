@@ -1,0 +1,1134 @@
+{
+  "A01": {
+    "flow": [
+      {
+        "step": "Eligible women (age 18–60 at first 2018+ diagnosis, no active malignancy)",
+        "n": 39807,
+        "reported": 39807,
+        "agrees": "yes"
+      },
+      {
+        "step": "  excluded: stroke on or before anchor",
+        "n": 682,
+        "agrees": ""
+      },
+      {
+        "step": "  excluded: TIA on or before anchor",
+        "n": 99,
+        "agrees": ""
+      },
+      {
+        "step": "  excluded: undated stroke/TIA",
+        "n": 202,
+        "agrees": ""
+      },
+      {
+        "step": "  excluded: stroke/TIA on/before anchor or undated (total)",
+        "n": 983,
+        "reported": 983,
+        "agrees": "yes"
+      },
+      {
+        "step": "  excluded: hormonal_type = 9 (unknown) — not shown in A3",
+        "n": 1,
+        "agrees": ""
+      },
+      {
+        "step": "  excluded: last contact on the anchor date",
+        "n": 437,
+        "agrees": ""
+      },
+      {
+        "step": "  excluded: last contact before the anchor",
+        "n": 53,
+        "agrees": ""
+      },
+      {
+        "step": "  excluded: death on/before anchor",
+        "n": 1,
+        "agrees": ""
+      },
+      {
+        "step": "  excluded: no follow-up after anchor (total)",
+        "n": 491,
+        "reported": 491,
+        "agrees": "yes"
+      },
+      {
+        "step": "Anchored cohort, stroke-free at anchor",
+        "n": 38332,
+        "reported": 38332,
+        "agrees": "yes"
+      },
+      {
+        "step": "  excluded: no CBC Hb in the 3 years up to the anchor",
+        "n": 13446,
+        "agrees": ""
+      },
+      {
+        "step": "With CBC Hb",
+        "n": 24886,
+        "reported": 24886,
+        "agrees": "yes"
+      },
+      {
+        "step": "  excluded: BMI missing",
+        "n": 880,
+        "agrees": ""
+      },
+      {
+        "step": "  excluded: age <18 at anchor",
+        "n": 0,
+        "agrees": ""
+      },
+      {
+        "step": "Development sample (R/16, and R/15 without the age filter)",
+        "n": 24006,
+        "reported": 24006,
+        "agrees": "yes"
+      },
+      {
+        "step": "  strokes (excluding TIA) in development sample",
+        "n": 345,
+        "reported": 345,
+        "agrees": "yes"
+      }
+    ],
+    "anchor_match": 38332
+  },
+  "A02": {
+    "hbp": [
+      {
+        "women": 263,
+        "strokes": 14,
+        "first_code_on_or_before_anchor": 196,
+        "first_code_after_anchor": 67,
+        "strokes_first_code_after_anchor": 7,
+        "strokes_first_code_on_or_after_stroke_minus_30d": 3
+      }
+    ],
+    "lookahead": [
+      {
+        "predictor": "migraine_any",
+        "dated_on_or_before_baseline": false,
+        "prevalence_fu_lt_1y": "24.3",
+        "prevalence_fu_ge_3y": "30.6",
+        "or_per_doubling_of_followup": "1.56 (1.48–1.64)"
+      },
+      {
+        "predictor": "estrogen",
+        "dated_on_or_before_baseline": false,
+        "prevalence_fu_lt_1y": "0.8",
+        "prevalence_fu_ge_3y": "1.7",
+        "or_per_doubling_of_followup": "1.44 (1.15–1.81)"
+      },
+      {
+        "predictor": "dm",
+        "dated_on_or_before_baseline": false,
+        "prevalence_fu_lt_1y": "15.9",
+        "prevalence_fu_ge_3y": "27.3",
+        "or_per_doubling_of_followup": "1.72 (1.61–1.83)"
+      },
+      {
+        "predictor": "htn",
+        "dated_on_or_before_baseline": true,
+        "prevalence_fu_lt_1y": "13.0",
+        "prevalence_fu_ge_3y": "20.7",
+        "or_per_doubling_of_followup": "1.31 (1.24–1.38)"
+      },
+      {
+        "predictor": "cad",
+        "dated_on_or_before_baseline": true,
+        "prevalence_fu_lt_1y": "1.1",
+        "prevalence_fu_ge_3y": "1.6",
+        "or_per_doubling_of_followup": "1.20 (1.02–1.42)"
+      },
+      {
+        "predictor": "dyslipidemia",
+        "dated_on_or_before_baseline": true,
+        "prevalence_fu_lt_1y": "46.0",
+        "prevalence_fu_ge_3y": "50.6",
+        "or_per_doubling_of_followup": "1.30 (1.25–1.34)"
+      },
+      {
+        "predictor": "haemoglobinopathy",
+        "dated_on_or_before_baseline": false,
+        "prevalence_fu_lt_1y": "0.9",
+        "prevalence_fu_ge_3y": "1.1",
+        "or_per_doubling_of_followup": "1.17 (0.97–1.42)"
+      },
+      {
+        "predictor": "ckd_pre",
+        "dated_on_or_before_baseline": true,
+        "prevalence_fu_lt_1y": "3.0",
+        "prevalence_fu_ge_3y": "2.6",
+        "or_per_doubling_of_followup": "1.00 (0.92–1.10)"
+      }
+    ]
+  },
+  "A03": {
+    "provenance": [
+      {
+        "category": "all strokes",
+        "n": 345,
+        "pct": "100.0"
+      },
+      {
+        "category": "type: ischemic",
+        "n": 301,
+        "pct": "87.2"
+      },
+      {
+        "category": "type: intracerebral hemorrhage",
+        "n": 24,
+        "pct": "7.0"
+      },
+      {
+        "category": "type: subarachnoid hemorrhage",
+        "n": 11,
+        "pct": "3.2"
+      },
+      {
+        "category": "type: unspecified",
+        "n": 7,
+        "pct": "2.0"
+      },
+      {
+        "category": "type: cerebral venous thrombosis",
+        "n": 2,
+        "pct": "0.6"
+      },
+      {
+        "category": "has an acute-event code",
+        "n": 328,
+        "pct": "95.1"
+      },
+      {
+        "category": "history/sequela codes only (no acute code, not imaging-only)",
+        "n": 7,
+        "pct": "2.0"
+      },
+      {
+        "category": "imaging-only case (no code)",
+        "n": 10,
+        "pct": "2.9"
+      },
+      {
+        "category": "  of which imaging text says chronic/remote/old",
+        "n": 9,
+        "pct": "2.6"
+      },
+      {
+        "category": "brain imaging reviewed and positive (stroke_confirmed_imaging = 1)",
+        "n": 147,
+        "pct": "42.6"
+      },
+      {
+        "category": "brain imaging reviewed and negative (= 0)",
+        "n": 115,
+        "pct": "33.3"
+      },
+      {
+        "category": "no brain imaging (blank)",
+        "n": 83,
+        "pct": "24.1"
+      },
+      {
+        "category": "more than one event type coded",
+        "n": 23,
+        "pct": "6.7"
+      },
+      {
+        "category": "event within 30 days after anchor",
+        "n": 42,
+        "pct": "12.2"
+      },
+      {
+        "category": "event 31–90 days after anchor",
+        "n": 26,
+        "pct": "7.5"
+      },
+      {
+        "category": "event 91–365 days after anchor",
+        "n": 72,
+        "pct": "20.9"
+      },
+      {
+        "category": "event > 1 year after anchor",
+        "n": 205,
+        "pct": "59.4"
+      }
+    ],
+    "strict": [
+      {
+        "definition": "A. as published",
+        "strokes": 345,
+        "predictor": "migraine_any",
+        "hr": "1.97 (1.59–2.43)",
+        "c": "0.705"
+      },
+      {
+        "definition": "A. as published",
+        "strokes": 345,
+        "predictor": "estrogen",
+        "hr": "2.00 (1.17–3.42)",
+        "c": "0.705"
+      },
+      {
+        "definition": "A. as published",
+        "strokes": 345,
+        "predictor": "dm",
+        "hr": "1.22 (0.97–1.54)",
+        "c": "0.705"
+      },
+      {
+        "definition": "A. as published",
+        "strokes": 345,
+        "predictor": "htn",
+        "hr": "2.14 (1.70–2.71)",
+        "c": "0.705"
+      },
+      {
+        "definition": "A. as published",
+        "strokes": 345,
+        "predictor": "haemoglobinopathy",
+        "hr": "2.89 (1.68–4.98)",
+        "c": "0.705"
+      },
+      {
+        "definition": "A. as published",
+        "strokes": 345,
+        "predictor": "hb_def",
+        "hr": "1.14 (1.06–1.23)",
+        "c": "0.705"
+      },
+      {
+        "definition": "A. as published",
+        "strokes": 345,
+        "predictor": "age",
+        "hr": "0.99 (0.98–1.00)",
+        "c": "0.705"
+      },
+      {
+        "definition": "A. as published",
+        "strokes": 345,
+        "predictor": "cad",
+        "hr": "4.18 (2.92–5.98)",
+        "c": "0.705"
+      },
+      {
+        "definition": "A. as published",
+        "strokes": 345,
+        "predictor": "ckd_pre",
+        "hr": "1.97 (1.35–2.88)",
+        "c": "0.705"
+      },
+      {
+        "definition": "B. acute-event code required",
+        "strokes": 328,
+        "predictor": "migraine_any",
+        "hr": "2.05 (1.65–2.56)",
+        "c": "0.707"
+      },
+      {
+        "definition": "B. acute-event code required",
+        "strokes": 328,
+        "predictor": "estrogen",
+        "hr": "2.11 (1.24–3.62)",
+        "c": "0.707"
+      },
+      {
+        "definition": "B. acute-event code required",
+        "strokes": 328,
+        "predictor": "dm",
+        "hr": "1.19 (0.94–1.51)",
+        "c": "0.707"
+      },
+      {
+        "definition": "B. acute-event code required",
+        "strokes": 328,
+        "predictor": "htn",
+        "hr": "2.03 (1.59–2.58)",
+        "c": "0.707"
+      },
+      {
+        "definition": "B. acute-event code required",
+        "strokes": 328,
+        "predictor": "haemoglobinopathy",
+        "hr": "2.80 (1.59–4.92)",
+        "c": "0.707"
+      },
+      {
+        "definition": "B. acute-event code required",
+        "strokes": 328,
+        "predictor": "hb_def",
+        "hr": "1.15 (1.07–1.24)",
+        "c": "0.707"
+      },
+      {
+        "definition": "B. acute-event code required",
+        "strokes": 328,
+        "predictor": "age",
+        "hr": "0.99 (0.98–1.00)",
+        "c": "0.707"
+      },
+      {
+        "definition": "B. acute-event code required",
+        "strokes": 328,
+        "predictor": "cad",
+        "hr": "4.21 (2.91–6.09)",
+        "c": "0.707"
+      },
+      {
+        "definition": "B. acute-event code required",
+        "strokes": 328,
+        "predictor": "ckd_pre",
+        "hr": "2.09 (1.42–3.07)",
+        "c": "0.707"
+      },
+      {
+        "definition": "C. acute code and > 30 days after anchor",
+        "strokes": 287,
+        "predictor": "migraine_any",
+        "hr": "2.26 (1.79–2.85)",
+        "c": "0.701"
+      },
+      {
+        "definition": "C. acute code and > 30 days after anchor",
+        "strokes": 287,
+        "predictor": "estrogen",
+        "hr": "2.40 (1.40–4.11)",
+        "c": "0.701"
+      },
+      {
+        "definition": "C. acute code and > 30 days after anchor",
+        "strokes": 287,
+        "predictor": "dm",
+        "hr": "1.15 (0.89–1.49)",
+        "c": "0.701"
+      },
+      {
+        "definition": "C. acute code and > 30 days after anchor",
+        "strokes": 287,
+        "predictor": "htn",
+        "hr": "1.95 (1.51–2.53)",
+        "c": "0.701"
+      },
+      {
+        "definition": "C. acute code and > 30 days after anchor",
+        "strokes": 287,
+        "predictor": "haemoglobinopathy",
+        "hr": "3.01 (1.67–5.42)",
+        "c": "0.701"
+      },
+      {
+        "definition": "C. acute code and > 30 days after anchor",
+        "strokes": 287,
+        "predictor": "hb_def",
+        "hr": "1.13 (1.04–1.23)",
+        "c": "0.701"
+      },
+      {
+        "definition": "C. acute code and > 30 days after anchor",
+        "strokes": 287,
+        "predictor": "age",
+        "hr": "0.99 (0.98–1.00)",
+        "c": "0.701"
+      },
+      {
+        "definition": "C. acute code and > 30 days after anchor",
+        "strokes": 287,
+        "predictor": "cad",
+        "hr": "3.99 (2.67–5.97)",
+        "c": "0.701"
+      },
+      {
+        "definition": "C. acute code and > 30 days after anchor",
+        "strokes": 287,
+        "predictor": "ckd_pre",
+        "hr": "2.18 (1.44–3.31)",
+        "c": "0.701"
+      },
+      {
+        "definition": "D. as C, ischemic only",
+        "strokes": 255,
+        "predictor": "migraine_any",
+        "hr": "2.34 (1.83–3.01)",
+        "c": "0.712"
+      },
+      {
+        "definition": "D. as C, ischemic only",
+        "strokes": 255,
+        "predictor": "estrogen",
+        "hr": "2.47 (1.41–4.32)",
+        "c": "0.712"
+      },
+      {
+        "definition": "D. as C, ischemic only",
+        "strokes": 255,
+        "predictor": "dm",
+        "hr": "1.09 (0.83–1.43)",
+        "c": "0.712"
+      },
+      {
+        "definition": "D. as C, ischemic only",
+        "strokes": 255,
+        "predictor": "htn",
+        "hr": "2.11 (1.60–2.77)",
+        "c": "0.712"
+      },
+      {
+        "definition": "D. as C, ischemic only",
+        "strokes": 255,
+        "predictor": "haemoglobinopathy",
+        "hr": "3.09 (1.67–5.71)",
+        "c": "0.712"
+      },
+      {
+        "definition": "D. as C, ischemic only",
+        "strokes": 255,
+        "predictor": "hb_def",
+        "hr": "1.14 (1.04–1.24)",
+        "c": "0.712"
+      },
+      {
+        "definition": "D. as C, ischemic only",
+        "strokes": 255,
+        "predictor": "age",
+        "hr": "0.99 (0.98–1.01)",
+        "c": "0.712"
+      },
+      {
+        "definition": "D. as C, ischemic only",
+        "strokes": 255,
+        "predictor": "cad",
+        "hr": "4.29 (2.84–6.48)",
+        "c": "0.712"
+      },
+      {
+        "definition": "D. as C, ischemic only",
+        "strokes": 255,
+        "predictor": "ckd_pre",
+        "hr": "2.23 (1.45–3.43)",
+        "c": "0.712"
+      }
+    ]
+  },
+  "A04": {
+    "horizons": [
+      {
+        "horizon_years": 1,
+        "still_under_observation": 19129,
+        "pct_still_observed": "79.7",
+        "strokes_by_horizon": 140,
+        "deaths_by_horizon": 58,
+        "censored_before_horizon_without_event": 4679,
+        "km_stroke_risk_pct": "0.63 (0.52–0.73)"
+      },
+      {
+        "horizon_years": 3,
+        "still_under_observation": 11866,
+        "pct_still_observed": "49.4",
+        "strokes_by_horizon": 247,
+        "deaths_by_horizon": 100,
+        "censored_before_horizon_without_event": 11793,
+        "km_stroke_risk_pct": "1.34 (1.17–1.51)"
+      },
+      {
+        "horizon_years": 5,
+        "still_under_observation": 6753,
+        "pct_still_observed": "28.1",
+        "strokes_by_horizon": 306,
+        "deaths_by_horizon": 130,
+        "censored_before_horizon_without_event": 16817,
+        "km_stroke_risk_pct": "1.99 (1.75–2.23)"
+      }
+    ],
+    "cif": [
+      {
+        "horizon_years": 1,
+        "km_stroke_pct": "0.627",
+        "aj_stroke_pct": "0.626",
+        "aj_death_pct": "0.261"
+      },
+      {
+        "horizon_years": 3,
+        "km_stroke_pct": "1.336",
+        "aj_stroke_pct": "1.332",
+        "aj_death_pct": "0.537"
+      },
+      {
+        "horizon_years": 5,
+        "km_stroke_pct": "1.992",
+        "aj_stroke_pct": "1.984",
+        "aj_death_pct": "0.863"
+      }
+    ]
+  },
+  "A05": {
+    "reproduction": [
+      {
+        "quantity": "S0(5)",
+        "reproduced": 0.99027729,
+        "stored": 0.99027729,
+        "abs_difference": 3.47e-12
+      },
+      {
+        "quantity": "shrinkage",
+        "reproduced": 0.9796174,
+        "stored": 0.9796174,
+        "abs_difference": 4.07e-12
+      },
+      {
+        "quantity": "mean age (centre)",
+        "reproduced": 41.112745,
+        "stored": 41.112745,
+        "abs_difference": 6.18e-12
+      },
+      {
+        "quantity": "mean Hb deficit (centre)",
+        "reproduced": 0.67095101,
+        "stored": 0.67095101,
+        "abs_difference": 3.06e-12
+      },
+      {
+        "quantity": "beta migraine_any",
+        "reproduced": 0.67590454,
+        "stored": 0.67590454,
+        "abs_difference": 3.3e-12
+      },
+      {
+        "quantity": "beta estrogen",
+        "reproduced": 0.69257843,
+        "stored": 0.69257843,
+        "abs_difference": 4.6e-12
+      },
+      {
+        "quantity": "beta dm",
+        "reproduced": 0.20193947,
+        "stored": 0.20193947,
+        "abs_difference": 4.79e-13
+      },
+      {
+        "quantity": "beta htn",
+        "reproduced": 0.76275867,
+        "stored": 0.76275867,
+        "abs_difference": 2.7e-12
+      },
+      {
+        "quantity": "beta haemoglobinopathy",
+        "reproduced": 1.0627491,
+        "stored": 1.0627491,
+        "abs_difference": 3.55e-11
+      },
+      {
+        "quantity": "beta hb_def",
+        "reproduced": 0.13281833,
+        "stored": 0.13281833,
+        "abs_difference": 2.92e-12
+      },
+      {
+        "quantity": "beta age",
+        "reproduced": -0.010722823,
+        "stored": -0.010722823,
+        "abs_difference": 3.9e-13
+      },
+      {
+        "quantity": "beta cad",
+        "reproduced": 1.4301849,
+        "stored": 1.4301849,
+        "abs_difference": 2.56e-11
+      },
+      {
+        "quantity": "beta ckd_pre",
+        "reproduced": 0.68031337,
+        "stored": 0.68031337,
+        "abs_difference": 7.21e-13
+      },
+      {
+        "quantity": "apparent C",
+        "reproduced": 0.70540343,
+        "stored": 0.705,
+        "abs_difference": 0.000403
+      },
+      {
+        "quantity": "optimism-corrected C",
+        "reproduced": 0.70084164,
+        "stored": 0.701,
+        "abs_difference": 0.000158
+      }
+    ],
+    "discrepancies": [
+      {
+        "comparison": "model: independent R vs spec",
+        "max_abs_difference": 8.88e-09
+      },
+      {
+        "comparison": "model: spec vs JavaScript",
+        "max_abs_difference": 4.79e-06
+      },
+      {
+        "comparison": "model: JavaScript vs public page (display rounding 0.05)",
+        "max_abs_difference": 0
+      },
+      {
+        "comparison": "points: R vs JavaScript",
+        "max_abs_difference": 0
+      },
+      {
+        "comparison": "points: JavaScript vs local page",
+        "max_abs_difference": 0
+      },
+      {
+        "comparison": "points: JavaScript vs public page",
+        "max_abs_difference": 0
+      },
+      {
+        "comparison": "points-table risk: R vs JavaScript",
+        "max_abs_difference": 0
+      }
+    ]
+  },
+  "A06": {
+    "zph": [
+      [
+        0.226449551991483,
+        1,
+        0.63416902103182
+      ],
+      [
+        0.0674056566359258,
+        1,
+        0.795152283590513
+      ],
+      [
+        0.581985013259012,
+        1,
+        0.445535309282508
+      ],
+      [
+        0.0472170533564659,
+        1,
+        0.827978567598744
+      ],
+      [
+        0.145739009231698,
+        1,
+        0.702641031321101
+      ],
+      [
+        0.587528864652452,
+        1,
+        0.443376285468876
+      ],
+      [
+        2.84371303395752,
+        1,
+        0.0917320181040195
+      ],
+      [
+        0.0274751350719344,
+        1,
+        0.868348775620914
+      ],
+      [
+        0.11101500416673,
+        1,
+        0.738991513964006
+      ],
+      [
+        4.84312674339656,
+        9,
+        0.847763209575257
+      ]
+    ],
+    "func": [
+      {
+        "test": "age: linear vs restricted cubic spline (4 knots)",
+        "lr_chisq": 4.88,
+        "df": 2,
+        "p": "0.087"
+      },
+      {
+        "test": "Hb: hinge at 13 (published) vs RCS(Hb, 4 knots) — AIC difference (hinge − spline)",
+        "lr_chisq": -3.41,
+        "p": ""
+      },
+      {
+        "test": "Hb: hinge at 13 vs linear Hb — AIC difference (hinge − linear)",
+        "lr_chisq": -2.74,
+        "p": ""
+      },
+      {
+        "test": "BMI (14-predictor model): linear per 5 vs RCS(BMI, 4 knots)",
+        "lr_chisq": 0.97,
+        "df": 2,
+        "p": "0.617"
+      },
+      {
+        "test": "migraine × estrogen interaction (pre-specified clinically: Codebook migraine note)",
+        "lr_chisq": 4.19,
+        "df": 1,
+        "p": "0.041"
+      }
+    ],
+    "age": [
+      {
+        "analysis": "crude (age only)",
+        "women": 24006,
+        "strokes": 345,
+        "hr_per_10_years": "0.94 (0.84–1.05)"
+      },
+      {
+        "analysis": "nine-item model (published)",
+        "women": 24006,
+        "strokes": 345,
+        "hr_per_10_years": "0.90 (0.81–1.00)"
+      },
+      {
+        "analysis": "+ number of CBC Hb tests in 2 y before index (utilization proxy)",
+        "women": 24006,
+        "strokes": 345,
+        "hr_per_10_years": "0.90 (0.80–1.00)"
+      },
+      {
+        "analysis": "14-predictor model",
+        "women": 24006,
+        "strokes": 345,
+        "hr_per_10_years": "0.90 (0.80–1.00)"
+      },
+      {
+        "analysis": "women without endometriosis",
+        "women": 12095,
+        "strokes": 173,
+        "hr_per_10_years": "0.83 (0.72–0.96)"
+      },
+      {
+        "analysis": "women without fibroids",
+        "women": 8893,
+        "strokes": 112,
+        "hr_per_10_years": "0.95 (0.77–1.17)"
+      },
+      {
+        "analysis": "events > 30 days after anchor only",
+        "women": 24006,
+        "strokes": 303,
+        "hr_per_10_years": "0.89 (0.79–1.01)"
+      },
+      {
+        "analysis": "events with an acute code only",
+        "women": 24006,
+        "strokes": 328,
+        "hr_per_10_years": "0.91 (0.81–1.01)"
+      },
+      {
+        "analysis": "ischemic stroke only",
+        "women": 24006,
+        "strokes": 301,
+        "hr_per_10_years": "0.91 (0.81–1.02)"
+      },
+      {
+        "analysis": "all anchored women, no Hb requirement (Hb term dropped)",
+        "women": 38332,
+        "strokes": 456,
+        "hr_per_10_years": "0.97 (0.88–1.07)"
+      }
+    ]
+  },
+  "A07": {
+    "points": [
+      {
+        "item": "Age 18–34",
+        "midpoint": 30,
+        "raw": -0,
+        "points": -0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "Age 35–44",
+        "midpoint": 40,
+        "raw": -0.281,
+        "points": -0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "Age 45–54",
+        "midpoint": 50,
+        "raw": -0.562,
+        "points": -1,
+        "half_point_boundary": "within 0.1 of a rounding boundary"
+      },
+      {
+        "item": "Age 55–60",
+        "midpoint": 57.5,
+        "raw": -0.773,
+        "points": -1,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "Hb ≥12",
+        "midpoint": 13.2,
+        "raw": 0,
+        "points": 0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "Hb 10–11.9",
+        "midpoint": 11,
+        "raw": 0.698,
+        "points": 1,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "Hb 8–9.9",
+        "midpoint": 9,
+        "raw": 1.397,
+        "points": 1,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "Hb <8",
+        "midpoint": 7,
+        "raw": 2.095,
+        "points": 2,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "BMI <25",
+        "midpoint": 22,
+        "raw": -0,
+        "points": -0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "BMI 25–29.9",
+        "midpoint": 27.5,
+        "raw": -0.091,
+        "points": -0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "BMI 30–34.9",
+        "midpoint": 32.5,
+        "raw": -0.174,
+        "points": -0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "BMI ≥35",
+        "midpoint": 39,
+        "raw": -0.281,
+        "points": -0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "htn",
+        "raw": 2,
+        "points": 2,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "dm",
+        "raw": 0.533,
+        "points": 1,
+        "half_point_boundary": "within 0.1 of a rounding boundary"
+      },
+      {
+        "item": "dyslipidemia",
+        "raw": 0.041,
+        "points": 0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "smoke",
+        "raw": 0.369,
+        "points": 0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "cad",
+        "raw": 3.649,
+        "points": 4,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "migraine_any",
+        "raw": 1.731,
+        "points": 2,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "ckd_pre",
+        "raw": 1.712,
+        "points": 2,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "haemoglobinopathy",
+        "raw": 2.744,
+        "points": 3,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "endo",
+        "raw": -0.036,
+        "points": -0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "adeno",
+        "raw": 0.043,
+        "points": 0,
+        "half_point_boundary": ""
+      },
+      {
+        "item": "estrogen",
+        "raw": 1.764,
+        "points": 2,
+        "half_point_boundary": ""
+      }
+    ],
+    "score": [
+      {
+        "published_points": 0,
+        "women": 3195,
+        "strokes": 18,
+        "risk_reproduced": 0.731,
+        "risk_calculator": 0.731,
+        "km_observed": "0.97 (0.46–1.48)",
+        "r6_women": 3195,
+        "r6_risk": 0.73
+      },
+      {
+        "published_points": 1,
+        "women": 7439,
+        "strokes": 44,
+        "risk_reproduced": 1.02,
+        "risk_calculator": 1.02,
+        "km_observed": "0.86 (0.55–1.16)",
+        "r6_women": 7439,
+        "r6_risk": 1.02
+      },
+      {
+        "published_points": 2,
+        "women": 4129,
+        "strokes": 35,
+        "risk_reproduced": 1.423,
+        "risk_calculator": 1.423,
+        "km_observed": "1.20 (0.77–1.63)",
+        "r6_women": 4129,
+        "r6_risk": 1.42
+      },
+      {
+        "published_points": 3,
+        "women": 4622,
+        "strokes": 76,
+        "risk_reproduced": 1.983,
+        "risk_calculator": 1.983,
+        "km_observed": "1.94 (1.46–2.41)",
+        "r6_women": 4622,
+        "r6_risk": 1.98
+      },
+      {
+        "published_points": 4,
+        "women": 2270,
+        "strokes": 56,
+        "risk_reproduced": 2.762,
+        "risk_calculator": 2.762,
+        "km_observed": "3.31 (2.31–4.31)",
+        "r6_women": 2270,
+        "r6_risk": 2.76
+      },
+      {
+        "published_points": 5,
+        "women": 1123,
+        "strokes": 42,
+        "risk_reproduced": 3.839,
+        "risk_calculator": 3.839,
+        "km_observed": "4.75 (3.21–6.27)",
+        "r6_women": 1123,
+        "r6_risk": 3.84
+      },
+      {
+        "published_points": 6,
+        "women": 642,
+        "strokes": 18,
+        "risk_reproduced": 5.326,
+        "risk_calculator": 5.326,
+        "km_observed": "3.41 (1.61–5.17)",
+        "r6_women": 642,
+        "r6_risk": 5.33
+      },
+      {
+        "published_points": 7,
+        "women": 285,
+        "strokes": 18,
+        "risk_reproduced": 7.366,
+        "risk_calculator": 7.366,
+        "km_observed": "9.40 (4.88–13.71)",
+        "r6_women": 285,
+        "r6_risk": 7.37
+      },
+      {
+        "published_points": 8,
+        "women": 144,
+        "strokes": 15,
+        "risk_reproduced": 10.144,
+        "risk_calculator": 10.144,
+        "km_observed": "11.84 (4.96–18.22)",
+        "r6_women": 144,
+        "r6_risk": 10.14
+      },
+      {
+        "published_points": 9,
+        "women": 66,
+        "strokes": 11,
+        "risk_reproduced": 13.89,
+        "risk_calculator": 13.89,
+        "km_observed": "17.65 (7.00–27.08)",
+        "r6_women": 66,
+        "r6_risk": 13.89
+      },
+      {
+        "published_points": 10,
+        "women": 56,
+        "strokes": 5,
+        "risk_reproduced": 18.865,
+        "risk_calculator": 18.865,
+        "km_observed": "6.43 (0.00–13.26)",
+        "r6_women": 56,
+        "r6_risk": 18.86
+      },
+      {
+        "published_points": 11,
+        "women": 23,
+        "strokes": 4,
+        "risk_reproduced": 25.342,
+        "risk_calculator": 25.342,
+        "km_observed": "21.33 (0.00–38.34)",
+        "r6_women": 23,
+        "r6_risk": 25.34
+      },
+      {
+        "published_points": 12,
+        "women": 9,
+        "strokes": 2,
+        "risk_reproduced": 33.54,
+        "risk_calculator": 33.54,
+        "km_observed": "28.89 (0.00–56.67)",
+        "r6_women": 9,
+        "r6_risk": 33.54
+      },
+      {
+        "published_points": 13,
+        "women": 3,
+        "strokes": 1,
+        "risk_reproduced": 43.514,
+        "risk_calculator": 43.514,
+        "km_observed": "100.00 ( NA– NA)",
+        "r6_women": 3,
+        "r6_risk": 43.51
+      }
+    ]
+  }
+}
